@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#24391F">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vaaradhi">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<title>Vaaradhi Farms · App Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --ground:#E7ECE0; --paper:#F6F8F2; --card:#FFFFFF; --ink:#1C2719; --muted:#667262; --line:#DFE6D7;
+  --leaf:#24391F; --leaf-2:#3B6A33; --leaf-soft:#E2EBD9; --sun:#B9820F; --sun-2:#F3C661; --sun-soft:#F8ECCB;
+  --red:#A9442F; --red-soft:#F6E0D9; --blue-soft:#E8EEF6; --blue:#2F4A6B; --on-leaf:#F1F5EC;
+  --display:"Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ui:"Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--ground);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.45;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+[hidden]{display:none!important}
+
+/* ---------- top bar ---------- */
+.top{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:16px;background:var(--leaf);color:var(--on-leaf);
+  padding:12px 24px;padding-top:calc(12px + env(safe-area-inset-top,0px))}
+.wm{display:flex;flex-direction:column;line-height:1.15}
+.wm b{font-family:var(--display);font-size:20px;font-weight:800;letter-spacing:-.01em}
+.wm span{font-size:12px;opacity:.72}
+.script{flex:1;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;font-size:12.5px}
+.script span{background:rgba(255,255,255,.08);padding:5px 10px;border-radius:999px;white-space:nowrap}
+.script i{font-style:normal;color:var(--sun-2);font-weight:800;margin-right:5px}
+.demo-btns{display:flex;gap:8px}
+.dbtn{background:rgba(255,255,255,.12);color:#fff;padding:8px 12px;border-radius:10px;font-size:13px;font-weight:700;white-space:nowrap}
+.dbtn.hot{background:var(--sun-2);color:var(--leaf)}
+.seg-view,.demo-toggle{display:none}
+
+/* ---------- stage with two phones ---------- */
+.stage{display:flex;justify-content:center;gap:56px;padding:26px 24px 8px}
+.device{display:flex;flex-direction:column;align-items:center;gap:12px}
+.dlabel{font-family:var(--display);font-weight:800;font-size:16px;color:var(--leaf)}
+.dlabel span{font-family:var(--ui);font-weight:500;color:var(--muted);font-size:13px;margin-left:6px}
+.frame{height:min(820px, calc(100vh - 150px));min-height:600px;aspect-ratio:390/820;border-radius:48px;background:#10180E;padding:10px;
+  box-shadow:0 40px 70px -40px rgba(20,35,15,.65)}
+.app{--hpad:44px;--bpad:6px;position:relative;height:100%;width:100%;border-radius:38px;overflow:hidden;background:var(--paper);display:flex;flex-direction:column}
+.frame .app::before{content:"";position:absolute;top:11px;left:50%;transform:translateX(-50%);width:96px;height:27px;border-radius:14px;background:#10180E;z-index:70}
+.app-body > *{flex-shrink:0}
+.app-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 16px 22px;display:flex;flex-direction:column;gap:14px}
+
+/* ---------- shared app pieces ---------- */
+.c-head{display:flex;justify-content:space-between;align-items:center;padding:var(--hpad) 18px 12px}
+.hello{font-family:var(--display);font-size:21px;font-weight:800;letter-spacing:-.01em}
+.addr{font-size:12.5px;color:var(--muted)}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--leaf-soft);display:grid;place-items:center;font-weight:800;font-size:13px;color:var(--leaf)}
+.m-head{background:var(--leaf);color:var(--on-leaf);padding:var(--hpad) 18px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.m-brand{font-family:var(--display);font-size:19px;font-weight:800}
+.m-sub{font-size:12px;opacity:.72}
+.pill{font-size:11.5px;font-weight:800;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.14);white-space:nowrap}
+.pill.locked{background:var(--sun-2);color:var(--leaf)}
+.pill.delivered{background:#CFE5C4;color:var(--leaf)}
+.h-title{font-family:var(--display);font-size:22px;font-weight:800;padding:var(--hpad) 18px 10px;letter-spacing:-.01em}
+
+.banner{display:flex;justify-content:space-between;gap:12px;align-items:center;border-radius:16px;padding:12px 14px;background:var(--leaf);color:var(--on-leaf)}
+.banner b{display:block;font-size:14px}
+.banner span{font-size:12px;opacity:.82}
+.banner .cd{text-align:right;flex:none}
+.banner .cd b{color:var(--sun-2)}
+.banner.locked{background:var(--sun-soft);color:var(--ink)}
+.banner.done{background:var(--leaf-soft);color:var(--ink)}
+
+.chips{display:flex;gap:8px;overflow-x:auto;margin:0 -16px;padding:0 16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;padding:7px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:13px;font-weight:700}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.list{display:flex;flex-direction:column;gap:10px}
+.prod{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;background:var(--card);border-radius:16px;padding:10px;border:1px solid var(--line)}
+.tile{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:28px;line-height:1}
+.tile.sm{width:40px;height:40px;font-size:21px;border-radius:12px}
+.tile.xs{width:32px;height:32px;font-size:18px;border-radius:10px}
+.tile.lg{width:60px;height:60px;font-size:32px;border-radius:16px}
+.pname{font-weight:700;font-size:14.5px;line-height:1.25}
+.punit{font-size:12px;color:var(--muted)}
+.pprice{font-weight:800;font-size:14px;margin-top:3px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.mine{font-size:10.5px;font-weight:800;color:var(--leaf-2);background:var(--leaf-soft);padding:2px 7px;border-radius:999px}
+.pact{display:flex;flex-direction:column;gap:6px}
+
+.btn{border-radius:12px;font-weight:800;padding:10px 14px;font-size:14px}
+.btn.sm{padding:7px 10px;font-size:12.5px;border-radius:10px}
+.btn.xs{padding:6px 9px;font-size:12px;border-radius:9px;background:var(--leaf-2);color:#fff}
+.btn.primary{background:var(--leaf-2);color:#fff}
+.btn.ghost{background:var(--leaf-soft);color:var(--leaf)}
+.btn.block{width:100%;padding:14px;font-size:15px}
+
+.sec{margin:6px 2px -6px;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:2px 12px}
+.line{display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.line:last-child,.plan:last-child,.cust:last-child,.led:last-child,.prow:last-child,.fi:last-child{border-bottom:0}
+.meta{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:1px}
+.line.off .pname{color:var(--muted);text-decoration:line-through}
+.tag{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.tag.pz{background:var(--sun-soft);color:#7A560A}
+.tag.one{background:var(--blue-soft);color:var(--blue)}
+.tag.ok{background:var(--leaf-soft);color:var(--leaf-2)}
+.step{display:flex;align-items:center;gap:2px;background:var(--leaf-soft);border-radius:10px}
+.step button{width:30px;height:30px;font-size:17px;font-weight:800;color:var(--leaf)}
+.step b{min-width:18px;text-align:center;font-size:14px}
+.lact{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.link{font-size:12px;font-weight:800;color:var(--leaf-2)}
+.link.red{color:var(--red)}
+.amtline{font-weight:800;font-size:13.5px}
+.total{display:flex;justify-content:space-between;align-items:baseline;padding:12px 2px 0;font-weight:800;font-size:15px}
+.save{font-size:12.5px;color:var(--leaf-2);font-weight:700;padding:0 2px}
+
+.vac{display:flex;flex-direction:column;gap:2px;text-align:left;width:100%;background:var(--sun-soft);border-radius:16px;padding:14px}
+.vac b{font-size:15px}
+.vac span{font-size:12.5px;color:#5E5236}
+.vac.on{background:var(--leaf);color:var(--on-leaf)}
+.vac.on span{color:#D6E2CF}
+.vac.on button{align-self:flex-start;margin-top:10px;background:var(--sun-2);color:var(--leaf);padding:8px 12px;border-radius:10px;font-weight:800;font-size:13px}
+
+.plan{display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.pstat{font-size:11.5px;font-weight:800;margin-top:2px}
+.pstat.ok{color:var(--leaf-2)} .pstat.pz{color:var(--sun)} .pstat.x{color:var(--red)} .pstat.n{color:var(--blue)}
+.pbtns{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+
+.wal{background:var(--leaf);color:var(--on-leaf);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:4px}
+.wal>span{font-size:12.5px;opacity:.8}
+.wal>b{font-family:var(--display);font-size:36px;font-weight:800;letter-spacing:-.01em}
+.wal-row{display:flex;justify-content:space-between;font-size:13px;border-top:1px solid rgba(255,255,255,.16);padding-top:10px;margin-top:6px}
+.wal button{margin-top:10px;align-self:flex-start;background:var(--sun-2);color:var(--leaf);padding:9px 14px;border-radius:10px;font-weight:800;font-size:13px}
+.note{font-size:12.5px;color:var(--muted);background:var(--card);border:1px dashed #C9D3BF;border-radius:14px;padding:10px 12px}
+.ldate{font-size:11.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;padding:12px 0 2px}
+.led{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.led .amt{font-weight:800;white-space:nowrap}
+.amt.in{color:var(--leaf-2)} .amt.zero{color:var(--sun)}
+
+.nav{display:flex;border-top:1px solid var(--line);background:var(--card);padding:6px 6px calc(8px + var(--bpad))}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:700;color:var(--muted);padding:4px 0;position:relative}
+.nav button.on{color:var(--leaf-2)}
+.nav svg{width:22px;height:22px}
+
+/* merchant */
+.m-date{display:flex;flex-direction:column;padding-top:14px}
+.m-date b{font-family:var(--display);font-size:21px;font-weight:800}
+.m-date span{font-size:12.5px;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpis.two{grid-template-columns:1fr 1fr}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;position:relative}
+.kpi span{font-size:11px;color:var(--muted);font-weight:700;display:block}
+.kpi b{font-family:var(--display);font-size:20px;font-weight:800}
+.kpi.chg{animation:flash 1.8s}
+.delta{font-size:11px;font-weight:800;padding:1px 6px;border-radius:999px;background:var(--red-soft);color:var(--red);animation:pop .35s ease-out}
+.delta.up{background:var(--leaf-soft);color:var(--leaf-2)}
+.kpi .delta{position:absolute;top:7px;right:7px}
+.prow{display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.prow .q{font-family:var(--display);font-size:19px;font-weight:800;display:flex;align-items:center;gap:6px}
+.prow.chg{animation:flash 1.8s}
+@keyframes flash{0%,30%{background:var(--sun-soft)}100%{background:transparent}}
+@keyframes pop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+.saved{font-size:12.5px;background:var(--sun-soft);border-radius:12px;padding:10px 12px;color:#5E5236}
+.feed{display:flex;flex-direction:column}
+.fi{display:grid;grid-template-columns:10px 1fr auto;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px;align-items:start}
+.fi .d{width:8px;height:8px;border-radius:50%;margin-top:6px;background:var(--leaf-2)}
+.fi.pause .d,.fi.skip .d{background:var(--sun)}
+.fi.cancel .d{background:var(--red)}
+.fi.lock .d{background:var(--ink)}
+.fi time{font-size:11px;color:var(--muted);white-space:nowrap}
+.prog{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.prog .row{display:flex;justify-content:space-between;font-size:13px;font-weight:700}
+.bar{height:8px;border-radius:4px;background:var(--leaf-soft);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--leaf-2);transition:width .4s}
+.area{display:flex;justify-content:space-between;font-weight:800;font-size:13px;padding:4px 2px 0;color:var(--leaf)}
+.area span{color:var(--muted);font-weight:700}
+.stop{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.stop.me{border-color:var(--sun)}
+.stop.done{opacity:.55}
+.stop.away{background:transparent;border-style:dashed}
+.sname{font-weight:800;font-size:14px}
+.sitems{font-size:12px;color:var(--muted)}
+.sact{display:flex;flex-direction:column;align-items:flex-end;gap:5px;font-size:13px;font-weight:800}
+.okt{font-size:12px;font-weight:800;color:var(--leaf-2)}
+.you{font-size:10px;font-weight:800;background:var(--sun-soft);color:#7A560A;padding:1px 6px;border-radius:999px;vertical-align:2px;margin-left:4px}
+.cust{display:grid;grid-template-columns:36px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.ini{width:36px;height:36px;border-radius:50%;background:var(--leaf-soft);display:grid;place-items:center;font-weight:800;font-size:12px;color:var(--leaf)}
+.st{font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.st.a{background:var(--leaf-soft);color:var(--leaf-2)} .st.p{background:var(--sun-soft);color:#7A560A} .st.n{background:var(--blue-soft);color:var(--blue)}
+.ccount{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.earn{background:var(--leaf);color:var(--on-leaf);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:3px;margin-top:14px}
+.earn b{font-family:var(--display);font-size:34px;font-weight:800}
+.earn span{font-size:12.5px;opacity:.8}
+
+/* sheets + toasts */
+.scrim{position:absolute;inset:0;background:rgba(16,24,14,.45);z-index:30;animation:fade .2s}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--paper);border-radius:24px 24px 0 0;padding:10px 18px calc(18px + var(--bpad));z-index:31;
+  display:flex;flex-direction:column;gap:14px;max-height:90%;overflow-y:auto;animation:up .25s ease-out}
+.grab{width:40px;height:4px;border-radius:2px;background:#CBD5C1;align-self:center}
+.sh-head{display:flex;gap:12px;align-items:center}
+.sh-title{font-family:var(--display);font-size:19px;font-weight:800;line-height:1.2}
+.field{display:flex;flex-direction:column;gap:7px}
+.field.row{flex-direction:row;justify-content:space-between;align-items:center}
+.field label{font-size:11.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{padding:8px 12px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:13px;font-weight:700}
+.seg button.on{background:var(--leaf-2);border-color:var(--leaf-2);color:#fff}
+.static{font-size:13.5px}
+.sum{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sum div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+.sum span{display:block;font-size:11.5px;color:var(--muted)}
+.sum b{font-size:17px}
+.fine{font-size:12px;color:var(--muted);margin:0}
+.toast{position:absolute;left:12px;right:12px;top:calc(var(--hpad) + 52px);z-index:40;background:var(--sun-2);color:var(--leaf);border-radius:14px;padding:11px 14px;
+  font-size:13px;font-weight:700;box-shadow:0 14px 30px -12px rgba(0,0,0,.45);animation:drop .35s ease-out}
+.toast small{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;opacity:.75;font-weight:800}
+.toast.c{top:auto;bottom:calc(74px + var(--bpad));background:var(--ink);color:#fff}
+.toast.still{animation:none}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes drop{from{transform:translateY(-14px);opacity:0}to{transform:none;opacity:1}}
+
+/* how it works */
+.how{max-width:1080px;margin:0 auto;padding:44px 24px 56px}
+.how h2{font-family:var(--display);font-size:34px;font-weight:800;color:var(--leaf);margin:0 0 6px;letter-spacing:-.015em;text-wrap:balance}
+.how .sub{color:var(--muted);margin:0 0 26px;max-width:62ch}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.steps li{background:var(--card);border-radius:18px;padding:16px;border:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.steps time{font-size:12px;font-weight:800;color:var(--sun);letter-spacing:.03em}
+.steps b{font-family:var(--display);font-size:17px;font-weight:800}
+.steps p{margin:0;font-size:13.5px;color:var(--muted)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.col{background:var(--leaf);color:var(--on-leaf);border-radius:18px;padding:20px}
+.col.light{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.col h3{font-family:var(--display);margin:0 0 10px;font-size:19px;font-weight:800}
+.col ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:7px;font-size:14px}
+.foot{font-size:12px;color:var(--muted);margin-top:22px}
+
+/* ---------- phone / narrow mode ---------- */
+@media (max-width: 899px){
+  html,body{height:100%}
+  body{display:flex;flex-direction:column;height:100dvh;overflow:hidden;background:var(--paper)}
+  .top{position:relative;padding:8px 10px;padding-top:calc(8px + env(safe-area-inset-top,0px));gap:8px}
+  .wm,.script{display:none}
+  .seg-view{display:flex;flex:1;background:rgba(255,255,255,.1);border-radius:11px;padding:3px}
+  .seg-view button{flex:1;padding:8px 2px;border-radius:8px;font-size:12.5px;font-weight:800;color:#D6E2CF;position:relative}
+  .seg-view button.on{background:var(--on-leaf);color:var(--leaf)}
+  .bdg{position:absolute;top:-4px;right:2px;background:var(--red);color:#fff;font-size:10px;font-style:normal;min-width:17px;height:17px;border-radius:9px;display:grid;place-items:center;padding:0 4px}
+  .demo-toggle{display:block;padding:9px 10px}
+  .demo-btns{display:none}
+  .demo-btns.open{display:flex;flex-direction:column;position:absolute;top:100%;right:8px;background:var(--leaf);padding:10px;border-radius:14px;box-shadow:0 18px 40px -16px rgba(0,0,0,.6);min-width:230px}
+  .demo-btns.open .dbtn{padding:12px 14px;text-align:left}
+  .stage{flex:1;min-height:0;padding:0;gap:0;display:block}
+  .device{display:none;height:100%;align-items:stretch;gap:0}
+  .dlabel{display:none}
+  .frame{height:100%;min-height:0;width:100%;aspect-ratio:auto;border-radius:0;padding:0;background:none;box-shadow:none}
+  .app{--hpad:14px;--bpad:env(safe-area-inset-bottom,0px);border-radius:0}
+  .frame .app::before{display:none}
+  .toast{top:calc(var(--hpad) + 50px)}
+  body[data-view="customer"] #cust, body[data-view="merchant"] #merch{display:flex}
+  .how{display:none}
+  body[data-view="how"] .stage{display:none}
+  body[data-view="how"] .how{display:block;flex:1;min-height:0;overflow-y:auto;padding:24px 16px calc(40px + env(safe-area-inset-bottom,0px));max-width:none}
+  .how h2{font-size:27px}
+  .steps,.cols{grid-template-columns:1fr}
+}
+@media (min-width:900px) and (max-width:1180px){ .steps{grid-template-columns:repeat(3,1fr)} }
+@media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
+</style>
+</head>
+<body data-view="customer">
+
+<header class="top">
+  <div class="wm"><b>Vaaradhi Farms</b><span>Subscription app · live demo</span></div>
+  <div class="seg-view" role="tablist">
+    <button data-a="view" data-v="customer" id="vCust">Customer</button>
+    <button data-a="view" data-v="merchant" id="vMerch">Vaaradhi<i class="bdg" id="bdg" hidden></i></button>
+    <button data-a="view" data-v="how" id="vHow">How it works</button>
+  </div>
+  <div class="script" aria-label="Demo script">
+    <span><i>1</i>Pause for a trip</span><span><i>2</i>Add fruit for tomorrow</span><span><i>3</i>Subscribe to something new</span><span><i>4</i>Lock at 9 PM</span><span><i>5</i>Run deliveries</span>
+  </div>
+  <button class="dbtn demo-toggle" data-a="demo">Demo ▾</button>
+  <div class="demo-btns" id="demoBtns">
+    <button class="dbtn hot" data-a="lock" id="bLock">Skip to 9:01 PM</button>
+    <button class="dbtn" data-a="morning" id="bMorn">Run morning deliveries</button>
+    <button class="dbtn" data-a="reset">Reset demo</button>
+  </div>
+</header>
+
+<main class="stage">
+  <section class="device" id="cust">
+    <div class="dlabel">Customer app<span>what your customers see</span></div>
+    <div class="frame"><div class="app" id="custApp"></div></div>
+  </section>
+  <section class="device" id="merch">
+    <div class="dlabel">Vaaradhi app<span>what you see</span></div>
+    <div class="frame"><div class="app" id="merchApp"></div></div>
+  </section>
+</main>
+
+<section class="how" id="how">
+  <h2>How a day works</h2>
+  <p class="sub">Customers decide the night before. Vaaradhi wakes up to an exact list, packs only what was ordered, and gets paid only for what was delivered.</p>
+  <ol class="steps">
+    <li><time>Anytime till 9:00 PM</time><b>Customers decide</b><p>Subscribe, add extras for tomorrow, skip a day or pause for a trip. No calls or WhatsApp messages.</p></li>
+    <li><time>9:00 PM</time><b>Tomorrow's list locks</b><p>Vaaradhi gets the prep sheet: exact items and quantities, so nothing is made that won't be bought.</p></li>
+    <li><time>5:00 AM</time><b>Pack by area</b><p>Stops come grouped by area, from Manikonda to Gachibowli and Kondapur, so the run is planned already.</p></li>
+    <li><time>6:30 – 8:00 AM</time><b>Deliver</b><p>Each stop is marked delivered. Customers who paused are left off the list automatically.</p></li>
+    <li><time>After delivery</time><b>Billing runs itself</b><p>Customers pay from a prepaid wallet, only for what arrived. The money reaches Vaaradhi's bank the next day.</p></li>
+  </ol>
+  <div class="cols">
+    <div class="col"><h3>For Vaaradhi</h3><ul>
+      <li>Your own app with your name on it</li>
+      <li>Daily repeat orders instead of one-off orders</li>
+      <li>Know tomorrow's demand by 9 PM tonight, so there's less waste</li>
+      <li>No commission on orders, and the customer relationship stays yours</li>
+      <li>Payments collected automatically, with no chasing</li>
+    </ul></div>
+    <div class="col light"><h3>For your customers</h3><ul>
+      <li>Fresh breakfast, fruit and vegetables every morning without ordering each day</li>
+      <li>Add something extra for tomorrow in two taps</li>
+      <li>Pause for a trip and pay nothing while they're away</li>
+      <li>One wallet and a clear record of every charge</li>
+    </ul></div>
+  </div>
+  <p class="foot">Concept demo with sample products, customers and prices. Built by Scribr for Vaaradhi Farms, Manikonda.</p>
+</section>
+
+<script>
+/* =====================================================================
+   EDIT THIS: Vaaradhi's menu. Swap names, units and prices for real ones.
+   ===================================================================== */
+const PRODUCTS = [
+  {id:'pongal',   name:'Millet Pongal Box',      cat:'Breakfast',       unit:'1 box · serves 1', price:120, e:'🍲', tint:'#F6E7C2'},
+  {id:'batter',   name:'Ragi Dosa Batter',       cat:'Breakfast',       unit:'1 kg',             price:110, e:'🥞', tint:'#EFE3D3'},
+  {id:'bowl',     name:'Sprouts & Fruit Bowl',   cat:'Breakfast',       unit:'350 g',            price:99,  e:'🥗', tint:'#E2EBD9'},
+  {id:'juice',    name:'Cold-pressed ABC Juice', cat:'Breakfast',       unit:'300 ml',           price:89,  e:'🧃', tint:'#F6E0D9'},
+  {id:'fruitbox', name:'Seasonal Fruit Box',     cat:'Fruits',          unit:'1 kg mixed',       price:180, e:'🍎', tint:'#F6E0D9'},
+  {id:'banana',   name:'Organic Bananas',        cat:'Fruits',          unit:'6 pcs',            price:60,  e:'🍌', tint:'#F8ECCB'},
+  {id:'vegbasket',name:'Daily Veg Basket',       cat:'Vegetables',      unit:'1 kg mixed',       price:140, e:'🥕', tint:'#F8E2CC'},
+  {id:'greens',   name:'Leafy Greens Bundle',    cat:'Vegetables',      unit:'3 bunches',        price:45,  e:'🥬', tint:'#E2EBD9'},
+  {id:'milk',     name:'A2 Cow Milk',            cat:'Dairy & Staples', unit:'500 ml',           price:55,  e:'🥛', tint:'#ECEFF3'},
+  {id:'curd',     name:'Farm Curd',              cat:'Dairy & Staples', unit:'500 g',            price:70,  e:'🥣', tint:'#ECEFF3'},
+  {id:'eggs',     name:'Country Eggs',           cat:'Dairy & Staples', unit:'6 pcs',            price:90,  e:'🥚', tint:'#F3EEE4'},
+];
+const CATS = ['All','Breakfast','Fruits','Vegetables','Dairy & Staples'];
+const CUSTOMERS = [
+  ['me','Ananya Rao','Manikonda'],['c1','Rahul Kumar','Gachibowli'],['c2','Sneha Reddy','Kondapur'],['c3','Farhan Ali','Tolichowki'],
+  ['c4','Priya Sharma','Narsingi'],['c5','Vikram Goud','Puppalaguda'],['c6','Meera Iyer','Financial District'],['c7','Arjun Varma','Kokapet'],
+  ['c8','Lakshmi Devi','Manikonda'],['c9','Karthik Nair','Madhapur'],['c10','Divya Menon','Gachibowli'],['c11','Sameer Khan','Tolichowki'],
+  ['c12','Pooja Agarwal','Jubilee Hills'],['c13','Ravi Teja','Kondapur'],['c14','Nandini Pillai','Narsingi'],['c15','Aditya Jain','Financial District'],
+  ['c16','Swathi Kumari','Puppalaguda'],['c17','Imran Shaikh','Manikonda'],['c18','Harsha Vardhan','Kokapet'],['c19','Kavya Murthy','Madhapur'],
+  ['c20','Suresh Babu','Manikonda'],['c21','Anjali Gupta','Jubilee Hills'],['c22','Rohit Bansal','Gachibowli'],['c23','Tejaswini Rao','Kondapur'],
+  ['c24','Naveen Chandra','Narsingi'],
+].map(([id,name,area])=>({id,name,area}));
+const AREAS = ['Manikonda','Puppalaguda','Narsingi','Kokapet','Financial District','Gachibowli','Kondapur','Madhapur','Tolichowki','Jubilee Hills'];
+const FREQ = {daily:'Daily', alternate:'Alternate days', weekdays:'Mon – Fri', weekends:'Sat & Sun'};
+const PERMONTH = {daily:30, alternate:15, weekdays:22, weekends:8};
+const CUTOFF = '9:00 PM';
+
+/* ---------- dates ---------- */
+const DAY = 86400000;
+const atMidnight = d => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
+const TODAY = atMidnight(new Date());
+const addD = n => new Date(TODAY.getTime() + n*DAY + 3*3600000); // +3h guards against DST edges
+const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const parse = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d, 12); };
+const plus = (s,n) => iso(new Date(parse(s).getTime() + n*DAY));
+const diffDays = (a,b) => Math.round((parse(b) - parse(a)) / DAY);
+const TDY = iso(addD(0)), TMR = iso(addD(1)), DAT = iso(addD(2));
+const fmtD = s => parse(s).toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'});
+const fmtS = s => parse(s).toLocaleDateString('en-IN', {day:'numeric', month:'short'});
+
+/* ---------- lookups + formatting ---------- */
+const P = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
+const C = Object.fromEntries(CUSTOMERS.map(c => [c.id, c]));
+const rs = n => '₹' + Math.round(n).toLocaleString('en-IN');
+const sgn = n => n > 0 ? '+' + rs(n) : n < 0 ? '−' + rs(-n) : '₹0';
+const short = id => { const [f, l] = C[id].name.split(' '); return f + (l ? ' ' + l[0] + '.' : ''); };
+const initials = id => C[id].name.split(' ').map(w => w[0]).join('').slice(0,2);
+
+/* ---------- state ---------- */
+const KEY = 'vaaradhi-demo-v1';
+let S;
+const ui = {view:'customer', cTab:'shop', cCat:'All', mTab:'today', sheet:null, cToast:null, mToast:null, demoOpen:false,
+            confirmCancel:null, prevPrep:null, prevKpi:null, flash:{}, shownToast:{}};
+
+function seed(){
+  let s = 7; const r = () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+  const subs = []; let n = 1;
+  const add = (cust, prod, freq, qty, startOff) => {
+    const sub = {id:'s'+(n++), cust, prod, freq, qty, start:iso(addD(startOff)), pausedFrom:null, cancelledFrom:null, isNew:false};
+    subs.push(sub); return sub;
+  };
+  add('me','milk','daily',1,-21); add('me','pongal','daily',1,-21); add('me','greens','alternate',1,-11);
+  const seedFreqs = ['daily','daily','daily','alternate','weekends','weekdays'];
+  CUSTOMERS.slice(1).forEach(c => {
+    const k = 1 + Math.floor(r()*3), picks = new Set();
+    while (picks.size < k) picks.add(PRODUCTS[Math.floor(r()*PRODUCTS.length)].id);
+    picks.forEach(pid => add(c.id, pid, seedFreqs[Math.floor(r()*seedFreqs.length)], (pid==='milk' && r() > .4) ? 2 : 1, -2 - Math.floor(r()*20)));
+  });
+  const rahul = add('c1','milk','daily',2,1); rahul.isNew = true;
+  const harshaSub = subs.find(x => x.cust === 'c18'); harshaSub.pausedFrom = iso(addD(-2));
+
+  const st = {day:TDY, phase:'open', subs, vac:{c2:{from:TDY, to:iso(addD(3))}, c6:{from:TMR, to:iso(addD(7))}},
+    ovr:{}, extras:[{id:1, cust:'c3', prod:'eggs', qty:1}, {id:2, cust:'c12', prod:'fruitbox', qty:1}],
+    done:{}, meSettled:false, snapshot:null, ledger:[], seq:0, feed:[], unread:0, simStart:Date.now(), lockedAt:null};
+  S = st;
+  const led = (date, text, amt, kind) => st.ledger.push({date, text, amt, kind, seq:st.seq++});
+  led(iso(addD(-6)), 'Added to wallet via UPI', 3000, 'in');
+  for (let d = -5; d <= 0; d++) {
+    const day = iso(addD(d));
+    subs.filter(x => x.cust === 'me' && delivers(x, day)).forEach(x => led(day, 'Delivered · ' + P[x.prod].name + ' × ' + x.qty, -x.qty*P[x.prod].price, 'out'));
+  }
+  st.feed = [
+    {t:'7:31 PM', kind:'new',   text:`Rahul K. subscribed to A2 Cow Milk × 2 · Daily · starts ${fmtD(TMR)}`},
+    {t:'6:52 PM', kind:'add',   text:'Pooja A. added Seasonal Fruit Box × 1 for tomorrow'},
+    {t:'5:40 PM', kind:'pause', text:`Meera I. is away ${fmtS(TMR)} – ${fmtS(iso(addD(7)))}. Deliveries paused, no charge.`},
+    {t:'4:12 PM', kind:'add',   text:'Farhan A. added Country Eggs × 1 for tomorrow'},
+    {t:'Yesterday', kind:'pause', text:`Harsha V. paused ${P[harshaSub.prod].name}`},
+  ];
+  return st;
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.day === TDY) return s; } catch(e){} return null; }
+
+/* ---------- subscription rules ---------- */
+function freqOk(f, start, d){
+  const dow = parse(d).getDay();
+  if (f === 'daily') return true;
+  if (f === 'weekdays') return dow >= 1 && dow <= 5;
+  if (f === 'weekends') return dow === 0 || dow === 6;
+  if (f === 'alternate') return diffDays(start, d) % 2 === 0;
+  return false;
+}
+function delivers(s, d){ if (d < s.start) return false; if (s.cancelledFrom && d >= s.cancelledFrom) return false; return freqOk(s.freq, s.start, d); }
+function pausedOn(s, d){
+  if (s.pausedFrom && d >= s.pausedFrom) return true;
+  const v = S.vac[s.cust];
+  return !!(v && d >= v.from && (!v.to || d <= v.to));
+}
+function firstDelivery(s){ for (let i = 0; i < 14; i++){ const d = plus(s.start, i); if (delivers(s, d)) return d; } return s.start; }
+const editFrom = () => S.phase === 'open' ? TMR : DAT;   // the 9 PM rule
+
+function computeLines(){
+  const out = [];
+  for (const s of S.subs){
+    if (!delivers(s, TMR)) continue;
+    const o = S.ovr[s.id] || {}, qty = o.qty || s.qty;
+    const status = pausedOn(s, TMR) ? 'paused' : o.skip ? 'skipped' : 'ok';
+    out.push({cust:s.cust, prod:s.prod, qty, subId:s.id, amt:qty*P[s.prod].price, status, kind:'plan', freq:s.freq});
+  }
+  S.extras.forEach(x => out.push({cust:x.cust, prod:x.prod, qty:x.qty, xid:x.id, amt:x.qty*P[x.prod].price, status:'ok', kind:'extra'}));
+  return out;
+}
+const lines = () => S.phase === 'open' ? computeLines() : S.snapshot;
+const okLines = () => lines().filter(l => l.status === 'ok');
+function stops(){
+  const m = {};
+  okLines().forEach(l => { (m[l.cust] = m[l.cust] || {cust:l.cust, area:C[l.cust].area, lines:[], amt:0}); m[l.cust].lines.push(l); m[l.cust].amt += l.amt; });
+  return Object.values(m).sort((a,b) => AREAS.indexOf(a.area) - AREAS.indexOf(b.area) || (a.cust === 'me' ? -1 : b.cust === 'me' ? 1 : 0));
+}
+function prep(){ const m = {}; okLines().forEach(l => m[l.prod] = (m[l.prod] || 0) + l.qty); return m; }
+function dayRevenue(d){ let amt = 0, n = 0; S.subs.forEach(s => { if (!s.isNew && delivers(s, d) && !pausedOn(s, d)) { amt += s.qty*P[s.prod].price; n++; } }); return {amt, n}; }
+const balance = () => S.ledger.reduce((a, l) => a + l.amt, 0);
+
+/* ---------- sim clock ---------- */
+function simMin(){
+  if (S.phase === 'locked') return 21*60 + 1 + Math.floor((Date.now() - S.lockedAt) / 60000);
+  if (S.phase === 'delivered') return null;
+  return Math.min(20*60 + 58, 19*60 + 42 + Math.floor((Date.now() - S.simStart) / 60000));
+}
+function clock(){
+  const m = simMin(); if (m == null) return '8:04 AM';
+  let h = Math.floor(m/60) % 24; const mm = m % 60, ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
+  return h + ':' + String(mm).padStart(2,'0') + ' ' + ap;
+}
+function leftText(){ const l = 21*60 - simMin(), h = Math.floor(l/60), mm = l % 60; return (h ? h + 'h ' : '') + mm + 'm left'; }
+
+/* ---------- notifications ---------- */
+let mTimer, cTimer;
+function notify(text, kind, key){
+  if (key && S.feed[0] && S.feed[0].key === key){ S.feed[0].text = text; S.feed[0].t = clock(); }
+  else { S.feed.unshift({t:clock(), text, kind, key}); if (ui.view !== 'merchant') S.unread++; }
+  ui.mToast = {text, id:Date.now() + Math.random()};
+  clearTimeout(mTimer); mTimer = setTimeout(() => { ui.mToast = null; render(); }, 4200);
+}
+function toastC(text){
+  ui.cToast = {text, id:Date.now() + Math.random()};
+  clearTimeout(cTimer); cTimer = setTimeout(() => { ui.cToast = null; render(); }, 3600);
+}
+
+/* ---------- icons ---------- */
+const I = {
+  shop:'<path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+  sun:'<path d="M3 18h18"/><path d="M7 18a5 5 0 0 1 10 0"/><path d="M12 5v3M5.2 9.2l2 2M18.8 9.2l-2 2"/>',
+  wallet:'<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1.2"/>',
+  list:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="M8.5 12h7M8.5 16h5"/>',
+  truck:'<path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
+  people:'<circle cx="9" cy="8" r="3.2"/><path d="M3 19c.8-3.2 3.2-5 6-5s5.2 1.8 6 5"/><path d="M16 5.5a3 3 0 0 1 0 5.6M18 14.5c1.6.6 2.7 2 3 4.5"/>',
+  chart:'<path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 15l3.5-4 3 2.5L20 7"/>',
+};
+const icon = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
+const nav = (tabs, cur, act) => `<nav class="nav">${tabs.map(([k,label,ic]) => `<button class="${cur===k?'on':''}" data-a="${act}" data-v="${k}">${icon(ic)}${label}</button>`).join('')}</nav>`;
+const tile = (p, size='') => `<div class="tile ${size}" style="background:${p.tint}">${p.e}</div>`;
+const stepper = (a, id, q) => `<div class="step"><button data-a="${a}" data-v="${id}|-1" aria-label="Less">−</button><b>${q}</b><button data-a="${a}" data-v="${id}|1" aria-label="More">+</button></div>`;
+function toastHTML(t, which, cls){
+  if (!t) return '';
+  const still = ui.shownToast[which] === t.id ? ' still' : ''; ui.shownToast[which] = t.id;
+  return `<div class="toast ${cls}${still}" role="status">${which==='m' ? '<small>New update</small>' : ''}${t.text}</div>`;
+}
+
+/* =====================================================================
+   CUSTOMER APP
+   ===================================================================== */
+function banner(){
+  if (S.phase === 'open') return `<div class="banner"><div><b>Tomorrow, ${fmtD(TMR)}</b><span>Delivery 6:30 – 8:00 AM</span></div><div class="cd"><b>${leftText()}</b><span>Changes close ${CUTOFF}</span></div></div>`;
+  if (S.phase === 'locked') return `<div class="banner locked"><div><b>Tomorrow's basket is locked</b><span>It's being packed for ${fmtD(TMR)}. Any change you make now starts ${fmtD(DAT)}.</span></div></div>`;
+  return `<div class="banner done"><div><b>Delivered this morning</b><span>${fmtD(TMR)} · 7:12 AM · paid from your wallet</span></div></div>`;
+}
+function shopBody(){
+  const mine = {}; S.subs.forEach(s => { if (s.cust === 'me' && !s.cancelledFrom) mine[s.prod] = s; });
+  const items = PRODUCTS.filter(p => ui.cCat === 'All' || p.cat === ui.cCat);
+  return `${banner()}
+  <div class="chips">${CATS.map(c => `<button class="chip ${ui.cCat===c?'on':''}" data-a="cat" data-v="${c}">${c}</button>`).join('')}</div>
+  <div class="list">${items.map(p => `<div class="prod">${tile(p)}
+    <div><div class="pname">${p.name}</div><div class="punit">${p.unit}</div>
+      <div class="pprice">${rs(p.price)}${mine[p.id] ? `<span class="mine">On your plan · ${FREQ[mine[p.id].freq]}</span>` : ''}</div></div>
+    <div class="pact"><button class="btn sm primary" data-a="sub-open" data-v="${p.id}">Subscribe</button>
+      <button class="btn sm ghost" data-a="add-open" data-v="${p.id}" ${S.phase!=='open'?'disabled':''}>+ Tomorrow</button></div></div>`).join('')}</div>`;
+}
+function vacRangeText(v){ return v.to ? `${fmtS(v.from)} – ${fmtS(v.to)}` : `from ${fmtS(v.from)} until you resume`; }
+function tomorrowBody(){
+  const open = S.phase === 'open', my = lines().filter(l => l.cust === 'me');
+  const delivered = S.phase === 'delivered';
+  const rows = my.map(l => {
+    const p = P[l.prod], off = l.status !== 'ok';
+    const sub = l.kind === 'extra' ? '<span class="tag one">One-time</span>' : FREQ[l.freq];
+    let right;
+    if (off) right = `<div class="lact"><span class="tag pz">${l.status === 'paused' ? 'Paused' : 'Skipped'} · ₹0</span>${open && l.status === 'skipped' ? `<button class="link" data-a="t-skip" data-v="${l.subId}">Undo</button>` : ''}</div>`;
+    else if (open) right = `<div class="lact">${stepper(l.kind==='extra'?'x-qty':'t-qty', l.kind==='extra'?l.xid:l.subId, l.qty)}${l.kind==='extra' ? `<button class="link red" data-a="x-del" data-v="${l.xid}">Remove</button>` : `<button class="link" data-a="t-skip" data-v="${l.subId}">Skip tomorrow</button>`}</div>`;
+    else right = `<div class="lact"><span class="amtline">${rs(l.amt)}</span>${delivered ? '<span class="tag ok">Delivered</span>' : `<span class="punit">× ${l.qty}</span>`}</div>`;
+    return `<div class="line ${off?'off':''}">${tile(p,'sm')}<div><div class="pname">${p.name}</div><div class="meta">${sub}${open&&!off?` · ${rs(l.amt)}`:''}</div></div>${right}</div>`;
+  }).join('') || `<div class="line"><div></div><div class="punit">Nothing scheduled for tomorrow.</div><div></div></div>`;
+  const charge = my.filter(l => l.status === 'ok').reduce((a,l) => a + l.amt, 0);
+  const saved = my.filter(l => l.status !== 'ok').reduce((a,l) => a + l.amt, 0);
+  const v = S.vac.me;
+  const vac = v
+    ? `<div class="vac on"><b>Vacation mode is on</b><span>${vacRangeText(v)}. Vaaradhi has been told and you won't be charged for these days.</span><button data-a="vac-end">I'm back, resume deliveries</button></div>`
+    : `<button class="vac" data-a="vac-open"><b>Going out of town?</b><span>Pause all deliveries for a few days. You pay nothing while you're away.</span></button>`;
+  const plans = S.subs.filter(s => s.cust === 'me').map(s => {
+    const p = P[s.prod];
+    let st = ['Active','ok'];
+    if (s.cancelledFrom) st = ['Cancelled from ' + fmtS(s.cancelledFrom), 'x'];
+    else if (s.pausedFrom) st = ['Paused from ' + fmtS(s.pausedFrom), 'pz'];
+    else if (v && (!v.to || v.to >= TMR)) st = ['Paused for vacation', 'pz'];
+    else if (s.start > TDY && s.isNew) st = ['First delivery ' + fmtS(firstDelivery(s)), 'n'];
+    const btns = s.cancelledFrom ? '' :
+      `${s.pausedFrom ? `<button class="link" data-a="p-resume" data-v="${s.id}">Resume</button>` : `<button class="link" data-a="p-pause" data-v="${s.id}">Pause</button>`}
+       <button class="link red" data-a="p-cancel" data-v="${s.id}">${ui.confirmCancel === s.id ? 'Tap to confirm' : 'Cancel'}</button>`;
+    return `<div class="plan">${tile(p,'sm')}<div><div class="pname">${p.name} × ${s.qty}</div><div class="punit">${FREQ[s.freq]} · ${rs(s.qty*p.price)} a delivery</div><div class="pstat ${st[1]}">${st[0]}</div></div><div class="pbtns">${btns}</div></div>`;
+  }).join('');
+  return `${banner()}
+    <div class="sec">Tomorrow's basket</div>
+    <div class="card">${rows}</div>
+    <div class="total"><span>Tomorrow's charge</span><span>${rs(charge)}</span></div>
+    ${saved ? `<div class="save">${rs(saved)} not charged because of skips or pauses</div>` : ''}
+    ${vac}
+    <div class="sec">My plans</div>
+    <div class="card">${plans || '<div class="plan"><div></div><div class="punit">No plans yet.</div><div></div></div>'}</div>
+    <p class="fine">Change, skip or pause anything until ${CUTOFF} the night before. After that, changes apply from the following day.</p>`;
+}
+function walletBody(){
+  const charge = lines().filter(l => l.cust === 'me' && l.status === 'ok').reduce((a,l) => a + l.amt, 0);
+  const sorted = [...S.ledger].sort((a,b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : b.seq - a.seq));
+  let html = '', last = '';
+  sorted.forEach(l => {
+    if (l.date !== last){ last = l.date; html += `<div class="ldate">${l.date===TDY?'Today':l.date===iso(addD(-1))?'Yesterday':fmtD(l.date)}</div>`; }
+    html += `<div class="led"><span>${l.text}</span><span class="amt ${l.kind}">${sgn(l.amt)}</span></div>`;
+  });
+  return `<div class="wal" style="margin-top:14px"><span>Vaaradhi wallet</span><b>${rs(balance())}</b>
+      <div class="wal-row"><span>${S.phase==='delivered'?'Charged this morning':'Tomorrow\'s charge'}</span><span>${rs(charge)}</span></div>
+      <button data-a="topup">Add ₹1,000 via UPI</button></div>
+    <div class="note">You're charged only on days something is delivered. Paused or skipped days cost ₹0.</div>
+    <div class="sec">History</div>
+    <div class="card" style="padding-top:0">${html}</div>`;
+}
+function sheetHTML(){
+  const sh = ui.sheet; if (!sh) return '';
+  let inner = '';
+  if (sh.type === 'sub'){
+    const p = P[sh.prod];
+    const starts = S.phase === 'open' ? [[TMR,'Tomorrow'],[DAT,fmtD(DAT)]] : [[DAT,fmtD(DAT)],[iso(addD(3)),fmtD(iso(addD(3)))]];
+    inner = `<div class="sh-head">${tile(p,'lg')}<div><div class="sh-title">${p.name}</div><div class="punit">${p.unit} · ${rs(p.price)} each</div></div></div>
+      <div class="field"><label>How often</label><div class="seg">${Object.keys(FREQ).map(f => `<button class="${sh.freq===f?'on':''}" data-a="s-freq" data-v="${f}">${FREQ[f]}</button>`).join('')}</div></div>
+      <div class="field row"><label>Quantity</label>${stepper('s-qty','q',sh.qty)}</div>
+      <div class="field"><label>Start</label><div class="seg">${starts.map(([d,l]) => `<button class="${sh.start===d?'on':''}" data-a="s-start" data-v="${d}">${l}</button>`).join('')}</div></div>
+      <div class="field"><label>Delivery</label><div class="static">6:30 – 8:00 AM · Home, Manikonda</div></div>
+      <div class="sum"><div><span>Each delivery</span><b>${rs(p.price*sh.qty)}</b></div><div><span>About a month</span><b>${rs(p.price*sh.qty*PERMONTH[sh.freq])}</b></div></div>
+      <p class="fine">Skip, pause or cancel anytime before ${CUTOFF} the night before. You're charged only on days it's delivered.</p>
+      <button class="btn primary block" data-a="sub-go">Start subscription</button>`;
+  } else if (sh.type === 'add'){
+    const p = P[sh.prod];
+    inner = `<div class="sh-head">${tile(p,'lg')}<div><div class="sh-title">${p.name}</div><div class="punit">${p.unit} · ${rs(p.price)} each</div></div></div>
+      <div class="field row"><label>Quantity</label>${stepper('a-qty','q',sh.qty)}</div>
+      <div class="field"><label>Arrives</label><div class="static">Tomorrow, ${fmtD(TMR)} · 6:30 – 8:00 AM, with your usual basket</div></div>
+      <button class="btn primary block" data-a="add-go" ${S.phase!=='open'?'disabled':''}>Add to tomorrow · ${rs(p.price*sh.qty)}</button>`;
+  } else if (sh.type === 'vac'){
+    const from = editFrom(), len = sh.len, days = len || 7;
+    let n = 0, amt = 0;
+    for (let i = 0; i < days; i++){ const d = plus(from, i); S.subs.forEach(s => { if (s.cust==='me' && delivers(s,d) && !s.pausedFrom){ n++; amt += s.qty*P[s.prod].price; } }); }
+    const to = len ? plus(from, len-1) : null;
+    inner = `<div class="sh-title">Going out of town?</div>
+      <div class="field"><label>Pause for</label><div class="seg">${[[3,'3 days'],[7,'1 week'],[14,'2 weeks'],[0,'Until I\'m back']].map(([k,l]) => `<button class="${len===k?'on':''}" data-a="vac-len" data-v="${k}">${l}</button>`).join('')}</div></div>
+      <div class="sum"><div><span>Paused</span><b style="font-size:15px">${to ? fmtS(from)+' – '+fmtS(to) : 'From '+fmtS(from)}</b></div><div><span>${len?'Not charged':'Saved each week'}</span><b>${rs(amt)}</b></div></div>
+      <p class="fine">${n} deliveries will be skipped. Vaaradhi is told right away, so nothing is packed for you.${S.phase!=='open'?` Tomorrow's basket is already locked, so the pause starts ${fmtD(DAT)}.`:''}</p>
+      <button class="btn primary block" data-a="vac-go">Pause deliveries</button>`;
+  }
+  return `<div class="scrim" data-a="close"></div><div class="sheet" role="dialog"><div class="grab"></div>${inner}</div>`;
+}
+function custHTML(){
+  const t = ui.cTab;
+  const head = t === 'shop'
+    ? `<div class="c-head"><div><div class="hello">Good evening, Ananya</div><div class="addr">Home · Manikonda, Hyderabad</div></div><div class="avatar">AR</div></div>`
+    : `<div class="h-title">${t === 'tmr' ? 'Tomorrow' : 'Wallet'}</div>`;
+  const body = t === 'shop' ? shopBody() : t === 'tmr' ? tomorrowBody() : walletBody();
+  return `${head}<div class="app-body" data-scroll="c-${t}">${body}</div>
+    ${nav([['shop','Shop','shop'],['tmr','Tomorrow','sun'],['wallet','Wallet','wallet']], t, 'ctab')}
+    ${toastHTML(ui.cToast,'c','c')}${sheetHTML()}`;
+}
+
+/* =====================================================================
+   VAARADHI (MERCHANT) APP
+   ===================================================================== */
+function trackChanges(pr, k){
+  const now = Date.now();
+  if (ui.prevPrep){
+    new Set([...Object.keys(pr), ...Object.keys(ui.prevPrep)]).forEach(id => {
+      const d = (pr[id]||0) - (ui.prevPrep[id]||0); if (d) ui.flash['p_'+id] = {d, until:now+3500};
+    });
+    Object.keys(k).forEach(id => { const d = k[id] - ui.prevKpi[id]; if (d) ui.flash['k_'+id] = {d, until:now+3500}; });
+    if (Object.values(ui.flash).some(f => f.until === now + 3500)) setTimeout(render, 3600);
+  }
+  ui.prevPrep = pr; ui.prevKpi = k;
+}
+const fl = key => { const f = ui.flash[key]; return f && f.until > Date.now() ? f : null; };
+const deltaHTML = (f, money) => f ? `<span class="delta ${f.d>0?'up':''}">${f.d>0?'+':'−'}${money?rs(Math.abs(f.d)):Math.abs(f.d)}</span>` : '';
+function mToday(){
+  const st = stops(), pr = prep(), items = Object.values(pr).reduce((a,b)=>a+b,0), rev = st.reduce((a,s)=>a+s.amt,0);
+  const off = lines().filter(l => l.status !== 'ok'), offQty = off.reduce((a,l)=>a+l.qty,0), offAmt = off.reduce((a,l)=>a+l.amt,0);
+  const sub = S.phase === 'open' ? `List locks at ${CUTOFF} · ${leftText()}` : S.phase === 'locked' ? 'Locked at 9:00 PM. Pack by 6:00 AM.' : 'All deliveries done';
+  const kpi = (key, label, val, money) => { const f = fl('k_'+key); return `<div class="kpi ${f?'chg':''}"><span>${label}</span><b>${money?rs(val):val}</b>${deltaHTML(f,money)}</div>`; };
+  const rows = PRODUCTS.filter(p => pr[p.id] || fl('p_'+p.id)).map(p => {
+    const f = fl('p_'+p.id);
+    return `<div class="prow ${f?'chg':''}">${tile(p,'xs')}<div><div class="pname">${p.name}</div><div class="punit">${p.unit}</div></div><div class="q">${deltaHTML(f)}× ${pr[p.id]||0}</div></div>`;
+  }).join('');
+  return `<div class="m-date"><b>Tomorrow · ${fmtD(TMR)}</b><span>${sub}</span></div>
+    <div class="kpis">${kpi('stops','Deliveries',st.length)}${kpi('items','Items to pack',items)}${kpi('rev','Revenue',rev,true)}</div>
+    <div class="sec">Prep sheet</div>
+    <div class="card">${rows}</div>
+    ${offQty ? `<div class="saved"><b>${offQty} items not packed</b> because customers paused or skipped (${rs(offAmt)}). Nothing is made that won't be paid for.</div>` : ''}
+    <div class="sec">Live updates</div>
+    <div class="card feed">${S.feed.slice(0,10).map(f => `<div class="fi ${f.kind}"><span class="d"></span><span>${f.text}</span><time>${f.t}</time></div>`).join('')}</div>`;
+}
+function mRun(){
+  const st = stops(), done = st.filter(s => S.done[s.cust]).length, open = S.phase === 'open';
+  const groups = AREAS.map(a => [a, st.filter(s => s.area === a)]).filter(g => g[1].length);
+  const away = [...new Set(lines().filter(l => l.status !== 'ok').map(l => l.cust))].filter(c => !st.find(s => s.cust === c));
+  return `<div class="prog"><div class="row"><span>${done} of ${st.length} delivered</span><span>${rs(st.filter(s=>S.done[s.cust]).reduce((a,s)=>a+s.amt,0))}</span></div><div class="bar"><i style="width:${st.length?done/st.length*100:0}%"></i></div>
+      <span class="punit">${open ? `Preview. Customers can still make changes until ${CUTOFF}.` : S.phase === 'locked' ? 'Locked. Mark each stop as it\'s delivered.' : 'Morning run complete.'}</span></div>
+    ${groups.map(([a, list]) => `<div class="area">${a}<span>${list.length} stop${list.length>1?'s':''}</span></div>
+      ${list.map(s => `<div class="stop ${s.cust==='me'?'me':''} ${S.done[s.cust]?'done':''}"><div><div class="sname">${C[s.cust].name}${s.cust==='me'?'<span class="you">demo customer</span>':''}</div>
+        <div class="sitems">${s.lines.map(l => P[l.prod].name + ' × ' + l.qty).join(', ')}</div></div>
+        <div class="sact">${rs(s.amt)}${S.done[s.cust] ? '<span class="okt">Delivered</span>' : `<button class="btn xs" data-a="deliver" data-v="${s.cust}" ${open?'disabled':''}>Mark delivered</button>`}</div></div>`).join('')}`).join('')}
+    ${away.length ? `<div class="area">Not on tomorrow's run<span>${away.length}</span></div>${away.map(c => `<div class="stop away"><div><div class="sname">${C[c].name}</div><div class="sitems">${C[c].area} · ${S.vac[c] ? 'away, paused by customer' : 'paused or skipped by customer'}</div></div><div class="sact"><span class="okt" style="color:var(--sun)">₹0</span></div></div>`).join('')}` : ''}`;
+}
+function mCustomers(){
+  const list = CUSTOMERS.map(c => {
+    const subs = S.subs.filter(s => s.cust === c.id && !s.cancelledFrom);
+    const v = S.vac[c.id], vOn = v && (!v.to || v.to >= TMR);
+    const allPaused = subs.length && subs.every(s => s.pausedFrom);
+    const isNew = subs.some(s => s.isNew);
+    const st = vOn ? [v.to ? 'Away till ' + fmtS(v.to) : 'Away', 'p'] : allPaused ? ['Paused','p'] : isNew ? ['New plan','n'] : subs.length ? ['Active','a'] : ['No plans','p'];
+    return {c, subs, st};
+  });
+  const active = list.filter(x => x.st[1] !== 'p').length;
+  return `<div class="ccount"><div class="kpi"><span>Subscribers</span><b>${list.length}</b></div><div class="kpi"><span>Active</span><b>${active}</b></div><div class="kpi"><span>Paused</span><b>${list.length-active}</b></div></div>
+    <div class="card">${list.map(({c, subs, st}) => `<div class="cust"><div class="ini">${initials(c.id)}</div><div><div class="sname">${c.name}${c.id==='me'?'<span class="you">demo customer</span>':''}</div>
+      <div class="sitems">${c.area} · ${subs.map(s => P[s.prod].name.split(' ').slice(-2).join(' ') + ' × ' + s.qty).join(', ') || 'No active plans'}</div></div><span class="st ${st[1]}">${st[0]}</span></div>`).join('')}</div>
+    <div class="note">Bring your WhatsApp regulars onto the app and their orders show up here automatically.</div>`;
+}
+function mEarnings(){
+  const start = iso(new Date(TODAY.getFullYear(), TODAY.getMonth(), 1, 12));
+  let mtd = 0, n = 0;
+  for (let d = start; d <= TDY; d = plus(d, 1)){ const r = dayRevenue(d); mtd += r.amt; n += r.n; }
+  const st = stops(), collected = st.filter(s => S.done[s.cust]).reduce((a,s)=>a+s.amt,0), expected = st.reduce((a,s)=>a+s.amt,0);
+  const monthName = TODAY.toLocaleDateString('en-IN', {month:'long'});
+  let setl = '';
+  if (collected) setl += `<div class="led"><span>Tomorrow's deliveries<br><span class="punit">Credits ${fmtD(DAT)}</span></span><span class="amt">${rs(collected)}</span></div>`;
+  setl += `<div class="led"><span>Today's deliveries<br><span class="punit">Credits tomorrow</span></span><span class="amt">${rs(dayRevenue(TDY).amt)}</span></div>`;
+  for (let k = 1; k <= 5; k++){ const d = iso(addD(-k)); setl += `<div class="led"><span>${fmtD(d)} deliveries<br><span class="punit">Credited ${fmtD(plus(d,1))}</span></span><span class="amt in">${rs(dayRevenue(d).amt)}</span></div>`; }
+  return `<div class="earn"><span>App orders in ${monthName}</span><b>${rs(mtd + collected)}</b><span>${n + st.filter(s=>S.done[s.cust]).length} deliveries so far</span></div>
+    <div class="kpis two"><div class="kpi"><span>Commission paid</span><b>₹0</b></div><div class="kpi"><span>${S.phase==='delivered'?'Collected today':'Tomorrow, expected'}</span><b>${rs(S.phase==='delivered'?collected:expected)}</b></div></div>
+    <div class="sec">Payouts to your bank · next day</div>
+    <div class="card">${setl}</div>
+    <p class="fine">Customers pay from their prepaid wallet when an order is delivered. There's no cash to collect and no payments to chase.</p>`;
+}
+function merchHTML(){
+  const st = stops(), pr = prep();
+  trackChanges(pr, {stops:st.length, items:Object.values(pr).reduce((a,b)=>a+b,0), rev:st.reduce((a,s)=>a+s.amt,0)});
+  const pill = S.phase === 'open' ? ['Taking changes',''] : S.phase === 'locked' ? ['Locked · packing','locked'] : ['Delivered','delivered'];
+  const t = ui.mTab;
+  const body = t === 'today' ? mToday() : t === 'run' ? mRun() : t === 'cust' ? mCustomers() : mEarnings();
+  return `<div class="m-head"><div><div class="m-brand">Vaaradhi Farms</div><div class="m-sub">Manikonda store · ${clock()}</div></div><span class="pill ${pill[1]}">${pill[0]}</span></div>
+    <div class="app-body" data-scroll="m-${t}">${body}</div>
+    ${nav([['today','Tomorrow','list'],['run','Run','truck'],['cust','Customers','people'],['earn','Earnings','chart']], t, 'mtab')}
+    ${toastHTML(ui.mToast,'m','m')}`;
+}
+
+/* =====================================================================
+   RENDER + ACTIONS
+   ===================================================================== */
+function render(){
+  const keep = {}; document.querySelectorAll('[data-scroll]').forEach(e => keep[e.dataset.scroll] = e.scrollTop);
+  document.getElementById('custApp').innerHTML = custHTML();
+  document.getElementById('merchApp').innerHTML = merchHTML();
+  document.querySelectorAll('[data-scroll]').forEach(e => { if (keep[e.dataset.scroll] != null) e.scrollTop = keep[e.dataset.scroll]; });
+  document.body.dataset.view = ui.view;
+  ['vCust','vMerch','vHow'].forEach((id,i) => document.getElementById(id).classList.toggle('on', ['customer','merchant','how'][i] === ui.view));
+  const b = document.getElementById('bdg'); b.hidden = !S.unread; b.textContent = S.unread;
+  document.getElementById('bLock').disabled = S.phase !== 'open';
+  document.getElementById('bMorn').disabled = S.phase !== 'locked';
+  document.getElementById('demoBtns').classList.toggle('open', ui.demoOpen);
+  save();
+}
+function settle(){
+  if (S.meSettled) return; S.meSettled = true;
+  const mine = lines().filter(l => l.cust === 'me');
+  mine.forEach(l => {
+    const ok = l.status === 'ok';
+    S.ledger.push({date:TMR, seq:S.seq++, amt: ok ? -l.amt : 0, kind: ok ? 'out' : 'zero',
+      text: (ok ? 'Delivered' : l.status === 'paused' ? 'Paused, not charged' : 'Skipped, not charged') + ' · ' + P[l.prod].name + ' × ' + l.qty});
+  });
+  if (mine.some(l => l.status === 'ok')) toastC('Your Vaaradhi basket was delivered. Wallet updated.');
+}
+function finishRun(){
+  S.phase = 'delivered'; settle();
+  const st = stops();
+  notify(`Morning run complete: ${st.length} deliveries, ${rs(st.reduce((a,s)=>a+s.amt,0))} collected. Reaches your bank ${fmtD(DAT)}.`, 'lock');
+}
+const A = {
+  view(v){ ui.view = v; ui.demoOpen = false; if (v === 'merchant') S.unread = 0; },
+  demo(){ ui.demoOpen = !ui.demoOpen; },
+  ctab(v){ ui.cTab = v; ui.sheet = null; ui.confirmCancel = null; },
+  mtab(v){ ui.mTab = v; },
+  cat(v){ ui.cCat = v; },
+  close(){ ui.sheet = null; },
+  'sub-open'(v){ ui.sheet = {type:'sub', prod:v, freq:'daily', qty:1, start:editFrom()}; },
+  'add-open'(v){ ui.sheet = {type:'add', prod:v, qty:1}; },
+  'vac-open'(){ ui.sheet = {type:'vac', len:7}; },
+  's-freq'(v){ ui.sheet.freq = v; },
+  's-start'(v){ ui.sheet.start = v; },
+  's-qty'(v){ ui.sheet.qty = Math.max(1, Math.min(6, ui.sheet.qty + +v.split('|')[1])); },
+  'a-qty'(v){ ui.sheet.qty = Math.max(1, Math.min(6, ui.sheet.qty + +v.split('|')[1])); },
+  'vac-len'(v){ ui.sheet.len = +v; },
+  'sub-go'(){
+    const sh = ui.sheet, p = P[sh.prod];
+    const s = {id:'n'+Date.now(), cust:'me', prod:sh.prod, freq:sh.freq, qty:sh.qty, start:sh.start, pausedFrom:null, cancelledFrom:null, isNew:true};
+    S.subs.push(s); ui.sheet = null;
+    const fd = firstDelivery(s);
+    notify(`Ananya R. subscribed to ${p.name} × ${s.qty} · ${FREQ[s.freq]} · starts ${fmtD(fd)}`, 'new');
+    toastC(`Subscribed. First delivery ${fmtD(fd)}.`);
+  },
+  'add-go'(){
+    if (S.phase !== 'open') return;
+    const sh = ui.sheet; S.extras.push({id:Date.now(), cust:'me', prod:sh.prod, qty:sh.qty}); ui.sheet = null;
+    notify(`Ananya R. added ${P[sh.prod].name} × ${sh.qty} for tomorrow`, 'add');
+    toastC('Added to tomorrow\'s basket.');
+  },
+  'vac-go'(){
+    const from = editFrom(), len = ui.sheet.len, to = len ? plus(from, len-1) : null;
+    S.vac.me = {from, to}; ui.sheet = null;
+    let n = 0; for (let i = 0; i < (len||7); i++){ const d = plus(from,i); S.subs.forEach(s => { if (s.cust==='me' && delivers(s,d) && !s.pausedFrom) n++; }); }
+    notify(`Ananya R. is away ${to ? fmtS(from)+' – '+fmtS(to) : 'from '+fmtS(from)+' until she resumes'}. ${n} deliveries removed${len?'':' a week'}, no charge.`, 'pause');
+    toastC(`Paused. Vaaradhi has been told and you won't be charged ${to ? 'from '+fmtS(from)+' to '+fmtS(to) : 'while you\'re away'}.`);
+  },
+  'vac-end'(){
+    S.vac.me = null; const from = editFrom();
+    notify(`Ananya R. is back. Deliveries resume ${fmtD(from)}.`, 'resume');
+    toastC(`Welcome back. Deliveries resume ${fmtD(from)}.`);
+  },
+  't-qty'(v){
+    if (S.phase !== 'open') return;
+    const [id, d] = v.split('|'), s = S.subs.find(x => x.id === id), o = S.ovr[id] = S.ovr[id] || {};
+    o.qty = Math.max(1, Math.min(6, (o.qty || s.qty) + +d)); o.skip = false;
+    notify(`Ananya R. changed ${P[s.prod].name} to ${o.qty} for tomorrow`, 'add', 'q'+id);
+  },
+  'x-qty'(v){
+    if (S.phase !== 'open') return;
+    const [id, d] = v.split('|'), x = S.extras.find(e => String(e.id) === id);
+    x.qty = Math.max(1, Math.min(6, x.qty + +d));
+    notify(`Ananya R. changed ${P[x.prod].name} to ${x.qty} for tomorrow`, 'add', 'x'+id);
+  },
+  't-skip'(v){
+    if (S.phase !== 'open') return;
+    const s = S.subs.find(x => x.id === v), o = S.ovr[v] = S.ovr[v] || {}; o.skip = !o.skip;
+    notify(o.skip ? `Ananya R. skipped ${P[s.prod].name} tomorrow` : `Ananya R. wants ${P[s.prod].name} tomorrow after all`, 'skip', 'k'+v);
+  },
+  'x-del'(v){
+    if (S.phase !== 'open') return;
+    const x = S.extras.find(e => String(e.id) === v); S.extras = S.extras.filter(e => e !== x);
+    notify(`Ananya R. removed ${P[x.prod].name} from tomorrow`, 'skip');
+  },
+  'p-pause'(v){ const s = S.subs.find(x => x.id === v); s.pausedFrom = editFrom(); notify(`Ananya R. paused ${P[s.prod].name} from ${fmtD(s.pausedFrom)}`, 'pause'); toastC('Plan paused. Vaaradhi has been told.'); },
+  'p-resume'(v){ const s = S.subs.find(x => x.id === v); s.pausedFrom = null; notify(`Ananya R. resumed ${P[s.prod].name} from ${fmtD(editFrom())}`, 'resume'); },
+  'p-cancel'(v){
+    if (ui.confirmCancel !== v){ ui.confirmCancel = v; return; }
+    const s = S.subs.find(x => x.id === v); s.cancelledFrom = editFrom(); ui.confirmCancel = null;
+    notify(`Ananya R. cancelled ${P[s.prod].name} from ${fmtD(s.cancelledFrom)}`, 'cancel'); toastC('Plan cancelled.');
+  },
+  topup(){ S.ledger.push({date:TDY, seq:S.seq++, text:'Added to wallet via UPI', amt:1000, kind:'in'}); toastC('₹1,000 added to your wallet.'); },
+  lock(){
+    if (S.phase !== 'open') return;
+    S.snapshot = computeLines(); S.phase = 'locked'; S.lockedAt = Date.now(); ui.demoOpen = false; ui.sheet = null;
+    const st = stops(), items = okLines().reduce((a,l)=>a+l.qty,0);
+    notify(`Tomorrow's list is locked: ${st.length} deliveries, ${items} items, ${rs(st.reduce((a,s)=>a+s.amt,0))}.`, 'lock');
+  },
+  deliver(v){
+    if (S.phase === 'open') return;
+    S.done[v] = true; if (v === 'me') settle();
+    if (stops().every(s => S.done[s.cust])) finishRun();
+  },
+  morning(){
+    if (S.phase !== 'locked') return;
+    stops().forEach(s => { S.done[s.cust] = true; });
+    ui.demoOpen = false; finishRun();
+  },
+  reset(){ seed(); Object.assign(ui, {cTab:'shop', cCat:'All', mTab:'today', sheet:null, cToast:null, mToast:null, demoOpen:false, confirmCancel:null, prevPrep:null, prevKpi:null, flash:{}}); },
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]'); if (!el || el.disabled) return;
+  const a = el.dataset.a;
+  if (a !== 'p-cancel') ui.confirmCancel = null;
+  if (A[a]) { A[a](el.dataset.v); render(); }
+});
+
+S = load() || seed();
+render();
+setInterval(() => { if (S.phase !== 'delivered') render(); }, 30000);
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
