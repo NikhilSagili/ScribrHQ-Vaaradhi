@@ -230,11 +230,37 @@ button:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
 @keyframes fade{from{opacity:0}to{opacity:1}}
 @keyframes drop{from{transform:translateY(-14px);opacity:0}to{transform:none;opacity:1}}
 
+/* order now */
+.nowstrip{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:12.5px;color:var(--muted)}
+.nowstrip b{font-size:13.5px;display:block;color:var(--ink)}
+.nowstrip .open{color:var(--leaf-2);font-weight:800;white-space:nowrap}
+.nowstrip .closed{color:var(--sun);font-weight:800;white-space:nowrap}
+.cartbar{position:absolute;left:12px;right:12px;bottom:calc(68px + var(--bpad));z-index:25;background:var(--leaf-2);color:#fff;border-radius:14px;padding:13px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:14px;box-shadow:0 14px 30px -14px rgba(0,0,0,.5)}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.modes button{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:9px 8px;text-align:left;display:flex;flex-direction:column;gap:1px}
+.modes button b{font-size:13.5px}
+.modes button span{font-size:11px;color:var(--muted)}
+.modes button.on{background:var(--leaf-2);border-color:var(--leaf-2);color:#fff}
+.modes button.on span{color:#DCEAD3}
+.track{display:flex;flex-direction:column;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.track-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.track-top b{font-family:var(--display);font-size:18px;font-weight:800}
+.steps-mini{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.steps-mini i{height:6px;border-radius:3px;background:var(--leaf-soft)}
+.steps-mini i.on{background:var(--leaf-2)}
+.track-lbls{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);font-weight:700}
+.ord{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.ord.new{border-color:var(--sun);background:var(--sun-soft)}
+.ord.past{opacity:.6}
+.st.o{background:var(--blue-soft);color:var(--blue)}
+.nav .nb{position:absolute;top:0;right:calc(50% - 21px);background:var(--red);color:#fff;font-size:10px;font-style:normal;min-width:16px;height:16px;border-radius:8px;display:grid;place-items:center;padding:0 4px}
+.fi.order .d{background:var(--blue)}
+
 /* how it works */
 .how{max-width:1080px;margin:0 auto;padding:44px 24px 56px}
 .how h2{font-family:var(--display);font-size:34px;font-weight:800;color:var(--leaf);margin:0 0 6px;letter-spacing:-.015em;text-wrap:balance}
 .how .sub{color:var(--muted);margin:0 0 26px;max-width:62ch}
-.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .steps li{background:var(--card);border-radius:18px;padding:16px;border:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
 .steps time{font-size:12px;font-weight:800;color:var(--sun);letter-spacing:.03em}
 .steps b{font-family:var(--display);font-size:17px;font-weight:800}
@@ -288,7 +314,7 @@ button:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
     <button data-a="view" data-v="how" id="vHow">How it works</button>
   </div>
   <div class="script" aria-label="Demo script">
-    <span><i>1</i>Pause for a trip</span><span><i>2</i>Add fruit for tomorrow</span><span><i>3</i>Subscribe to something new</span><span><i>4</i>Lock at 9 PM</span><span><i>5</i>Run deliveries</span>
+    <span><i>1</i>Order now</span><span><i>2</i>Pause for a trip</span><span><i>3</i>Add for tomorrow</span><span><i>4</i>Subscribe</span><span><i>5</i>Lock at 9 PM</span><span><i>6</i>Run deliveries</span>
   </div>
   <button class="dbtn demo-toggle" data-a="demo">Demo ▾</button>
   <div class="demo-btns" id="demoBtns">
@@ -311,9 +337,10 @@ button:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
 
 <section class="how" id="how">
   <h2>How a day works</h2>
-  <p class="sub">Customers decide the night before. Vaaradhi wakes up to an exact list, packs only what was ordered, and gets paid only for what was delivered.</p>
+  <p class="sub">Customers order for right now during the day, and plan tomorrow's basket by 9 PM. Vaaradhi gets every order in one place, packs only what was ordered, and gets paid for what was delivered.</p>
   <ol class="steps">
-    <li><time>Anytime till 9:00 PM</time><b>Customers decide</b><p>Subscribe, add extras for tomorrow, skip a day or pause for a trip. No calls or WhatsApp messages.</p></li>
+    <li><time>7:00 AM – 9:00 PM</time><b>Order now</b><p>Customers order for right now and pay from their wallet. Vaaradhi accepts, packs and delivers the same day, and the customer can follow each step.</p></li>
+    <li><time>Anytime till 9:00 PM</time><b>Plan tomorrow</b><p>Subscribe, add extras for tomorrow, skip a day or pause for a trip. No calls or WhatsApp messages.</p></li>
     <li><time>9:00 PM</time><b>Tomorrow's list locks</b><p>Vaaradhi gets the prep sheet: exact items and quantities, so nothing is made that won't be bought.</p></li>
     <li><time>5:00 AM</time><b>Pack by area</b><p>Stops come grouped by area, from Manikonda to Gachibowli and Kondapur, so the run is planned already.</p></li>
     <li><time>6:30 – 8:00 AM</time><b>Deliver</b><p>Each stop is marked delivered. Customers who paused are left off the list automatically.</p></li>
@@ -322,12 +349,13 @@ button:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
   <div class="cols">
     <div class="col"><h3>For Vaaradhi</h3><ul>
       <li>Your own app with your name on it</li>
-      <li>Daily repeat orders instead of one-off orders</li>
+      <li>One-time orders and daily subscriptions in one place, without WhatsApp back-and-forth</li>
       <li>Know tomorrow's demand by 9 PM tonight, so there's less waste</li>
       <li>No commission on orders, and the customer relationship stays yours</li>
       <li>Payments collected automatically, with no chasing</li>
     </ul></div>
     <div class="col light"><h3>For your customers</h3><ul>
+      <li>Order anything for right now with same-day delivery</li>
       <li>Fresh breakfast, fruit and vegetables every morning without ordering each day</li>
       <li>Add something extra for tomorrow in two taps</li>
       <li>Pause for a trip and pay nothing while they're away</li>
@@ -391,7 +419,7 @@ const short = id => { const [f, l] = C[id].name.split(' '); return f + (l ? ' ' 
 const initials = id => C[id].name.split(' ').map(w => w[0]).join('').slice(0,2);
 
 /* ---------- state ---------- */
-const KEY = 'vaaradhi-demo-v1';
+const KEY = 'vaaradhi-demo-v2';
 let S;
 const ui = {view:'customer', cTab:'shop', cCat:'All', mTab:'today', sheet:null, cToast:null, mToast:null, demoOpen:false,
             confirmCancel:null, prevPrep:null, prevKpi:null, flash:{}, shownToast:{}};
@@ -415,7 +443,7 @@ function seed(){
 
   const st = {day:TDY, phase:'open', subs, vac:{c2:{from:TDY, to:iso(addD(3))}, c6:{from:TMR, to:iso(addD(7))}},
     ovr:{}, extras:[{id:1, cust:'c3', prod:'eggs', qty:1}, {id:2, cust:'c12', prod:'fruitbox', qty:1}],
-    done:{}, meSettled:false, snapshot:null, ledger:[], seq:0, feed:[], unread:0, simStart:Date.now(), lockedAt:null};
+    done:{}, meSettled:false, orders:[], cart:[], oseq:1043, snapshot:null, ledger:[], seq:0, feed:[], unread:0, simStart:Date.now(), lockedAt:null};
   S = st;
   const led = (date, text, amt, kind) => st.ledger.push({date, text, amt, kind, seq:st.seq++});
   led(iso(addD(-6)), 'Added to wallet via UPI', 3000, 'in');
@@ -430,6 +458,14 @@ function seed(){
     {t:'4:12 PM', kind:'add',   text:'Farhan A. added Country Eggs × 1 for tomorrow'},
     {t:'Yesterday', kind:'pause', text:`Harsha V. paused ${P[harshaSub.prod].name}`},
   ];
+  const mk = (id, cust, items, status, t) => st.orders.push({id, cust, items, amt:orderAmt(items), status, t});
+  mk(1038,'c8', [{prod:'fruitbox',qty:1},{prod:'curd',qty:1}], 'delivered', '11:20 AM');
+  mk(1039,'c11',[{prod:'vegbasket',qty:1},{prod:'greens',qty:2}], 'delivered', '1:05 PM');
+  mk(1040,'c10',[{prod:'bowl',qty:2},{prod:'juice',qty:2}], 'out', '7:05 PM');
+  mk(1041,'c9', [{prod:'batter',qty:1},{prod:'eggs',qty:1}], 'packed', '7:20 PM');
+  mk(1042,'c19',[{prod:'pongal',qty:2},{prod:'juice',qty:1}], 'placed', '7:38 PM');
+  const k = st.orders[4];
+  st.feed.unshift({t:'7:38 PM', kind:'order', text:`New order #1042 from Kavya M. · ${itemsText(k.items)} · ${rs(k.amt)} · Madhapur`});
   return st;
 }
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
@@ -475,6 +511,16 @@ function prep(){ const m = {}; okLines().forEach(l => m[l.prod] = (m[l.prod] || 
 function dayRevenue(d){ let amt = 0, n = 0; S.subs.forEach(s => { if (!s.isNew && delivers(s, d) && !pausedOn(s, d)) { amt += s.qty*P[s.prod].price; n++; } }); return {amt, n}; }
 const balance = () => S.ledger.reduce((a, l) => a + l.amt, 0);
 
+/* ---------- order now (one-time, same day) ---------- */
+const FLOW = ['placed','accepted','packed','out','delivered'];
+const OLBL = {placed:'New', accepted:'Accepted', packed:'Packed', out:'Out for delivery', delivered:'Delivered', cancelled:'Cancelled'};
+const NEXT = {placed:'Accept order', accepted:'Mark packed', packed:'Send out', out:'Mark delivered'};
+const CTXT = {accepted:'Vaaradhi accepted your order and is packing it.', packed:'Your order is packed and waiting for the rider.', out:'Your order is out for delivery. About 20 min away.', delivered:'Your order was delivered. Enjoy!'};
+const orderAmt = items => items.reduce((a, i) => a + i.qty*P[i.prod].price, 0);
+const itemsText = items => items.map(i => P[i.prod].name + ' × ' + i.qty).join(', ');
+const isLive = o => o.status !== 'delivered' && o.status !== 'cancelled';
+const nowOpen = () => S.phase !== 'locked';
+
 /* ---------- sim clock ---------- */
 function simMin(){
   if (S.phase === 'locked') return 21*60 + 1 + Math.floor((Date.now() - S.lockedAt) / 60000);
@@ -509,10 +555,11 @@ const I = {
   list:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="M8.5 12h7M8.5 16h5"/>',
   truck:'<path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
   people:'<circle cx="9" cy="8" r="3.2"/><path d="M3 19c.8-3.2 3.2-5 6-5s5.2 1.8 6 5"/><path d="M16 5.5a3 3 0 0 1 0 5.6M18 14.5c1.6.6 2.7 2 3 4.5"/>',
+  receipt:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
   chart:'<path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 15l3.5-4 3 2.5L20 7"/>',
 };
 const icon = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
-const nav = (tabs, cur, act) => `<nav class="nav">${tabs.map(([k,label,ic]) => `<button class="${cur===k?'on':''}" data-a="${act}" data-v="${k}">${icon(ic)}${label}</button>`).join('')}</nav>`;
+const nav = (tabs, cur, act, badges = {}) => `<nav class="nav">${tabs.map(([k,label,ic]) => `<button class="${cur===k?'on':''}" data-a="${act}" data-v="${k}">${icon(ic)}${label}${badges[k] ? `<i class="nb">${badges[k]}</i>` : ''}</button>`).join('')}</nav>`;
 const tile = (p, size='') => `<div class="tile ${size}" style="background:${p.tint}">${p.e}</div>`;
 const stepper = (a, id, q) => `<div class="step"><button data-a="${a}" data-v="${id}|-1" aria-label="Less">−</button><b>${q}</b><button data-a="${a}" data-v="${id}|1" aria-label="More">+</button></div>`;
 function toastHTML(t, which, cls){
@@ -529,16 +576,35 @@ function banner(){
   if (S.phase === 'locked') return `<div class="banner locked"><div><b>Tomorrow's basket is locked</b><span>It's being packed for ${fmtD(TMR)}. Any change you make now starts ${fmtD(DAT)}.</span></div></div>`;
   return `<div class="banner done"><div><b>Delivered this morning</b><span>${fmtD(TMR)} · 7:12 AM · paid from your wallet</span></div></div>`;
 }
+function nowStrip(){
+  return nowOpen()
+    ? `<div class="nowstrip"><div><b>Need it now?</b>Order for same-day delivery in 45 – 60 min</div><span class="open">Open till 9 PM</span></div>`
+    : `<div class="nowstrip"><div><b>Same-day delivery is closed for tonight</b>Order now again from 7:00 AM</div><span class="closed">Closed</span></div>`;
+}
+function ordersBody(){
+  const mine = S.orders.filter(o => o.cust === 'me').sort((a,b) => b.id - a.id);
+  const active = mine.filter(isLive), past = mine.filter(o => !isLive(o));
+  const track = o => { const i = FLOW.indexOf(o.status); return `<div class="track">
+      <div class="track-top"><b>${o.status === 'placed' ? 'Order placed' : OLBL[o.status]}</b><span class="punit">#${o.id} · ${o.t}</span></div>
+      <div class="steps-mini">${FLOW.map((_,k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div>
+      <div class="track-lbls"><span>Placed</span><span>Packed</span><span>Delivered</span></div>
+      <div class="sitems">${itemsText(o.items)}</div>
+      <div class="track-top"><span class="punit">${o.status === 'placed' ? 'Waiting for Vaaradhi to accept' : o.status === 'out' ? 'Arriving in about 20 min' : 'Arriving in 45 – 60 min'}</span><b style="font-size:15px">${rs(o.amt)}</b></div>
+      ${o.status === 'placed' ? `<button class="link red" style="align-self:flex-start" data-a="o-cancel" data-v="${o.id}">Cancel order</button>` : ''}</div>`; };
+  return `${nowStrip()}
+    ${active.length ? '<div class="sec">On the way</div>' + active.map(track).join('') : '<div class="note">No orders on the way. Tap <b>Order</b> on any item in Shop to get it today.</div>'}
+    ${past.length ? '<div class="sec">Earlier</div><div class="card">' + past.map(o => `<div class="led"><span>#${o.id} · ${itemsText(o.items)}<br><span class="punit">${o.t} · ${OLBL[o.status]}</span></span><span class="amt">${rs(o.amt)}</span></div>`).join('') + '</div>' : ''}`;
+}
 function shopBody(){
   const mine = {}; S.subs.forEach(s => { if (s.cust === 'me' && !s.cancelledFrom) mine[s.prod] = s; });
   const items = PRODUCTS.filter(p => ui.cCat === 'All' || p.cat === ui.cCat);
-  return `${banner()}
+  return `${banner()}${nowStrip()}
   <div class="chips">${CATS.map(c => `<button class="chip ${ui.cCat===c?'on':''}" data-a="cat" data-v="${c}">${c}</button>`).join('')}</div>
   <div class="list">${items.map(p => `<div class="prod">${tile(p)}
     <div><div class="pname">${p.name}</div><div class="punit">${p.unit}</div>
       <div class="pprice">${rs(p.price)}${mine[p.id] ? `<span class="mine">On your plan · ${FREQ[mine[p.id].freq]}</span>` : ''}</div></div>
-    <div class="pact"><button class="btn sm primary" data-a="sub-open" data-v="${p.id}">Subscribe</button>
-      <button class="btn sm ghost" data-a="add-open" data-v="${p.id}" ${S.phase!=='open'?'disabled':''}>+ Tomorrow</button></div></div>`).join('')}</div>`;
+    <div class="pact"><button class="btn sm primary" data-a="buy-open" data-v="${p.id}|now">Order</button>
+      <button class="btn sm ghost" data-a="buy-open" data-v="${p.id}|sub">Subscribe</button></div></div>`).join('')}</div>${S.cart.length ? '<div style="height:60px"></div>' : ''}`;
 }
 function vacRangeText(v){ return v.to ? `${fmtS(v.from)} – ${fmtS(v.to)}` : `from ${fmtS(v.from)} until you resume`; }
 function tomorrowBody(){
@@ -599,23 +665,38 @@ function walletBody(){
 function sheetHTML(){
   const sh = ui.sheet; if (!sh) return '';
   let inner = '';
-  if (sh.type === 'sub'){
-    const p = P[sh.prod];
-    const starts = S.phase === 'open' ? [[TMR,'Tomorrow'],[DAT,fmtD(DAT)]] : [[DAT,fmtD(DAT)],[iso(addD(3)),fmtD(iso(addD(3)))]];
+  if (sh.type === 'buy'){
+    const p = P[sh.prod], q = sh.qty;
+    const modes = [['now','Now', nowOpen() ? '45 – 60 min' : 'Closed now'], ['tmr','Tomorrow','6:30 – 8 AM'], ['sub','Subscribe','Repeat it']];
+    let body = '';
+    if (sh.mode === 'now'){
+      body = `<div class="field row"><label>Quantity</label>${stepper('s-qty','q',q)}</div>
+        <div class="field"><label>Arrives</label><div class="static">${nowOpen() ? 'Today, in 45 – 60 min · Home, Manikonda' : 'Same-day delivery opens again at 7:00 AM'}</div></div>
+        <button class="btn primary block" data-a="cart-add" ${nowOpen() ? '' : 'disabled'}>Add to cart · ${rs(p.price*q)}</button>`;
+    } else if (sh.mode === 'tmr'){
+      body = `<div class="field row"><label>Quantity</label>${stepper('s-qty','q',q)}</div>
+        <div class="field"><label>Arrives</label><div class="static">${S.phase === 'open' ? `Tomorrow, ${fmtD(TMR)} · 6:30 – 8:00 AM, with your usual basket` : `Tomorrow's basket is locked. Choose Subscribe to start from ${fmtD(DAT)}.`}</div></div>
+        <button class="btn primary block" data-a="add-go" ${S.phase !== 'open' ? 'disabled' : ''}>Add to tomorrow · ${rs(p.price*q)}</button>`;
+    } else {
+      const starts = S.phase === 'open' ? [[TMR,'Tomorrow'],[DAT,fmtD(DAT)]] : [[DAT,fmtD(DAT)],[iso(addD(3)),fmtD(iso(addD(3)))]];
+      body = `<div class="field"><label>How often</label><div class="seg">${Object.keys(FREQ).map(f => `<button class="${sh.freq===f?'on':''}" data-a="s-freq" data-v="${f}">${FREQ[f]}</button>`).join('')}</div></div>
+        <div class="field row"><label>Quantity</label>${stepper('s-qty','q',q)}</div>
+        <div class="field"><label>Start</label><div class="seg">${starts.map(([d,l]) => `<button class="${sh.start===d?'on':''}" data-a="s-start" data-v="${d}">${l}</button>`).join('')}</div></div>
+        <div class="sum"><div><span>Each delivery</span><b>${rs(p.price*q)}</b></div><div><span>About a month</span><b>${rs(p.price*q*PERMONTH[sh.freq])}</b></div></div>
+        <p class="fine">Delivered 6:30 – 8:00 AM. Skip, pause or cancel anytime before ${CUTOFF} the night before. You're charged only on days it's delivered.</p>
+        <button class="btn primary block" data-a="sub-go">Start subscription</button>`;
+    }
     inner = `<div class="sh-head">${tile(p,'lg')}<div><div class="sh-title">${p.name}</div><div class="punit">${p.unit} · ${rs(p.price)} each</div></div></div>
-      <div class="field"><label>How often</label><div class="seg">${Object.keys(FREQ).map(f => `<button class="${sh.freq===f?'on':''}" data-a="s-freq" data-v="${f}">${FREQ[f]}</button>`).join('')}</div></div>
-      <div class="field row"><label>Quantity</label>${stepper('s-qty','q',sh.qty)}</div>
-      <div class="field"><label>Start</label><div class="seg">${starts.map(([d,l]) => `<button class="${sh.start===d?'on':''}" data-a="s-start" data-v="${d}">${l}</button>`).join('')}</div></div>
-      <div class="field"><label>Delivery</label><div class="static">6:30 – 8:00 AM · Home, Manikonda</div></div>
-      <div class="sum"><div><span>Each delivery</span><b>${rs(p.price*sh.qty)}</b></div><div><span>About a month</span><b>${rs(p.price*sh.qty*PERMONTH[sh.freq])}</b></div></div>
-      <p class="fine">Skip, pause or cancel anytime before ${CUTOFF} the night before. You're charged only on days it's delivered.</p>
-      <button class="btn primary block" data-a="sub-go">Start subscription</button>`;
-  } else if (sh.type === 'add'){
-    const p = P[sh.prod];
-    inner = `<div class="sh-head">${tile(p,'lg')}<div><div class="sh-title">${p.name}</div><div class="punit">${p.unit} · ${rs(p.price)} each</div></div></div>
-      <div class="field row"><label>Quantity</label>${stepper('a-qty','q',sh.qty)}</div>
-      <div class="field"><label>Arrives</label><div class="static">Tomorrow, ${fmtD(TMR)} · 6:30 – 8:00 AM, with your usual basket</div></div>
-      <button class="btn primary block" data-a="add-go" ${S.phase!=='open'?'disabled':''}>Add to tomorrow · ${rs(p.price*sh.qty)}</button>`;
+      <div class="field"><label>When do you want it?</label><div class="modes">${modes.map(([k,l,sub]) => `<button class="${sh.mode===k?'on':''}" data-a="mode" data-v="${k}"><b>${l}</b><span>${sub}</span></button>`).join('')}</div></div>
+      ${body}`;
+  } else if (sh.type === 'cart'){
+    const total = orderAmt(S.cart), bal = balance();
+    inner = `<div class="sh-title">Your order</div>
+      <div class="card">${S.cart.map(c => `<div class="line">${tile(P[c.prod],'sm')}<div><div class="pname">${P[c.prod].name}</div><div class="meta">${rs(P[c.prod].price*c.qty)}</div></div>${stepper('c-qty',c.prod,c.qty)}</div>`).join('')}</div>
+      <div class="field"><label>Deliver to</label><div class="static">Home, Manikonda · today in 45 – 60 min</div></div>
+      <div class="sum"><div><span>Total</span><b>${rs(total)}</b></div><div><span>Wallet balance</span><b>${rs(bal)}</b></div></div>
+      <p class="fine">${bal >= total ? 'Paid from your Vaaradhi wallet.' : 'Your wallet will be topped up by UPI to cover this order.'} You can cancel until Vaaradhi accepts it.</p>
+      <button class="btn primary block" data-a="place" ${nowOpen() && S.cart.length ? '' : 'disabled'}>Place order · ${rs(total)}</button>`;
   } else if (sh.type === 'vac'){
     const from = editFrom(), len = sh.len, days = len || 7;
     let n = 0, amt = 0;
@@ -633,10 +714,12 @@ function custHTML(){
   const t = ui.cTab;
   const head = t === 'shop'
     ? `<div class="c-head"><div><div class="hello">Good evening, Ananya</div><div class="addr">Home · Manikonda, Hyderabad</div></div><div class="avatar">AR</div></div>`
-    : `<div class="h-title">${t === 'tmr' ? 'Tomorrow' : 'Wallet'}</div>`;
-  const body = t === 'shop' ? shopBody() : t === 'tmr' ? tomorrowBody() : walletBody();
-  return `${head}<div class="app-body" data-scroll="c-${t}">${body}</div>
-    ${nav([['shop','Shop','shop'],['tmr','Tomorrow','sun'],['wallet','Wallet','wallet']], t, 'ctab')}
+    : `<div class="h-title">${{orders:'Orders', tmr:'Tomorrow', wallet:'Wallet'}[t]}</div>`;
+  const body = t === 'shop' ? shopBody() : t === 'orders' ? ordersBody() : t === 'tmr' ? tomorrowBody() : walletBody();
+  const n = S.cart.reduce((a,c) => a + c.qty, 0);
+  const cart = t === 'shop' && n ? `<button class="cartbar" data-a="cart-open"><span>${n} item${n > 1 ? 's' : ''} · ${rs(orderAmt(S.cart))}</span><span>View cart →</span></button>` : '';
+  return `${head}<div class="app-body" data-scroll="c-${t}">${body}</div>${cart}
+    ${nav([['shop','Shop','shop'],['orders','Orders','receipt'],['tmr','Tomorrow','sun'],['wallet','Wallet','wallet']], t, 'ctab', {orders:S.orders.filter(o => o.cust === 'me' && isLive(o)).length})}
     ${toastHTML(ui.cToast,'c','c')}${sheetHTML()}`;
 }
 
@@ -706,25 +789,40 @@ function mEarnings(){
   for (let d = start; d <= TDY; d = plus(d, 1)){ const r = dayRevenue(d); mtd += r.amt; n += r.n; }
   const st = stops(), collected = st.filter(s => S.done[s.cust]).reduce((a,s)=>a+s.amt,0), expected = st.reduce((a,s)=>a+s.amt,0);
   const monthName = TODAY.toLocaleDateString('en-IN', {month:'long'});
+  const inst = S.orders.filter(o => o.status !== 'cancelled'), instAmt = inst.reduce((a,o) => a + o.amt, 0);
   let setl = '';
   if (collected) setl += `<div class="led"><span>Tomorrow's deliveries<br><span class="punit">Credits ${fmtD(DAT)}</span></span><span class="amt">${rs(collected)}</span></div>`;
-  setl += `<div class="led"><span>Today's deliveries<br><span class="punit">Credits tomorrow</span></span><span class="amt">${rs(dayRevenue(TDY).amt)}</span></div>`;
+  setl += `<div class="led"><span>Today's one-time orders<br><span class="punit">Credits tomorrow</span></span><span class="amt">${rs(instAmt)}</span></div>`;
+  setl += `<div class="led"><span>Today's subscription deliveries<br><span class="punit">Credits tomorrow</span></span><span class="amt">${rs(dayRevenue(TDY).amt)}</span></div>`;
   for (let k = 1; k <= 5; k++){ const d = iso(addD(-k)); setl += `<div class="led"><span>${fmtD(d)} deliveries<br><span class="punit">Credited ${fmtD(plus(d,1))}</span></span><span class="amt in">${rs(dayRevenue(d).amt)}</span></div>`; }
-  return `<div class="earn"><span>App orders in ${monthName}</span><b>${rs(mtd + collected)}</b><span>${n + st.filter(s=>S.done[s.cust]).length} deliveries so far</span></div>
+  return `<div class="earn"><span>App orders in ${monthName}</span><b>${rs(mtd + collected + instAmt)}</b><span>${n + st.filter(s=>S.done[s.cust]).length} subscription deliveries and ${inst.length} one-time orders</span></div>
     <div class="kpis two"><div class="kpi"><span>Commission paid</span><b>₹0</b></div><div class="kpi"><span>${S.phase==='delivered'?'Collected today':'Tomorrow, expected'}</span><b>${rs(S.phase==='delivered'?collected:expected)}</b></div></div>
     <div class="sec">Payouts to your bank · next day</div>
     <div class="card">${setl}</div>
     <p class="fine">Customers pay from their prepaid wallet when an order is delivered. There's no cash to collect and no payments to chase.</p>`;
+}
+function mOrders(){
+  const all = [...S.orders].sort((a,b) => b.id - a.id);
+  const live = all.filter(isLive), done = all.filter(o => o.status === 'delivered'), paid = all.filter(o => o.status !== 'cancelled');
+  const row = (o, past) => `<div class="ord ${o.status === 'placed' ? 'new' : ''} ${past ? 'past' : ''}"><div>
+      <div class="sname">#${o.id} · ${C[o.cust].name}${o.cust === 'me' ? '<span class="you">demo customer</span>' : ''}</div>
+      <div class="sitems">${itemsText(o.items)}</div><div class="sitems">${C[o.cust].area} · placed ${o.t}</div></div>
+      <div class="sact">${rs(o.amt)}<span class="st ${o.status === 'placed' ? 'p' : o.status === 'delivered' ? 'a' : 'o'}">${OLBL[o.status]}</span>${NEXT[o.status] ? `<button class="btn xs" data-a="oadv" data-v="${o.id}">${NEXT[o.status]}</button>` : ''}</div></div>`;
+  return `<div class="m-date"><b>Order now · today</b><span>${nowOpen() ? 'Same-day delivery open till 9:00 PM' : 'Closed for tonight. Opens at 7:00 AM.'}</span></div>
+    <div class="kpis"><div class="kpi"><span>Orders today</span><b>${paid.length}</b></div><div class="kpi"><span>In progress</span><b>${live.length}</b></div><div class="kpi"><span>Paid</span><b>${rs(paid.reduce((a,o) => a + o.amt, 0))}</b></div></div>
+    ${live.length ? '<div class="sec">In progress</div>' + live.map(o => row(o)).join('') : '<div class="note">No open orders right now.</div>'}
+    ${done.length ? '<div class="sec">Delivered today</div>' + done.map(o => row(o, true)).join('') : ''}
+    <p class="fine">Every order is paid in the app before you accept it. No cash on delivery and nothing to confirm on WhatsApp.</p>`;
 }
 function merchHTML(){
   const st = stops(), pr = prep();
   trackChanges(pr, {stops:st.length, items:Object.values(pr).reduce((a,b)=>a+b,0), rev:st.reduce((a,s)=>a+s.amt,0)});
   const pill = S.phase === 'open' ? ['Taking changes',''] : S.phase === 'locked' ? ['Locked · packing','locked'] : ['Delivered','delivered'];
   const t = ui.mTab;
-  const body = t === 'today' ? mToday() : t === 'run' ? mRun() : t === 'cust' ? mCustomers() : mEarnings();
+  const body = t === 'orders' ? mOrders() : t === 'today' ? mToday() : t === 'run' ? mRun() : t === 'cust' ? mCustomers() : mEarnings();
   return `<div class="m-head"><div><div class="m-brand">Vaaradhi Farms</div><div class="m-sub">Manikonda store · ${clock()}</div></div><span class="pill ${pill[1]}">${pill[0]}</span></div>
     <div class="app-body" data-scroll="m-${t}">${body}</div>
-    ${nav([['today','Tomorrow','list'],['run','Run','truck'],['cust','Customers','people'],['earn','Earnings','chart']], t, 'mtab')}
+    ${nav([['orders','Orders','receipt'],['today','Tomorrow','list'],['run','Run','truck'],['cust','Customers','people'],['earn','Earnings','chart']], t, 'mtab', {orders:S.orders.filter(o => o.status === 'placed').length})}
     ${toastHTML(ui.mToast,'m','m')}`;
 }
 
@@ -828,6 +926,43 @@ const A = {
     if (ui.confirmCancel !== v){ ui.confirmCancel = v; return; }
     const s = S.subs.find(x => x.id === v); s.cancelledFrom = editFrom(); ui.confirmCancel = null;
     notify(`Ananya R. cancelled ${P[s.prod].name} from ${fmtD(s.cancelledFrom)}`, 'cancel'); toastC('Plan cancelled.');
+  },
+  'buy-open'(v){ const [prod, mode] = v.split('|'); ui.sheet = {type:'buy', prod, mode, qty:1, freq:'daily', start:editFrom()}; },
+  mode(v){ ui.sheet.mode = v; },
+  'cart-add'(){
+    if (!nowOpen()) return;
+    const sh = ui.sheet, ex = S.cart.find(c => c.prod === sh.prod);
+    if (ex) ex.qty = Math.min(9, ex.qty + sh.qty); else S.cart.push({prod:sh.prod, qty:sh.qty});
+    ui.sheet = null; toastC(`${P[sh.prod].name} added to cart.`);
+  },
+  'cart-open'(){ ui.sheet = {type:'cart'}; },
+  'c-qty'(v){
+    const [prod, d] = v.split('|'), c = S.cart.find(x => x.prod === prod); if (!c) return;
+    c.qty = Math.min(9, c.qty + +d); if (c.qty < 1) S.cart = S.cart.filter(x => x !== c);
+    if (!S.cart.length) ui.sheet = null;
+  },
+  place(){
+    if (!nowOpen() || !S.cart.length) return;
+    const items = S.cart.map(c => ({...c})), amt = orderAmt(items), id = S.oseq++, bal = balance();
+    if (bal < amt) S.ledger.push({date:TDY, seq:S.seq++, text:'Added to wallet via UPI', amt:Math.ceil((amt - bal)/500)*500, kind:'in'});
+    S.ledger.push({date:TDY, seq:S.seq++, text:`Order #${id} · ${itemsText(items)}`, amt:-amt, kind:'out'});
+    S.orders.push({id, cust:'me', items, amt, status:'placed', t:clock()});
+    S.cart = []; ui.sheet = null; ui.cTab = 'orders';
+    notify(`New order #${id} from Ananya R. · ${itemsText(items)} · ${rs(amt)} · Manikonda`, 'order');
+    toastC(`Order placed. ${rs(amt)} paid from your wallet.`);
+  },
+  'o-cancel'(v){
+    const o = S.orders.find(x => String(x.id) === v); if (!o || o.status !== 'placed') return;
+    o.status = 'cancelled';
+    S.ledger.push({date:TDY, seq:S.seq++, text:`Refund · Order #${o.id}`, amt:o.amt, kind:'in'});
+    notify(`Ananya R. cancelled order #${o.id} before it was accepted. ${rs(o.amt)} refunded.`, 'cancel');
+    toastC('Order cancelled. Money is back in your wallet.');
+  },
+  oadv(v){
+    const o = S.orders.find(x => String(x.id) === v); if (!o) return;
+    const i = FLOW.indexOf(o.status); if (i < 0 || i >= FLOW.length - 1) return;
+    o.status = FLOW[i + 1];
+    if (o.cust === 'me') toastC(CTXT[o.status]);
   },
   topup(){ S.ledger.push({date:TDY, seq:S.seq++, text:'Added to wallet via UPI', amt:1000, kind:'in'}); toastC('₹1,000 added to your wallet.'); },
   lock(){
