@@ -344,14 +344,15 @@ button:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
     <li><time>9:00 PM</time><b>Tomorrow's list locks</b><p>Vaaradhi gets the prep sheet: exact items and quantities, so nothing is made that won't be bought.</p></li>
     <li><time>5:00 AM</time><b>Pack by area</b><p>Stops come grouped by area, from Manikonda to Gachibowli and Kondapur, so the run is planned already.</p></li>
     <li><time>6:30 – 8:00 AM</time><b>Deliver</b><p>Each stop is marked delivered. Customers who paused are left off the list automatically.</p></li>
-    <li><time>After delivery</time><b>Billing runs itself</b><p>Customers pay from a prepaid wallet, only for what arrived. The money reaches Vaaradhi's bank the next day.</p></li>
+    <li><time>After delivery</time><b>Billing runs itself</b><p>Customers pay from a prepaid balance held by Vaaradhi, only for what arrived. Every payment goes straight into Vaaradhi's own payment account.</p></li>
   </ol>
   <div class="cols">
     <div class="col"><h3>For Vaaradhi</h3><ul>
       <li>Your own app with your name on it</li>
       <li>One-time orders and daily subscriptions in one place, without WhatsApp back-and-forth</li>
       <li>Know tomorrow's demand by 9 PM tonight, so there's less waste</li>
-      <li>No commission on orders, and the customer relationship stays yours</li>
+      <li>No aggregator commission on orders, and the customer relationship stays yours</li>
+      <li>Payments settle straight into your own payment account. Scribr never holds your money.</li>
       <li>Payments collected automatically, with no chasing</li>
     </ul></div>
     <div class="col light"><h3>For your customers</h3><ul>
@@ -658,7 +659,7 @@ function walletBody(){
   return `<div class="wal" style="margin-top:14px"><span>Vaaradhi wallet</span><b>${rs(balance())}</b>
       <div class="wal-row"><span>${S.phase==='delivered'?'Charged this morning':'Tomorrow\'s charge'}</span><span>${rs(charge)}</span></div>
       <button data-a="topup">Add ₹1,000 via UPI</button></div>
-    <div class="note">You're charged only on days something is delivered. Paused or skipped days cost ₹0.</div>
+    <div class="note">You're charged only on days something is delivered. Paused or skipped days cost ₹0. Your balance is held by Vaaradhi Farms and can only be used there.</div>
     <div class="sec">History</div>
     <div class="card" style="padding-top:0">${html}</div>`;
 }
@@ -791,15 +792,15 @@ function mEarnings(){
   const monthName = TODAY.toLocaleDateString('en-IN', {month:'long'});
   const inst = S.orders.filter(o => o.status !== 'cancelled'), instAmt = inst.reduce((a,o) => a + o.amt, 0);
   let setl = '';
-  if (collected) setl += `<div class="led"><span>Tomorrow's deliveries<br><span class="punit">Credits ${fmtD(DAT)}</span></span><span class="amt">${rs(collected)}</span></div>`;
-  setl += `<div class="led"><span>Today's one-time orders<br><span class="punit">Credits tomorrow</span></span><span class="amt">${rs(instAmt)}</span></div>`;
-  setl += `<div class="led"><span>Today's subscription deliveries<br><span class="punit">Credits tomorrow</span></span><span class="amt">${rs(dayRevenue(TDY).amt)}</span></div>`;
-  for (let k = 1; k <= 5; k++){ const d = iso(addD(-k)); setl += `<div class="led"><span>${fmtD(d)} deliveries<br><span class="punit">Credited ${fmtD(plus(d,1))}</span></span><span class="amt in">${rs(dayRevenue(d).amt)}</span></div>`; }
+  if (collected) setl += `<div class="led"><span>Collected this morning<br><span class="punit">Settling to your account</span></span><span class="amt">${rs(collected)}</span></div>`;
+  setl += `<div class="led"><span>Today's one-time orders<br><span class="punit">Settling to your account</span></span><span class="amt">${rs(instAmt)}</span></div>`;
+  setl += `<div class="led"><span>Today's subscription deliveries<br><span class="punit">Settling to your account</span></span><span class="amt">${rs(dayRevenue(TDY).amt)}</span></div>`;
+  for (let k = 1; k <= 5; k++){ const d = iso(addD(-k)); setl += `<div class="led"><span>${fmtD(d)} deliveries<br><span class="punit">Settled to your account</span></span><span class="amt in">${rs(dayRevenue(d).amt)}</span></div>`; }
   return `<div class="earn"><span>App orders in ${monthName}</span><b>${rs(mtd + collected + instAmt)}</b><span>${n + st.filter(s=>S.done[s.cust]).length} subscription deliveries and ${inst.length} one-time orders</span></div>
-    <div class="kpis two"><div class="kpi"><span>Commission paid</span><b>₹0</b></div><div class="kpi"><span>${S.phase==='delivered'?'Collected today':'Tomorrow, expected'}</span><b>${rs(S.phase==='delivered'?collected:expected)}</b></div></div>
-    <div class="sec">Payouts to your bank · next day</div>
+    <div class="kpis two"><div class="kpi"><span>Aggregator commission</span><b>₹0</b></div><div class="kpi"><span>${S.phase==='delivered'?'Collected today':'Tomorrow, expected'}</span><b>${rs(S.phase==='delivered'?collected:expected)}</b></div></div>
+    <div class="sec">Collections · paid into your account</div>
     <div class="card">${setl}</div>
-    <p class="fine">Customers pay from their prepaid wallet when an order is delivered. There's no cash to collect and no payments to chase.</p>`;
+    <p class="fine">Customers pay into Vaaradhi's own payment account (for example Razorpay), and the money settles to your bank on your provider's schedule. Scribr keeps the records and never holds your money. Standard payment gateway fees apply. There's no aggregator commission.</p>`;
 }
 function mOrders(){
   const all = [...S.orders].sort((a,b) => b.id - a.id);
@@ -855,7 +856,7 @@ function settle(){
 function finishRun(){
   S.phase = 'delivered'; settle();
   const st = stops();
-  notify(`Morning run complete: ${st.length} deliveries, ${rs(st.reduce((a,s)=>a+s.amt,0))} collected. Reaches your bank ${fmtD(DAT)}.`, 'lock');
+  notify(`Morning run complete: ${st.length} deliveries, ${rs(st.reduce((a,s)=>a+s.amt,0))} collected into your payment account.`, 'lock');
 }
 const A = {
   view(v){ ui.view = v; ui.demoOpen = false; if (v === 'merchant') S.unread = 0; },

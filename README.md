@@ -14,7 +14,7 @@ A clickable pitch demo for Vaaradhi Farms (Manikonda, Hyderabad). It has two con
 3. **Shop → any item → Order → Tomorrow.** It appears on Vaaradhi's prep sheet for the morning.
 4. **Shop → any item → Subscribe.** It shows up in Vaaradhi's customers and tomorrow's list.
 5. **Demo → Skip to 9:01 PM.** Customer edits lock, same-day ordering closes for the night, and Vaaradhi's list is ready to pack.
-6. **Demo → Run morning deliveries,** or mark stops on the Run tab. The wallet is charged only for what was delivered, and Earnings shows the next-day payout.
+6. **Demo → Run morning deliveries,** or mark stops on the Run tab. The wallet is charged only for what was delivered, and Earnings shows collections settling to Vaaradhi's own payment account.
 
 Use **Demo → Reset demo** before each pitch. State is saved in the browser and resets on its own each new day.
 
