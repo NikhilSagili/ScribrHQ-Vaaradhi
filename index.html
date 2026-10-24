@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#24391F">
+<meta name="theme-color" content="#0F7A3D">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Vaaradhi">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -15,276 +15,362 @@
 <title>Vaaradhi Farms · App Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <style>
 :root{
-  --ground:#E7ECE0; --paper:#F6F8F2; --card:#FFFFFF; --ink:#1C2719; --muted:#667262; --line:#DFE6D7;
-  --leaf:#24391F; --leaf-2:#3B6A33; --leaf-soft:#E2EBD9; --sun:#B9820F; --sun-2:#F3C661; --sun-soft:#F8ECCB;
-  --red:#A9442F; --red-soft:#F6E0D9; --blue-soft:#E8EEF6; --blue:#2F4A6B; --on-leaf:#F1F5EC;
-  --display:"Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --ui:"Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --brand:#0F7A3D; --brand-2:#139A4E; --brand-soft:#E7F6EC; --brand-ink:#0B5A2D;
+  --ink:#16191C; --ink-2:#3C4247; --muted:#737A80; --line:#ECEEF1; --bg:#F3F5F7; --card:#FFFFFF;
+  --yellow:#FFD23F; --yellow-soft:#FFF5D1; --amber:#B7791F; --red:#E23744; --red-soft:#FDE8EA;
+  --blue:#2563EB; --blue-soft:#EAF1FF; --dark:#121A15;
+  --ui:"Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color-scheme:light;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0}
-body{background:var(--ground);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.45;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+body{background:#E9EDF1;color:var(--ink);font-family:var(--ui);font-size:14px;line-height:1.4;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
-button:disabled{opacity:.38;cursor:not-allowed}
-button:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
+img{display:block;max-width:100%}
 [hidden]{display:none!important}
+svg{flex:none}
 
-/* ---------- top bar ---------- */
-.top{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:16px;background:var(--leaf);color:var(--on-leaf);
+/* ================= page shell ================= */
+.top{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:16px;background:#fff;border-bottom:1px solid #DDE2E7;
   padding:12px 24px;padding-top:calc(12px + env(safe-area-inset-top,0px))}
-.wm{display:flex;flex-direction:column;line-height:1.15}
-.wm b{font-family:var(--display);font-size:20px;font-weight:800;letter-spacing:-.01em}
-.wm span{font-size:12px;opacity:.72}
-.script{flex:1;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;font-size:12.5px}
-.script span{background:rgba(255,255,255,.08);padding:5px 10px;border-radius:999px;white-space:nowrap}
-.script i{font-style:normal;color:var(--sun-2);font-weight:800;margin-right:5px}
+.wm{display:flex;align-items:center;gap:10px}
+.wm .logo{width:36px;height:36px;border-radius:10px;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.wm b{display:block;font-size:16px;font-weight:800;letter-spacing:-.01em}
+.wm span{font-size:12px;color:var(--muted)}
+.script{flex:1;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.script span{background:var(--bg);padding:5px 10px;border-radius:999px;white-space:nowrap}
+.script i{font-style:normal;color:var(--brand);font-weight:800;margin-right:5px}
 .demo-btns{display:flex;gap:8px}
-.dbtn{background:rgba(255,255,255,.12);color:#fff;padding:8px 12px;border-radius:10px;font-size:13px;font-weight:700;white-space:nowrap}
-.dbtn.hot{background:var(--sun-2);color:var(--leaf)}
+.dbtn{background:var(--bg);color:var(--ink);padding:9px 13px;border-radius:10px;font-size:13px;font-weight:700;white-space:nowrap}
+.dbtn.hot{background:var(--ink);color:#fff}
 .seg-view,.demo-toggle{display:none}
 
-/* ---------- stage with two phones ---------- */
-.stage{display:flex;justify-content:center;gap:56px;padding:26px 24px 8px}
+.stage{display:flex;justify-content:center;gap:64px;padding:28px 24px 8px}
 .device{display:flex;flex-direction:column;align-items:center;gap:12px}
-.dlabel{font-family:var(--display);font-weight:800;font-size:16px;color:var(--leaf)}
-.dlabel span{font-family:var(--ui);font-weight:500;color:var(--muted);font-size:13px;margin-left:6px}
-.frame{height:min(820px, calc(100vh - 150px));min-height:600px;aspect-ratio:390/820;border-radius:48px;background:#10180E;padding:10px;
-  box-shadow:0 40px 70px -40px rgba(20,35,15,.65)}
-.app{--hpad:44px;--bpad:6px;position:relative;height:100%;width:100%;border-radius:38px;overflow:hidden;background:var(--paper);display:flex;flex-direction:column}
-.frame .app::before{content:"";position:absolute;top:11px;left:50%;transform:translateX(-50%);width:96px;height:27px;border-radius:14px;background:#10180E;z-index:70}
-.app-body > *{flex-shrink:0}
-.app-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 16px 22px;display:flex;flex-direction:column;gap:14px}
+.dlabel{font-weight:800;font-size:15px;color:var(--ink)}
+.dlabel span{font-weight:500;color:var(--muted);font-size:13px;margin-left:6px}
+.frame{height:min(840px, calc(100vh - 150px));min-height:620px;aspect-ratio:390/830;min-width:0;overflow:hidden;border-radius:50px;background:#0E1110;padding:10px;
+  box-shadow:0 50px 80px -46px rgba(10,20,14,.7), inset 0 0 0 2px #2A2F2C}
+.app{--hpad:46px;--bpad:8px;position:relative;height:100%;width:100%;border-radius:40px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+.frame .app::before{content:"";position:absolute;top:11px;left:50%;transform:translateX(-50%);width:100px;height:28px;border-radius:15px;background:#0E1110;z-index:80}
+.body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.body::-webkit-scrollbar{display:none}
+.pad{padding:0 14px}
 
-/* ---------- shared app pieces ---------- */
-.c-head{display:flex;justify-content:space-between;align-items:center;padding:var(--hpad) 18px 12px}
-.hello{font-family:var(--display);font-size:21px;font-weight:800;letter-spacing:-.01em}
-.addr{font-size:12.5px;color:var(--muted)}
-.avatar{width:36px;height:36px;border-radius:50%;background:var(--leaf-soft);display:grid;place-items:center;font-weight:800;font-size:13px;color:var(--leaf)}
-.m-head{background:var(--leaf);color:var(--on-leaf);padding:var(--hpad) 18px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
-.m-brand{font-family:var(--display);font-size:19px;font-weight:800}
-.m-sub{font-size:12px;opacity:.72}
-.pill{font-size:11.5px;font-weight:800;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.14);white-space:nowrap}
-.pill.locked{background:var(--sun-2);color:var(--leaf)}
-.pill.delivered{background:#CFE5C4;color:var(--leaf)}
-.h-title{font-family:var(--display);font-size:22px;font-weight:800;padding:var(--hpad) 18px 10px;letter-spacing:-.01em}
+/* ================= customer: header ================= */
+.ch{background:linear-gradient(180deg,#CFEFD9 0%,#E8F7EC 62%,var(--bg) 100%);padding:var(--hpad) 16px 12px;display:flex;flex-direction:column;gap:12px}
+.ch-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.ch-eta{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.ch-eta em{font-style:normal;color:var(--brand)}
+.ch-addr{font-size:12.5px;font-weight:600;color:var(--ink-2);display:flex;align-items:center;gap:3px;margin-top:3px}
+.ch-av{width:38px;height:38px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;color:var(--brand-ink);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.search{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #DCE9E0;border-radius:14px;padding:0 12px;height:46px;color:var(--muted)}
+.search input{flex:1;border:0;outline:0;font:inherit;font-size:14px;font-weight:500;color:var(--ink);background:transparent;min-width:0}
+.search input::placeholder{color:#9AA1A6}
+.ct{padding:var(--hpad) 16px 10px;background:var(--bg)}
+.ct h2{margin:0;font-size:24px;font-weight:800;letter-spacing:-.02em}
+.ct p{margin:2px 0 0;color:var(--muted);font-size:12.5px;font-weight:600}
 
-.banner{display:flex;justify-content:space-between;gap:12px;align-items:center;border-radius:16px;padding:12px 14px;background:var(--leaf);color:var(--on-leaf)}
-.banner b{display:block;font-size:14px}
-.banner span{font-size:12px;opacity:.82}
-.banner .cd{text-align:right;flex:none}
-.banner .cd b{color:var(--sun-2)}
-.banner.locked{background:var(--sun-soft);color:var(--ink)}
-.banner.done{background:var(--leaf-soft);color:var(--ink)}
+/* hero banner */
+.hb{position:relative;display:block;width:calc(100% - 28px);margin:2px 14px 0;border-radius:20px;overflow:hidden;height:168px;text-align:left;color:#fff}
+.hb img{width:100%;height:100%;object-fit:cover}
+.hb::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,40,20,.88) 0%,rgba(6,40,20,.55) 55%,rgba(6,40,20,.05) 100%)}
+.hb-in{position:absolute;inset:0;z-index:1;padding:16px;display:flex;flex-direction:column;gap:5px;justify-content:flex-end}
+.hb-pill{align-self:flex-start;background:var(--yellow);color:var(--ink);font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;margin-bottom:auto}
+.hb b{font-size:19px;font-weight:800;line-height:1.15;max-width:15ch;letter-spacing:-.01em}
+.hb span{font-size:12.5px;opacity:.9;font-weight:500}
+.hb i{font-style:normal;font-size:12.5px;font-weight:800;color:var(--yellow);margin-top:2px}
 
-.chips{display:flex;gap:8px;overflow-x:auto;margin:0 -16px;padding:0 16px;scrollbar-width:none}
-.chips::-webkit-scrollbar{display:none}
-.chip{white-space:nowrap;padding:7px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:13px;font-weight:700}
-.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+/* categories */
+.cats{display:flex;gap:4px;overflow-x:auto;padding:16px 10px 4px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cat{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:72px;font-size:12px;font-weight:700;color:var(--ink-2)}
+.cat-i{width:58px;height:58px;border-radius:18px;background:#fff;overflow:hidden;display:grid;place-items:center;border:2px solid transparent;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.cat-i img{width:100%;height:100%;object-fit:cover}
+.cat-i b{font-size:14px;color:var(--brand)}
+.cat.on .cat-i{border-color:var(--brand)}
+.cat.on{color:var(--brand)}
 
-.list{display:flex;flex-direction:column;gap:10px}
-.prod{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;background:var(--card);border-radius:16px;padding:10px;border:1px solid var(--line)}
-.tile{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:28px;line-height:1}
-.tile.sm{width:40px;height:40px;font-size:21px;border-radius:12px}
-.tile.xs{width:32px;height:32px;font-size:18px;border-radius:10px}
-.tile.lg{width:60px;height:60px;font-size:32px;border-radius:16px}
-.pname{font-weight:700;font-size:14.5px;line-height:1.25}
-.punit{font-size:12px;color:var(--muted)}
-.pprice{font-weight:800;font-size:14px;margin-top:3px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.mine{font-size:10.5px;font-weight:800;color:var(--leaf-2);background:var(--leaf-soft);padding:2px 7px;border-radius:999px}
-.pact{display:flex;flex-direction:column;gap:6px}
+/* sections + product cards */
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;padding:18px 16px 10px}
+.sec-h h3{margin:0;font-size:17px;font-weight:800;letter-spacing:-.01em}
+.sec-h button{font-size:13px;font-weight:700;color:var(--brand)}
+.rail{display:flex;gap:10px;overflow-x:auto;padding:0 14px 4px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.rail .pc{width:146px;flex:none;scroll-snap-align:start}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px}
+.pc{background:#fff;border-radius:16px;padding:8px;display:flex;flex-direction:column;gap:3px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+.pc-img{position:relative;width:100%;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:var(--bg);margin-bottom:5px}
+.pc-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.pc-img:hover img{transform:scale(1.04)}
+.pc-tag{position:absolute;left:6px;top:6px;background:var(--brand);color:#fff;font-size:10px;font-weight:800;padding:3px 7px;border-radius:7px}
+.pc-eta{display:flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;color:var(--ink-2);background:var(--bg);align-self:flex-start;padding:2px 6px;border-radius:6px}
+.pc-name{font-size:13px;font-weight:700;line-height:1.25;min-height:2.5em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pc-unit{font-size:11.5px;color:var(--muted);font-weight:500}
+.pc-row{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.pc-row b{font-size:14px;font-weight:800}
+.addbtn{border:1.5px solid var(--brand);color:var(--brand);background:#F4FBF6;font-weight:800;font-size:12.5px;padding:6px 14px;border-radius:9px;letter-spacing:.02em}
+.qbtn{display:flex;align-items:center;background:var(--brand);color:#fff;border-radius:9px;overflow:hidden}
+.qbtn button{width:28px;height:30px;font-size:16px;font-weight:800;color:#fff}
+.qbtn b{min-width:16px;text-align:center;font-size:13px;font-weight:800}
+.qbtn.lt{background:var(--brand-soft);color:var(--brand-ink)}
+.qbtn.lt button{color:var(--brand-ink)}
+.pc-sub{font-size:11.5px;font-weight:700;color:var(--brand);text-align:left;padding:5px 0 1px;border-top:1px dashed var(--line);margin-top:6px;display:flex;align-items:center;gap:4px}
+.empty{grid-column:1/-1;padding:30px 0;text-align:center;color:var(--muted);font-weight:600}
 
-.btn{border-radius:12px;font-weight:800;padding:10px 14px;font-size:14px}
-.btn.sm{padding:7px 10px;font-size:12.5px;border-radius:10px}
-.btn.xs{padding:6px 9px;font-size:12px;border-radius:9px;background:var(--leaf-2);color:#fff}
-.btn.primary{background:var(--leaf-2);color:#fff}
-.btn.ghost{background:var(--leaf-soft);color:var(--leaf)}
-.btn.block{width:100%;padding:14px;font-size:15px}
+/* cart bar */
+.cartbar{position:absolute;left:12px;right:12px;bottom:calc(72px + var(--bpad));z-index:25;background:var(--brand);color:#fff;border-radius:16px;padding:9px 14px 9px 10px;
+  display:flex;align-items:center;gap:10px;box-shadow:0 16px 30px -14px rgba(15,122,61,.7);text-align:left}
+.cb-th{display:flex}
+.cb-th img{width:34px;height:34px;border-radius:9px;object-fit:cover;border:2px solid var(--brand);margin-left:-10px;background:#fff}
+.cb-th img:first-child{margin-left:0}
+.cb-t{flex:1;display:flex;flex-direction:column}
+.cb-t b{font-size:14.5px;font-weight:800}
+.cb-t small{font-size:12px;opacity:.85;font-weight:600}
+.cb-go{font-size:22px;font-weight:700}
 
-.sec{margin:6px 2px -6px;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:800}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:2px 12px}
-.line{display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
-.line:last-child,.plan:last-child,.cust:last-child,.led:last-child,.prow:last-child,.fi:last-child{border-bottom:0}
-.meta{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:1px}
-.line.off .pname{color:var(--muted);text-decoration:line-through}
-.tag{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;white-space:nowrap}
-.tag.pz{background:var(--sun-soft);color:#7A560A}
-.tag.one{background:var(--blue-soft);color:var(--blue)}
-.tag.ok{background:var(--leaf-soft);color:var(--leaf-2)}
-.step{display:flex;align-items:center;gap:2px;background:var(--leaf-soft);border-radius:10px}
-.step button{width:30px;height:30px;font-size:17px;font-weight:800;color:var(--leaf)}
-.step b{min-width:18px;text-align:center;font-size:14px}
-.lact{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
-.link{font-size:12px;font-weight:800;color:var(--leaf-2)}
-.link.red{color:var(--red)}
-.amtline{font-weight:800;font-size:13.5px}
-.total{display:flex;justify-content:space-between;align-items:baseline;padding:12px 2px 0;font-weight:800;font-size:15px}
-.save{font-size:12.5px;color:var(--leaf-2);font-weight:700;padding:0 2px}
+/* bottom nav */
+.nav{display:flex;background:#fff;border-top:1px solid var(--line);padding:7px 6px calc(9px + var(--bpad))}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;color:#8A9196;position:relative}
+.nav button.on{color:var(--brand)}
+.nav svg{width:23px;height:23px}
+.nav .nb{position:absolute;top:-3px;right:calc(50% - 22px);background:var(--red);color:#fff;font-size:10px;font-style:normal;min-width:17px;height:17px;border-radius:9px;display:grid;place-items:center;padding:0 4px;border:2px solid #fff}
 
-.vac{display:flex;flex-direction:column;gap:2px;text-align:left;width:100%;background:var(--sun-soft);border-radius:16px;padding:14px}
-.vac b{font-size:15px}
-.vac span{font-size:12.5px;color:#5E5236}
-.vac.on{background:var(--leaf);color:var(--on-leaf)}
-.vac.on span{color:#D6E2CF}
-.vac.on button{align-self:flex-start;margin-top:10px;background:var(--sun-2);color:var(--leaf);padding:8px 12px;border-radius:10px;font-weight:800;font-size:13px}
+/* generic boxes */
+.box{background:#fff;border-radius:18px;padding:4px 14px;margin:0 14px}
+.sh{padding:18px 16px 8px;font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.th{width:44px;height:44px;border-radius:12px;overflow:hidden;flex:none;background:var(--bg)}
+.th img{width:100%;height:100%;object-fit:cover}
+.th.sm{width:34px;height:34px;border-radius:9px}
+.th.lg{width:52px;height:52px;border-radius:14px}
+.row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .t{flex:1;min-width:0}
+.row .t b{display:block;font-size:14px;font-weight:700}
+.row .t small{display:block;font-size:12px;color:var(--muted);font-weight:500}
+.row.off .t b{color:var(--muted);text-decoration:line-through}
+.rt{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex:none}
+.lnk{font-size:12px;font-weight:700;color:var(--brand)}
+.lnk.red{color:var(--red)}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.chip.g{background:var(--brand-soft);color:var(--brand-ink)}
+.chip.y{background:var(--yellow-soft);color:#7A5B00}
+.chip.b{background:var(--blue-soft);color:var(--blue)}
+.chip.r{background:var(--red-soft);color:var(--red)}
+.chip.k{background:var(--ink);color:#fff}
+.note{margin:12px 14px 0;font-size:12.5px;color:var(--ink-2);background:#fff;border-radius:14px;padding:11px 13px;font-weight:500}
+.fine{margin:12px 16px 0;font-size:11.5px;color:var(--muted);font-weight:500}
+.spacer{height:24px}
 
-.plan{display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
-.pstat{font-size:11.5px;font-weight:800;margin-top:2px}
-.pstat.ok{color:var(--leaf-2)} .pstat.pz{color:var(--sun)} .pstat.x{color:var(--red)} .pstat.n{color:var(--blue)}
-.pbtns{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+/* tomorrow card */
+.tm{margin:0 14px;border-radius:20px;background:#fff;overflow:hidden}
+.tm-top{background:var(--dark);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.tm-top small{display:block;font-size:11.5px;opacity:.7;font-weight:600}
+.tm-top b{font-size:17px;font-weight:800}
+.cd{background:var(--yellow);color:var(--ink);font-size:11.5px;font-weight:800;padding:5px 10px;border-radius:999px;white-space:nowrap}
+.cd.lk{background:#fff}
+.cd.dn{background:#BFF0CF}
+.tm-body{padding:2px 16px}
+.tm-foot{display:flex;justify-content:space-between;padding:12px 16px;background:#FAFBFC;border-top:1px solid var(--line);font-weight:800;font-size:14.5px}
+.save{margin:8px 16px 0;font-size:12.5px;font-weight:700;color:var(--brand)}
+.vac{display:flex;gap:12px;align-items:center;width:calc(100% - 28px);margin:12px 14px 0;text-align:left;background:var(--yellow-soft);border-radius:18px;padding:14px}
+.vac .vi{width:40px;height:40px;border-radius:12px;background:var(--yellow);display:grid;place-items:center;flex:none}
+.vac b{display:block;font-size:14.5px;font-weight:800}
+.vac small{display:block;font-size:12px;color:#6B5A1F;font-weight:500}
+.vac.on{background:var(--brand);color:#fff}
+.vac.on .vi{background:rgba(255,255,255,.18)}
+.vac.on small{color:#D5F0DE}
+.vac.on .vb{margin-top:8px;display:inline-block;background:#fff;color:var(--brand-ink);font-size:12px;font-weight:800;padding:6px 10px;border-radius:9px}
 
-.wal{background:var(--leaf);color:var(--on-leaf);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:4px}
-.wal>span{font-size:12.5px;opacity:.8}
-.wal>b{font-family:var(--display);font-size:36px;font-weight:800;letter-spacing:-.01em}
-.wal-row{display:flex;justify-content:space-between;font-size:13px;border-top:1px solid rgba(255,255,255,.16);padding-top:10px;margin-top:6px}
-.wal button{margin-top:10px;align-self:flex-start;background:var(--sun-2);color:var(--leaf);padding:9px 14px;border-radius:10px;font-weight:800;font-size:13px}
-.note{font-size:12.5px;color:var(--muted);background:var(--card);border:1px dashed #C9D3BF;border-radius:14px;padding:10px 12px}
-.ldate{font-size:11.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;padding:12px 0 2px}
-.led{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
-.led .amt{font-weight:800;white-space:nowrap}
-.amt.in{color:var(--leaf-2)} .amt.zero{color:var(--sun)}
+/* orders tracker */
+.tk{margin:0 14px 12px;background:#fff;border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.tk-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tk-top small{display:block;font-size:11.5px;color:var(--muted);font-weight:700}
+.tk-top b{font-size:17px;font-weight:800;letter-spacing:-.01em}
+.eta{background:var(--brand-soft);color:var(--brand-ink);font-size:12px;font-weight:800;padding:6px 10px;border-radius:10px;text-align:center;white-space:nowrap}
+.tk-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.tk-bar i{height:5px;border-radius:3px;background:var(--line)}
+.tk-bar i.on{background:var(--brand)}
+.tk-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;font-size:9.5px;font-weight:700;color:#A3A9AE;margin-top:-6px}
+.tk-steps span.on{color:var(--ink-2)}
+.tk-items{display:flex;gap:8px;flex-wrap:wrap}
+.tk-it{display:flex;align-items:center;gap:6px;background:var(--bg);border-radius:10px;padding:4px 8px 4px 4px;font-size:12px;font-weight:700}
+.tk-foot{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:700;color:var(--ink-2);border-top:1px dashed var(--line);padding-top:10px}
 
-.nav{display:flex;border-top:1px solid var(--line);background:var(--card);padding:6px 6px calc(8px + var(--bpad))}
-.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:700;color:var(--muted);padding:4px 0;position:relative}
-.nav button.on{color:var(--leaf-2)}
-.nav svg{width:22px;height:22px}
+/* wallet */
+.wc{margin:0 14px;border-radius:22px;padding:20px;color:#fff;background:radial-gradient(120% 140% at 100% 0%,#22B862 0%,#0F7A3D 45%,#0A4F28 100%);display:flex;flex-direction:column;gap:4px}
+.wc small{font-size:12.5px;opacity:.85;font-weight:600}
+.wc b{font-size:38px;font-weight:800;letter-spacing:-.02em}
+.wc-row{display:flex;justify-content:space-between;font-size:13px;font-weight:600;border-top:1px solid rgba(255,255,255,.2);padding-top:10px;margin-top:8px}
+.topups{display:flex;gap:8px;padding:12px 14px 0}
+.topups button{flex:1;background:#fff;border-radius:12px;padding:11px 0;font-weight:800;font-size:13.5px;color:var(--brand-ink)}
+.ld{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;padding:14px 0 4px}
+.lg{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px;font-weight:600}
+.lg:last-child{border-bottom:0}
+.lg .amt{font-weight:800;white-space:nowrap}
+.amt.in{color:var(--brand)} .amt.zero{color:var(--amber)}
 
-/* merchant */
-.m-date{display:flex;flex-direction:column;padding-top:14px}
-.m-date b{font-family:var(--display);font-size:21px;font-weight:800}
-.m-date span{font-size:12.5px;color:var(--muted)}
-.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.kpis.two{grid-template-columns:1fr 1fr}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;position:relative}
-.kpi span{font-size:11px;color:var(--muted);font-weight:700;display:block}
-.kpi b{font-family:var(--display);font-size:20px;font-weight:800}
-.kpi.chg{animation:flash 1.8s}
-.delta{font-size:11px;font-weight:800;padding:1px 6px;border-radius:999px;background:var(--red-soft);color:var(--red);animation:pop .35s ease-out}
-.delta.up{background:var(--leaf-soft);color:var(--leaf-2)}
-.kpi .delta{position:absolute;top:7px;right:7px}
-.prow{display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
-.prow .q{font-family:var(--display);font-size:19px;font-weight:800;display:flex;align-items:center;gap:6px}
-.prow.chg{animation:flash 1.8s}
-@keyframes flash{0%,30%{background:var(--sun-soft)}100%{background:transparent}}
-@keyframes pop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
-.saved{font-size:12.5px;background:var(--sun-soft);border-radius:12px;padding:10px 12px;color:#5E5236}
-.feed{display:flex;flex-direction:column}
-.fi{display:grid;grid-template-columns:10px 1fr auto;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px;align-items:start}
-.fi .d{width:8px;height:8px;border-radius:50%;margin-top:6px;background:var(--leaf-2)}
-.fi.pause .d,.fi.skip .d{background:var(--sun)}
-.fi.cancel .d{background:var(--red)}
-.fi.lock .d{background:var(--ink)}
-.fi time{font-size:11px;color:var(--muted);white-space:nowrap}
-.prog{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;margin-top:14px}
-.prog .row{display:flex;justify-content:space-between;font-size:13px;font-weight:700}
-.bar{height:8px;border-radius:4px;background:var(--leaf-soft);overflow:hidden}
-.bar i{display:block;height:100%;background:var(--leaf-2);transition:width .4s}
-.area{display:flex;justify-content:space-between;font-weight:800;font-size:13px;padding:4px 2px 0;color:var(--leaf)}
-.area span{color:var(--muted);font-weight:700}
-.stop{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
-.stop.me{border-color:var(--sun)}
-.stop.done{opacity:.55}
-.stop.away{background:transparent;border-style:dashed}
-.sname{font-weight:800;font-size:14px}
-.sitems{font-size:12px;color:var(--muted)}
-.sact{display:flex;flex-direction:column;align-items:flex-end;gap:5px;font-size:13px;font-weight:800}
-.okt{font-size:12px;font-weight:800;color:var(--leaf-2)}
-.you{font-size:10px;font-weight:800;background:var(--sun-soft);color:#7A560A;padding:1px 6px;border-radius:999px;vertical-align:2px;margin-left:4px}
-.cust{display:grid;grid-template-columns:36px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
-.ini{width:36px;height:36px;border-radius:50%;background:var(--leaf-soft);display:grid;place-items:center;font-weight:800;font-size:12px;color:var(--leaf)}
-.st{font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;white-space:nowrap}
-.st.a{background:var(--leaf-soft);color:var(--leaf-2)} .st.p{background:var(--sun-soft);color:#7A560A} .st.n{background:var(--blue-soft);color:var(--blue)}
-.ccount{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
-.earn{background:var(--leaf);color:var(--on-leaf);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:3px;margin-top:14px}
-.earn b{font-family:var(--display);font-size:34px;font-weight:800}
-.earn span{font-size:12.5px;opacity:.8}
+/* sheets */
+.scrim{position:absolute;inset:0;background:rgba(10,14,12,.5);z-index:30;animation:fade .2s}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--bg);border-radius:26px 26px 0 0;z-index:31;display:flex;flex-direction:column;max-height:92%;overflow:hidden;animation:up .28s cubic-bezier(.2,.8,.2,1)}
+.sheet-sc{overflow-y:auto;flex:1;min-height:0}
+.ps-img{position:relative;height:210px;background:#fff}
+.ps-img img{width:100%;height:100%;object-fit:cover}
+.x{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.95);display:grid;place-items:center;font-size:20px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.ps-b{background:#fff;padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.ps-name{font-size:20px;font-weight:800;letter-spacing:-.01em}
+.ps-meta{display:flex;justify-content:space-between;align-items:center}
+.ps-meta span{color:var(--muted);font-weight:600;font-size:13px}
+.ps-meta b{font-size:20px;font-weight:800}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--bg);padding:4px;border-radius:14px}
+.modes button{border-radius:11px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:1px}
+.modes button b{font-size:13.5px;font-weight:800}
+.modes button small{font-size:10.5px;color:var(--muted);font-weight:600}
+.modes button.on{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.modes button.on b{color:var(--brand)}
+.fld{display:flex;flex-direction:column;gap:8px}
+.fld.r{flex-direction:row;justify-content:space-between;align-items:center}
+.fld label{font-size:12px;font-weight:800;color:var(--muted)}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opts button{padding:8px 12px;border-radius:10px;background:var(--bg);font-size:13px;font-weight:700}
+.opts button.on{background:var(--brand-soft);color:var(--brand-ink);box-shadow:inset 0 0 0 1.5px var(--brand)}
+.info{display:flex;gap:8px;align-items:center;background:var(--bg);border-radius:12px;padding:10px 12px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.sumg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sumg div{background:var(--bg);border-radius:12px;padding:10px 12px}
+.sumg span{display:block;font-size:11.5px;color:var(--muted);font-weight:600}
+.sumg b{font-size:17px;font-weight:800}
+.sh-pad{padding:18px 0 4px;display:flex;flex-direction:column;gap:12px}
+.sh-title{font-size:20px;font-weight:800;padding:0 16px;letter-spacing:-.01em}
+.sh-pad .info{margin:0 14px;background:#fff}
+.bill{display:flex;flex-direction:column;gap:7px;padding:12px 14px}
+.bill div{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink-2)}
+.bill .bt{border-top:1px dashed var(--line);padding-top:9px;font-size:15px;font-weight:800;color:var(--ink)}
+.free{color:var(--brand);font-weight:800}
+.sh-foot{padding:12px 14px calc(14px + var(--bpad));background:#fff;border-top:1px solid var(--line)}
+.cta{width:100%;background:var(--brand);color:#fff;border-radius:14px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:15px}
+.cta span:first-child{display:flex;flex-direction:column;align-items:flex-start;line-height:1.1}
+.cta small{font-size:10px;opacity:.8;letter-spacing:.06em}
+.cta.c{justify-content:center}
 
-/* sheets + toasts */
-.scrim{position:absolute;inset:0;background:rgba(16,24,14,.45);z-index:30;animation:fade .2s}
-.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--paper);border-radius:24px 24px 0 0;padding:10px 18px calc(18px + var(--bpad));z-index:31;
-  display:flex;flex-direction:column;gap:14px;max-height:90%;overflow-y:auto;animation:up .25s ease-out}
-.grab{width:40px;height:4px;border-radius:2px;background:#CBD5C1;align-self:center}
-.sh-head{display:flex;gap:12px;align-items:center}
-.sh-title{font-family:var(--display);font-size:19px;font-weight:800;line-height:1.2}
-.field{display:flex;flex-direction:column;gap:7px}
-.field.row{flex-direction:row;justify-content:space-between;align-items:center}
-.field label{font-size:11.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
-.seg{display:flex;flex-wrap:wrap;gap:6px}
-.seg button{padding:8px 12px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:13px;font-weight:700}
-.seg button.on{background:var(--leaf-2);border-color:var(--leaf-2);color:#fff}
-.static{font-size:13.5px}
-.sum{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.sum div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
-.sum span{display:block;font-size:11.5px;color:var(--muted)}
-.sum b{font-size:17px}
-.fine{font-size:12px;color:var(--muted);margin:0}
-.toast{position:absolute;left:12px;right:12px;top:calc(var(--hpad) + 52px);z-index:40;background:var(--sun-2);color:var(--leaf);border-radius:14px;padding:11px 14px;
-  font-size:13px;font-weight:700;box-shadow:0 14px 30px -12px rgba(0,0,0,.45);animation:drop .35s ease-out}
-.toast small{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;opacity:.75;font-weight:800}
-.toast.c{top:auto;bottom:calc(74px + var(--bpad));background:var(--ink);color:#fff}
+/* toasts */
+.toast{position:absolute;left:12px;right:12px;z-index:40;border-radius:16px;padding:12px 14px;font-size:13px;font-weight:700;display:flex;gap:10px;align-items:center;
+  box-shadow:0 18px 34px -14px rgba(0,0,0,.45);animation:drop .35s cubic-bezier(.2,.8,.2,1)}
 .toast.still{animation:none}
+.toast.c{bottom:calc(140px + var(--bpad));background:var(--ink);color:#fff}
+.toast.m{top:calc(var(--hpad) + 58px);background:#fff;color:var(--ink);border:1px solid var(--line)}
+.toast .ti{width:30px;height:30px;border-radius:10px;background:var(--yellow);display:grid;place-items:center;flex:none}
+.toast small{display:block;font-size:10.5px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.07em}
 @keyframes up{from{transform:translateY(100%)}to{transform:none}}
 @keyframes fade{from{opacity:0}to{opacity:1}}
-@keyframes drop{from{transform:translateY(-14px);opacity:0}to{transform:none;opacity:1}}
+@keyframes drop{from{transform:translateY(-12px);opacity:0}to{transform:none;opacity:1}}
+@keyframes pop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes flash{0%,30%{background:var(--yellow-soft)}100%{background:transparent}}
 
-/* order now */
-.nowstrip{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:12.5px;color:var(--muted)}
-.nowstrip b{font-size:13.5px;display:block;color:var(--ink)}
-.nowstrip .open{color:var(--leaf-2);font-weight:800;white-space:nowrap}
-.nowstrip .closed{color:var(--sun);font-weight:800;white-space:nowrap}
-.cartbar{position:absolute;left:12px;right:12px;bottom:calc(68px + var(--bpad));z-index:25;background:var(--leaf-2);color:#fff;border-radius:14px;padding:13px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:14px;box-shadow:0 14px 30px -14px rgba(0,0,0,.5)}
-.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.modes button{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:9px 8px;text-align:left;display:flex;flex-direction:column;gap:1px}
-.modes button b{font-size:13.5px}
-.modes button span{font-size:11px;color:var(--muted)}
-.modes button.on{background:var(--leaf-2);border-color:var(--leaf-2);color:#fff}
-.modes button.on span{color:#DCEAD3}
-.track{display:flex;flex-direction:column;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
-.track-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.track-top b{font-family:var(--display);font-size:18px;font-weight:800}
-.steps-mini{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
-.steps-mini i{height:6px;border-radius:3px;background:var(--leaf-soft)}
-.steps-mini i.on{background:var(--leaf-2)}
-.track-lbls{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);font-weight:700}
-.ord{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
-.ord.new{border-color:var(--sun);background:var(--sun-soft)}
-.ord.past{opacity:.6}
-.st.o{background:var(--blue-soft);color:var(--blue)}
-.nav .nb{position:absolute;top:0;right:calc(50% - 21px);background:var(--red);color:#fff;font-size:10px;font-style:normal;min-width:16px;height:16px;border-radius:8px;display:grid;place-items:center;padding:0 4px}
-.fi.order .d{background:var(--blue)}
+/* ================= merchant ================= */
+.mh{background:var(--dark);color:#fff;padding:var(--hpad) 16px 14px;display:flex;align-items:center;gap:11px}
+.mh .lg2{width:38px;height:38px;border-radius:12px;background:var(--brand-2);display:grid;place-items:center;font-weight:800;font-size:14px;flex:none}
+.mh .nm{flex:1;min-width:0}
+.mh .nm b{display:block;font-size:16px;font-weight:800}
+.mh .nm small{font-size:12px;opacity:.65;font-weight:600}
+.st-pill{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.1);white-space:nowrap}
+.st-pill i{width:7px;height:7px;border-radius:50%;background:#3DDC84;box-shadow:0 0 0 3px rgba(61,220,132,.25)}
+.st-pill.lk i{background:var(--yellow);box-shadow:0 0 0 3px rgba(255,210,63,.25)}
+.st-pill.dn i{background:#9CA3AF;box-shadow:none}
+.mbody{background:var(--bg)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px 14px 0}
+.stat{background:#fff;border-radius:16px;padding:12px;position:relative}
+.stat span{display:block;font-size:11px;color:var(--muted);font-weight:700}
+.stat b{font-size:21px;font-weight:800;letter-spacing:-.02em}
+.stat.chg{animation:flash 1.8s}
+.delta{font-size:10.5px;font-weight:800;padding:1px 6px;border-radius:999px;background:var(--red-soft);color:var(--red);animation:pop .35s ease-out}
+.delta.up{background:var(--brand-soft);color:var(--brand-ink)}
+.stat .delta{position:absolute;top:8px;right:8px}
+.ord{margin:0 14px 10px;background:#fff;border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.ord.new{box-shadow:inset 0 0 0 2px var(--yellow);background:#FFFDF3}
+.ord.past{opacity:.6;padding:12px 14px}
+.ord-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.ord-top b{display:block;font-size:15px;font-weight:800}
+.ord-top small{display:block;font-size:12px;color:var(--muted);font-weight:600}
+.ord-amt{font-size:16px;font-weight:800;text-align:right}
+.ord-its{display:flex;gap:6px;flex-wrap:wrap}
+.ord-act{display:flex;gap:8px}
+.bigbtn{flex:1;background:var(--brand);color:#fff;border-radius:12px;padding:12px;font-weight:800;font-size:14px}
+.bigbtn.dk{background:var(--ink)}
+.mcard{margin:14px 14px 0;border-radius:22px;padding:18px;color:#fff;background:radial-gradient(130% 150% at 100% 0%,#1F9E55 0%,#0F6B36 50%,#0A3F21 100%)}
+.mcard small{font-size:12px;opacity:.8;font-weight:600}
+.mcard .big{font-size:22px;font-weight:800;letter-spacing:-.01em;margin:2px 0 14px}
+.mstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mstats div{background:rgba(255,255,255,.12);border-radius:14px;padding:10px;position:relative}
+.mstats div.chg{animation:flash2 1.8s}
+@keyframes flash2{0%,30%{background:rgba(255,210,63,.55)}100%{background:rgba(255,255,255,.12)}}
+.mstats span{display:block;font-size:10.5px;opacity:.8;font-weight:700}
+.mstats b{font-size:20px;font-weight:800}
+.mstats .delta{position:absolute;top:6px;right:6px}
+.prep .row{position:relative}
+.prep .q{font-size:20px;font-weight:800;display:flex;align-items:center;gap:6px}
+.prep .row.chg{animation:flash 1.8s}
+.saved{margin:10px 14px 0;font-size:12.5px;background:var(--yellow-soft);border-radius:14px;padding:11px 13px;color:#6B5A1F;font-weight:600}
+.feed .fi{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:12.5px;font-weight:600;align-items:flex-start}
+.feed .fi:last-child{border-bottom:0}
+.fi .d{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;flex:none;background:var(--brand-soft);color:var(--brand-ink)}
+.fi.pause .d,.fi.skip .d{background:var(--yellow-soft);color:#7A5B00}
+.fi.cancel .d{background:var(--red-soft);color:var(--red)}
+.fi.lock .d{background:var(--ink);color:#fff}
+.fi.order .d{background:var(--blue-soft);color:var(--blue)}
+.fi .tx{flex:1}
+.fi time{font-size:11px;color:var(--muted);white-space:nowrap;font-weight:700}
+.prog{margin:14px 14px 0;background:#fff;border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:9px}
+.prog .pr{display:flex;justify-content:space-between;font-size:14px;font-weight:800}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brand);transition:width .4s}
+.prog small{font-size:12px;color:var(--muted);font-weight:600}
+.area{display:flex;justify-content:space-between;font-weight:800;font-size:13px;padding:16px 16px 8px}
+.area span{color:var(--muted);font-weight:700}
+.stop{margin:0 14px 8px;background:#fff;border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.stop.me{box-shadow:inset 0 0 0 2px var(--yellow)}
+.stop.done{opacity:.55}
+.stop.away{background:transparent;box-shadow:inset 0 0 0 1.5px #D8DDE2}
+.stop .t{flex:1;min-width:0}
+.stop .t b{display:block;font-size:14px;font-weight:800}
+.stop .t small{display:block;font-size:12px;color:var(--muted);font-weight:500}
+.sbtn{background:var(--brand);color:#fff;border-radius:10px;padding:7px 10px;font-size:12px;font-weight:800;white-space:nowrap}
+.you{font-size:10px;font-weight:800;background:var(--yellow);color:var(--ink);padding:1px 6px;border-radius:999px;margin-left:5px;vertical-align:2px}
+.av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:12.5px;flex:none}
 
-/* how it works */
-.how{max-width:1080px;margin:0 auto;padding:44px 24px 56px}
-.how h2{font-family:var(--display);font-size:34px;font-weight:800;color:var(--leaf);margin:0 0 6px;letter-spacing:-.015em;text-wrap:balance}
-.how .sub{color:var(--muted);margin:0 0 26px;max-width:62ch}
+/* ================= how it works ================= */
+.how{max-width:1100px;margin:0 auto;padding:44px 24px 56px}
+.how h2{font-size:32px;font-weight:800;margin:0 0 6px;letter-spacing:-.02em}
+.how .sub{color:var(--ink-2);margin:0 0 24px;max-width:66ch;font-size:15px}
 .steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.steps li{background:var(--card);border-radius:18px;padding:16px;border:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
-.steps time{font-size:12px;font-weight:800;color:var(--sun);letter-spacing:.03em}
-.steps b{font-family:var(--display);font-size:17px;font-weight:800}
-.steps p{margin:0;font-size:13.5px;color:var(--muted)}
+.steps li{background:#fff;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:6px}
+.steps time{font-size:12px;font-weight:800;color:var(--brand)}
+.steps b{font-size:17px;font-weight:800}
+.steps p{margin:0;font-size:13.5px;color:var(--ink-2)}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
-.col{background:var(--leaf);color:var(--on-leaf);border-radius:18px;padding:20px}
-.col.light{background:var(--card);color:var(--ink);border:1px solid var(--line)}
-.col h3{font-family:var(--display);margin:0 0 10px;font-size:19px;font-weight:800}
+.col{background:var(--dark);color:#fff;border-radius:20px;padding:22px}
+.col.light{background:#fff;color:var(--ink)}
+.col h3{margin:0 0 10px;font-size:18px;font-weight:800}
 .col ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:7px;font-size:14px}
 .foot{font-size:12px;color:var(--muted);margin-top:22px}
 
-/* ---------- phone / narrow mode ---------- */
+/* ================= phone mode ================= */
 @media (max-width: 899px){
   html,body{height:100%}
-  body{display:flex;flex-direction:column;height:100dvh;overflow:hidden;background:var(--paper)}
-  .top{position:relative;padding:8px 10px;padding-top:calc(8px + env(safe-area-inset-top,0px));gap:8px}
+  body{display:flex;flex-direction:column;height:100dvh;overflow:hidden;background:var(--bg)}
+  .top{position:relative;padding:8px 10px;padding-top:calc(8px + env(safe-area-inset-top,0px));gap:8px;background:var(--dark);border:0}
   .wm,.script{display:none}
-  .seg-view{display:flex;flex:1;background:rgba(255,255,255,.1);border-radius:11px;padding:3px}
-  .seg-view button{flex:1;padding:8px 2px;border-radius:8px;font-size:12.5px;font-weight:800;color:#D6E2CF;position:relative}
-  .seg-view button.on{background:var(--on-leaf);color:var(--leaf)}
-  .bdg{position:absolute;top:-4px;right:2px;background:var(--red);color:#fff;font-size:10px;font-style:normal;min-width:17px;height:17px;border-radius:9px;display:grid;place-items:center;padding:0 4px}
-  .demo-toggle{display:block;padding:9px 10px}
+  .seg-view{display:flex;flex:1;background:rgba(255,255,255,.1);border-radius:12px;padding:3px}
+  .seg-view button{flex:1;padding:8px 2px;border-radius:9px;font-size:12.5px;font-weight:800;color:#C9D2CC;position:relative}
+  .seg-view button.on{background:#fff;color:var(--ink)}
+  .bdg{position:absolute;top:-5px;right:2px;background:var(--red);color:#fff;font-size:10px;font-style:normal;min-width:17px;height:17px;border-radius:9px;display:grid;place-items:center;padding:0 4px}
+  .demo-toggle{display:block;padding:9px 11px;background:rgba(255,255,255,.12);color:#fff}
   .demo-btns{display:none}
-  .demo-btns.open{display:flex;flex-direction:column;position:absolute;top:100%;right:8px;background:var(--leaf);padding:10px;border-radius:14px;box-shadow:0 18px 40px -16px rgba(0,0,0,.6);min-width:230px}
+  .demo-btns.open{display:flex;flex-direction:column;position:absolute;top:100%;right:8px;background:#fff;padding:10px;border-radius:16px;box-shadow:0 18px 40px -16px rgba(0,0,0,.5);min-width:230px}
   .demo-btns.open .dbtn{padding:12px 14px;text-align:left}
   .stage{flex:1;min-height:0;padding:0;gap:0;display:block}
   .device{display:none;height:100%;align-items:stretch;gap:0}
@@ -292,22 +378,21 @@ button:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
   .frame{height:100%;min-height:0;width:100%;aspect-ratio:auto;border-radius:0;padding:0;background:none;box-shadow:none}
   .app{--hpad:14px;--bpad:env(safe-area-inset-bottom,0px);border-radius:0}
   .frame .app::before{display:none}
-  .toast{top:calc(var(--hpad) + 50px)}
   body[data-view="customer"] #cust, body[data-view="merchant"] #merch{display:flex}
   .how{display:none}
   body[data-view="how"] .stage{display:none}
-  body[data-view="how"] .how{display:block;flex:1;min-height:0;overflow-y:auto;padding:24px 16px calc(40px + env(safe-area-inset-bottom,0px));max-width:none}
-  .how h2{font-size:27px}
+  body[data-view="how"] .how{display:block;flex:1;min-height:0;overflow-y:auto;padding:24px 16px calc(40px + env(safe-area-inset-bottom,0px))}
+  .how h2{font-size:26px}
   .steps,.cols{grid-template-columns:1fr}
 }
-@media (min-width:900px) and (max-width:1180px){ .steps{grid-template-columns:repeat(3,1fr)} }
+@media (min-width:900px) and (max-width:1180px){ .stage{gap:36px} }
 @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
 </style>
 </head>
 <body data-view="customer">
 
 <header class="top">
-  <div class="wm"><b>Vaaradhi Farms</b><span>Subscription app · live demo</span></div>
+  <div class="wm"><span class="logo">V</span><div><b>Vaaradhi Farms</b><span>Your app · live demo</span></div></div>
   <div class="seg-view" role="tablist">
     <button data-a="view" data-v="customer" id="vCust">Customer</button>
     <button data-a="view" data-v="merchant" id="vMerch">Vaaradhi<i class="bdg" id="bdg" hidden></i></button>
@@ -353,7 +438,6 @@ button:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
       <li>Know tomorrow's demand by 9 PM tonight, so there's less waste</li>
       <li>No aggregator commission on orders, and the customer relationship stays yours</li>
       <li>Payments settle straight into your own payment account. Scribr never holds your money.</li>
-      <li>Payments collected automatically, with no chasing</li>
     </ul></div>
     <div class="col light"><h3>For your customers</h3><ul>
       <li>Order anything for right now with same-day delivery</li>
@@ -363,27 +447,29 @@ button:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
       <li>One wallet and a clear record of every charge</li>
     </ul></div>
   </div>
-  <p class="foot">Concept demo with sample products, customers and prices. Built by Scribr for Vaaradhi Farms, Manikonda.</p>
+  <p class="foot">Concept demo with sample products, customers and prices. Placeholder photos from Wikimedia Commons (see CREDITS.md). Built by Scribr for Vaaradhi Farms, Manikonda.</p>
 </section>
 
 <script>
 /* =====================================================================
-   EDIT THIS: Vaaradhi's menu. Swap names, units and prices for real ones.
+   EDIT THIS: Vaaradhi's menu. Swap names, units, prices and photos.
+   Photos live in /img. pos = which part of the photo to keep in view.
    ===================================================================== */
 const PRODUCTS = [
-  {id:'pongal',   name:'Millet Pongal Box',      cat:'Breakfast',       unit:'1 box · serves 1', price:120, e:'🍲', tint:'#F6E7C2'},
-  {id:'batter',   name:'Ragi Dosa Batter',       cat:'Breakfast',       unit:'1 kg',             price:110, e:'🥞', tint:'#EFE3D3'},
-  {id:'bowl',     name:'Sprouts & Fruit Bowl',   cat:'Breakfast',       unit:'350 g',            price:99,  e:'🥗', tint:'#E2EBD9'},
-  {id:'juice',    name:'Cold-pressed ABC Juice', cat:'Breakfast',       unit:'300 ml',           price:89,  e:'🧃', tint:'#F6E0D9'},
-  {id:'fruitbox', name:'Seasonal Fruit Box',     cat:'Fruits',          unit:'1 kg mixed',       price:180, e:'🍎', tint:'#F6E0D9'},
-  {id:'banana',   name:'Organic Bananas',        cat:'Fruits',          unit:'6 pcs',            price:60,  e:'🍌', tint:'#F8ECCB'},
-  {id:'vegbasket',name:'Daily Veg Basket',       cat:'Vegetables',      unit:'1 kg mixed',       price:140, e:'🥕', tint:'#F8E2CC'},
-  {id:'greens',   name:'Leafy Greens Bundle',    cat:'Vegetables',      unit:'3 bunches',        price:45,  e:'🥬', tint:'#E2EBD9'},
-  {id:'milk',     name:'A2 Cow Milk',            cat:'Dairy & Staples', unit:'500 ml',           price:55,  e:'🥛', tint:'#ECEFF3'},
-  {id:'curd',     name:'Farm Curd',              cat:'Dairy & Staples', unit:'500 g',            price:70,  e:'🥣', tint:'#ECEFF3'},
-  {id:'eggs',     name:'Country Eggs',           cat:'Dairy & Staples', unit:'6 pcs',            price:90,  e:'🥚', tint:'#F3EEE4'},
+  {id:'pongal',   name:'Millet Pongal Box',      cat:'Breakfast',       unit:'1 box · serves 1', price:120, img:'img/pongal.jpg'},
+  {id:'batter',   name:'Ragi Dosa Batter',       cat:'Breakfast',       unit:'1 kg',             price:110, img:'img/batter.jpg'},
+  {id:'bowl',     name:'Sprouts & Fruit Bowl',   cat:'Breakfast',       unit:'350 g',            price:99,  img:'img/bowl.jpg'},
+  {id:'juice',    name:'Cold-pressed ABC Juice', cat:'Breakfast',       unit:'300 ml',           price:89,  img:'img/juice.jpg'},
+  {id:'fruitbox', name:'Seasonal Fruit Box',     cat:'Fruits',          unit:'1 kg mixed',       price:180, img:'img/fruitbox.jpg'},
+  {id:'banana',   name:'Organic Bananas',        cat:'Fruits',          unit:'6 pcs',            price:60,  img:'img/banana.jpg'},
+  {id:'vegbasket',name:'Daily Veg Basket',       cat:'Vegetables',      unit:'1 kg mixed',       price:140, img:'img/vegbasket.jpg'},
+  {id:'greens',   name:'Leafy Greens Bundle',    cat:'Vegetables',      unit:'3 bunches',        price:45,  img:'img/greens.jpg'},
+  {id:'milk',     name:'A2 Cow Milk',            cat:'Dairy & Staples', unit:'500 ml',           price:55,  img:'img/milk.jpg', pos:'22% center'},
+  {id:'curd',     name:'Farm Curd',              cat:'Dairy & Staples', unit:'500 g',            price:70,  img:'img/curd.jpg'},
+  {id:'eggs',     name:'Country Eggs',           cat:'Dairy & Staples', unit:'6 pcs',            price:90,  img:'img/eggs.jpg'},
 ];
 const CATS = ['All','Breakfast','Fruits','Vegetables','Dairy & Staples'];
+const CAT_IMG = {Breakfast:'pongal', Fruits:'fruitbox', Vegetables:'vegbasket', 'Dairy & Staples':'eggs'};
 const CUSTOMERS = [
   ['me','Ananya Rao','Manikonda'],['c1','Rahul Kumar','Gachibowli'],['c2','Sneha Reddy','Kondapur'],['c3','Farhan Ali','Tolichowki'],
   ['c4','Priya Sharma','Narsingi'],['c5','Vikram Goud','Puppalaguda'],['c6','Meera Iyer','Financial District'],['c7','Arjun Varma','Kokapet'],
@@ -397,12 +483,13 @@ const AREAS = ['Manikonda','Puppalaguda','Narsingi','Kokapet','Financial Distric
 const FREQ = {daily:'Daily', alternate:'Alternate days', weekdays:'Mon – Fri', weekends:'Sat & Sun'};
 const PERMONTH = {daily:30, alternate:15, weekdays:22, weekends:8};
 const CUTOFF = '9:00 PM';
+const AV_COLORS = ['#E7F6EC|#0B5A2D','#EAF1FF|#2563EB','#FFF5D1|#7A5B00','#FDE8EA|#B4232F','#F1EAFE|#6D28D9','#E6F7F7|#0E7490'];
 
 /* ---------- dates ---------- */
 const DAY = 86400000;
 const atMidnight = d => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
 const TODAY = atMidnight(new Date());
-const addD = n => new Date(TODAY.getTime() + n*DAY + 3*3600000); // +3h guards against DST edges
+const addD = n => new Date(TODAY.getTime() + n*DAY + 3*3600000);
 const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const parse = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d, 12); };
 const plus = (s,n) => iso(new Date(parse(s).getTime() + n*DAY));
@@ -416,13 +503,13 @@ const P = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
 const C = Object.fromEntries(CUSTOMERS.map(c => [c.id, c]));
 const rs = n => '₹' + Math.round(n).toLocaleString('en-IN');
 const sgn = n => n > 0 ? '+' + rs(n) : n < 0 ? '−' + rs(-n) : '₹0';
-const short = id => { const [f, l] = C[id].name.split(' '); return f + (l ? ' ' + l[0] + '.' : ''); };
 const initials = id => C[id].name.split(' ').map(w => w[0]).join('').slice(0,2);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ---------- state ---------- */
-const KEY = 'vaaradhi-demo-v2';
+const KEY = 'vaaradhi-demo-v3';
 let S;
-const ui = {view:'customer', cTab:'shop', cCat:'All', mTab:'today', sheet:null, cToast:null, mToast:null, demoOpen:false,
+const ui = {view:'customer', cTab:'shop', cCat:'All', q:'', mTab:'orders', sheet:null, cToast:null, mToast:null, demoOpen:false,
             confirmCancel:null, prevPrep:null, prevKpi:null, flash:{}, shownToast:{}};
 
 function seed(){
@@ -516,11 +603,13 @@ const balance = () => S.ledger.reduce((a, l) => a + l.amt, 0);
 const FLOW = ['placed','accepted','packed','out','delivered'];
 const OLBL = {placed:'New', accepted:'Accepted', packed:'Packed', out:'Out for delivery', delivered:'Delivered', cancelled:'Cancelled'};
 const NEXT = {placed:'Accept order', accepted:'Mark packed', packed:'Send out', out:'Mark delivered'};
-const CTXT = {accepted:'Vaaradhi accepted your order and is packing it.', packed:'Your order is packed and waiting for the rider.', out:'Your order is out for delivery. About 20 min away.', delivered:'Your order was delivered. Enjoy!'};
+const CTITLE = {placed:'Waiting for Vaaradhi to accept', accepted:'Order accepted', packed:'Packed and ready', out:'On the way to you', delivered:'Delivered'};
+const CTXT = {accepted:'Vaaradhi accepted your order and is packing it.', packed:'Your order is packed and waiting for the rider.', out:'Your order is on the way. About 20 min.', delivered:'Your order was delivered. Enjoy!'};
 const orderAmt = items => items.reduce((a, i) => a + i.qty*P[i.prod].price, 0);
 const itemsText = items => items.map(i => P[i.prod].name + ' × ' + i.qty).join(', ');
 const isLive = o => o.status !== 'delivered' && o.status !== 'cancelled';
 const nowOpen = () => S.phase !== 'locked';
+const cartQty = id => (S.cart.find(c => c.prod === id) || {}).qty || 0;
 
 /* ---------- sim clock ---------- */
 function simMin(){
@@ -540,188 +629,222 @@ let mTimer, cTimer;
 function notify(text, kind, key){
   if (key && S.feed[0] && S.feed[0].key === key){ S.feed[0].text = text; S.feed[0].t = clock(); }
   else { S.feed.unshift({t:clock(), text, kind, key}); if (ui.view !== 'merchant') S.unread++; }
-  ui.mToast = {text, id:Date.now() + Math.random()};
+  ui.mToast = {text, kind, id:Date.now() + Math.random()};
   clearTimeout(mTimer); mTimer = setTimeout(() => { ui.mToast = null; render(); }, 4200);
 }
 function toastC(text){
   ui.cToast = {text, id:Date.now() + Math.random()};
-  clearTimeout(cTimer); cTimer = setTimeout(() => { ui.cToast = null; render(); }, 3600);
+  clearTimeout(cTimer); cTimer = setTimeout(() => { ui.cToast = null; render(); }, 3400);
 }
 
 /* ---------- icons ---------- */
 const I = {
-  shop:'<path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+  home:'<path d="M3 11l9-7 9 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/>',
   sun:'<path d="M3 18h18"/><path d="M7 18a5 5 0 0 1 10 0"/><path d="M12 5v3M5.2 9.2l2 2M18.8 9.2l-2 2"/>',
-  wallet:'<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1.2"/>',
+  wallet:'<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1.2"/>',
   list:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="M8.5 12h7M8.5 16h5"/>',
   truck:'<path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
   people:'<circle cx="9" cy="8" r="3.2"/><path d="M3 19c.8-3.2 3.2-5 6-5s5.2 1.8 6 5"/><path d="M16 5.5a3 3 0 0 1 0 5.6M18 14.5c1.6.6 2.7 2 3 4.5"/>',
   receipt:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
   chart:'<path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 15l3.5-4 3 2.5L20 7"/>',
+  search:'<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>',
+  clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  pin:'<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  down:'<path d="M6 9l6 6 6-6"/>',
+  repeat:'<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>',
+  plane:'<path d="M10.5 13.5L3 11l1.5-1.5 7 1 4.5-4.5a2 2 0 0 1 3 3l-4.5 4.5 1 7L18 21l-2.5-7.5L12 17v3l-1.5 1.5-1-4-4-1L7 15h3z"/>',
+  bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
+  bag:'<path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+  lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
 };
-const icon = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
+const icon = (k, sz = 0) => `<svg ${sz ? `width="${sz}" height="${sz}"` : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
+const FEED_IC = {order:'bag', new:'repeat', add:'plus', pause:'plane', skip:'x', cancel:'x', lock:'lock', resume:'check'};
 const nav = (tabs, cur, act, badges = {}) => `<nav class="nav">${tabs.map(([k,label,ic]) => `<button class="${cur===k?'on':''}" data-a="${act}" data-v="${k}">${icon(ic)}${label}${badges[k] ? `<i class="nb">${badges[k]}</i>` : ''}</button>`).join('')}</nav>`;
-const tile = (p, size='') => `<div class="tile ${size}" style="background:${p.tint}">${p.e}</div>`;
-const stepper = (a, id, q) => `<div class="step"><button data-a="${a}" data-v="${id}|-1" aria-label="Less">−</button><b>${q}</b><button data-a="${a}" data-v="${id}|1" aria-label="More">+</button></div>`;
-function toastHTML(t, which, cls){
+const thumb = (p, sz = '') => `<span class="th ${sz}"><img src="${p.img}" alt="" style="object-position:${p.pos || 'center'}"></span>`;
+const qbtn = (a, id, q, lt) => `<div class="qbtn ${lt ? 'lt' : ''}"><button data-a="${a}" data-v="${id}|-1" aria-label="Less">−</button><b>${q}</b><button data-a="${a}" data-v="${id}|1" aria-label="More">+</button></div>`;
+function avatar(id){ const [bg, fg] = AV_COLORS[CUSTOMERS.findIndex(c => c.id === id) % AV_COLORS.length].split('|'); return `<span class="av" style="background:${bg};color:${fg}">${initials(id)}</span>`; }
+function toastHTML(t, which){
   if (!t) return '';
   const still = ui.shownToast[which] === t.id ? ' still' : ''; ui.shownToast[which] = t.id;
-  return `<div class="toast ${cls}${still}" role="status">${which==='m' ? '<small>New update</small>' : ''}${t.text}</div>`;
+  if (which === 'm') return `<div class="toast m${still}" role="status"><span class="ti">${icon(FEED_IC[t.kind] || 'bell', 16)}</span><div><small>Live update</small>${t.text}</div></div>`;
+  return `<div class="toast c${still}" role="status">${t.text}</div>`;
 }
 
 /* =====================================================================
    CUSTOMER APP
    ===================================================================== */
-function banner(){
-  if (S.phase === 'open') return `<div class="banner"><div><b>Tomorrow, ${fmtD(TMR)}</b><span>Delivery 6:30 – 8:00 AM</span></div><div class="cd"><b>${leftText()}</b><span>Changes close ${CUTOFF}</span></div></div>`;
-  if (S.phase === 'locked') return `<div class="banner locked"><div><b>Tomorrow's basket is locked</b><span>It's being packed for ${fmtD(TMR)}. Any change you make now starts ${fmtD(DAT)}.</span></div></div>`;
-  return `<div class="banner done"><div><b>Delivered this morning</b><span>${fmtD(TMR)} · 7:12 AM · paid from your wallet</span></div></div>`;
+function card(p, mine){
+  const q = cartQty(p.id);
+  const add = !nowOpen() ? `<button class="addbtn" disabled>ADD</button>`
+    : q ? qbtn('cq', p.id, q) : `<button class="addbtn" data-a="cq" data-v="${p.id}|1">ADD</button>`;
+  return `<div class="pc">
+    <button class="pc-img" data-a="buy-open" data-v="${p.id}|now" aria-label="${p.name}"><img src="${p.img}" alt="" loading="lazy" style="object-position:${p.pos || 'center'}">${mine ? `<span class="pc-tag">${FREQ[mine.freq]} plan</span>` : ''}</button>
+    <span class="pc-eta">${icon('clock', 11)}${nowOpen() ? '45 MINS' : 'OPENS 7 AM'}</span>
+    <div class="pc-name">${p.name}</div><div class="pc-unit">${p.unit}</div>
+    <div class="pc-row"><b>${rs(p.price)}</b>${add}</div>
+    <button class="pc-sub" data-a="buy-open" data-v="${p.id}|sub">${icon('repeat', 12)}Subscribe daily</button></div>`;
 }
-function nowStrip(){
-  return nowOpen()
-    ? `<div class="nowstrip"><div><b>Need it now?</b>Order for same-day delivery in 45 – 60 min</div><span class="open">Open till 9 PM</span></div>`
-    : `<div class="nowstrip"><div><b>Same-day delivery is closed for tonight</b>Order now again from 7:00 AM</div><span class="closed">Closed</span></div>`;
+function heroBanner(){
+  const pill = S.phase === 'open' ? `Plan tomorrow · ${leftText()}` : S.phase === 'locked' ? 'Tomorrow is locked · packing' : 'Delivered at 7:12 AM';
+  return `<button class="hb" data-a="ctab" data-v="tmr"><img src="img/banner.jpg" alt=""><div class="hb-in"><span class="hb-pill">${pill}</span>
+    <b>Fresh breakfast at your door by 6:30 AM</b><span>Subscribe once. Skip or pause anytime.</span><i>See tomorrow's basket ›</i></div></button>`;
+}
+function shopBody(){
+  const mine = {}; S.subs.forEach(s => { if (s.cust === 'me' && !s.cancelledFrom) mine[s.prod] = s; });
+  const q = ui.q.trim().toLowerCase();
+  let list;
+  if (q){
+    const hits = PRODUCTS.filter(p => p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q));
+    list = `<div class="sec-h"><h3>Results for “${esc(ui.q.trim())}”</h3></div><div class="grid">${hits.map(p => card(p, mine[p.id])).join('') || '<div class="empty">Nothing matches that yet.</div>'}</div>`;
+  } else if (ui.cCat !== 'All'){
+    list = `<div class="sec-h"><h3>${ui.cCat}</h3><button data-a="cat" data-v="All">Show all</button></div><div class="grid">${PRODUCTS.filter(p => p.cat === ui.cCat).map(p => card(p, mine[p.id])).join('')}</div>`;
+  } else {
+    list = CATS.slice(1).map(c => `<div class="sec-h"><h3>${c}</h3><button data-a="cat" data-v="${c}">See all ›</button></div>
+      <div class="rail">${PRODUCTS.filter(p => p.cat === c).map(p => card(p, mine[p.id])).join('')}</div>`).join('');
+  }
+  return `${q ? '' : heroBanner()}
+    <div class="cats">${CATS.map(c => `<button class="cat ${ui.cCat === c && !q ? 'on' : ''}" data-a="cat" data-v="${c}"><span class="cat-i">${c === 'All' ? '<b>All</b>' : `<img src="${P[CAT_IMG[c]].img}" alt="" style="object-position:${P[CAT_IMG[c]].pos || 'center'}">`}</span>${c === 'Dairy & Staples' ? 'Dairy' : c}</button>`).join('')}</div>
+    ${list}<div style="height:${S.cart.length ? 90 : 20}px"></div>`;
 }
 function ordersBody(){
   const mine = S.orders.filter(o => o.cust === 'me').sort((a,b) => b.id - a.id);
   const active = mine.filter(isLive), past = mine.filter(o => !isLive(o));
-  const track = o => { const i = FLOW.indexOf(o.status); return `<div class="track">
-      <div class="track-top"><b>${o.status === 'placed' ? 'Order placed' : OLBL[o.status]}</b><span class="punit">#${o.id} · ${o.t}</span></div>
-      <div class="steps-mini">${FLOW.map((_,k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div>
-      <div class="track-lbls"><span>Placed</span><span>Packed</span><span>Delivered</span></div>
-      <div class="sitems">${itemsText(o.items)}</div>
-      <div class="track-top"><span class="punit">${o.status === 'placed' ? 'Waiting for Vaaradhi to accept' : o.status === 'out' ? 'Arriving in about 20 min' : 'Arriving in 45 – 60 min'}</span><b style="font-size:15px">${rs(o.amt)}</b></div>
-      ${o.status === 'placed' ? `<button class="link red" style="align-self:flex-start" data-a="o-cancel" data-v="${o.id}">Cancel order</button>` : ''}</div>`; };
-  return `${nowStrip()}
-    ${active.length ? '<div class="sec">On the way</div>' + active.map(track).join('') : '<div class="note">No orders on the way. Tap <b>Order</b> on any item in Shop to get it today.</div>'}
-    ${past.length ? '<div class="sec">Earlier</div><div class="card">' + past.map(o => `<div class="led"><span>#${o.id} · ${itemsText(o.items)}<br><span class="punit">${o.t} · ${OLBL[o.status]}</span></span><span class="amt">${rs(o.amt)}</span></div>`).join('') + '</div>' : ''}`;
-}
-function shopBody(){
-  const mine = {}; S.subs.forEach(s => { if (s.cust === 'me' && !s.cancelledFrom) mine[s.prod] = s; });
-  const items = PRODUCTS.filter(p => ui.cCat === 'All' || p.cat === ui.cCat);
-  return `${banner()}${nowStrip()}
-  <div class="chips">${CATS.map(c => `<button class="chip ${ui.cCat===c?'on':''}" data-a="cat" data-v="${c}">${c}</button>`).join('')}</div>
-  <div class="list">${items.map(p => `<div class="prod">${tile(p)}
-    <div><div class="pname">${p.name}</div><div class="punit">${p.unit}</div>
-      <div class="pprice">${rs(p.price)}${mine[p.id] ? `<span class="mine">On your plan · ${FREQ[mine[p.id].freq]}</span>` : ''}</div></div>
-    <div class="pact"><button class="btn sm primary" data-a="buy-open" data-v="${p.id}|now">Order</button>
-      <button class="btn sm ghost" data-a="buy-open" data-v="${p.id}|sub">Subscribe</button></div></div>`).join('')}</div>${S.cart.length ? '<div style="height:60px"></div>' : ''}`;
+  const track = o => { const i = FLOW.indexOf(o.status); return `<div class="tk">
+      <div class="tk-top"><div><small>Order #${o.id} · ${o.t}</small><b>${CTITLE[o.status]}</b></div><span class="eta">${o.status === 'placed' ? 'Just now' : o.status === 'out' ? '~20 min' : '45 – 60 min'}</span></div>
+      <div class="tk-bar">${FLOW.map((_,k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div>
+      <div class="tk-steps">${['Placed','Accepted','Packed','On the way','Delivered'].map((l,k) => `<span class="${k <= i ? 'on' : ''}">${l}</span>`).join('')}</div>
+      <div class="tk-items">${o.items.map(it => `<span class="tk-it">${thumb(P[it.prod],'sm')}${P[it.prod].name.split(' ').slice(-2).join(' ')} × ${it.qty}</span>`).join('')}</div>
+      <div class="tk-foot"><span>${rs(o.amt)} · paid from wallet</span>${o.status === 'placed' ? `<button class="lnk red" data-a="o-cancel" data-v="${o.id}">Cancel order</button>` : ''}</div></div>`; };
+  return `${active.length ? '<div class="sh" style="padding-top:4px">On the way</div>' + active.map(track).join('')
+      : `<div class="note" style="margin-top:4px">No orders on the way. ${nowOpen() ? 'Tap <b>ADD</b> on anything in Home to get it in 45 minutes.' : 'Same-day delivery opens again at 7:00 AM.'}</div>`}
+    ${past.length ? '<div class="sh">Earlier today</div><div class="box">' + past.map(o => `<div class="row">${thumb(P[o.items[0].prod])}<div class="t"><b>#${o.id} · ${o.items.length} item${o.items.length > 1 ? 's' : ''}</b><small>${o.t} · ${OLBL[o.status]}</small></div><b>${rs(o.amt)}</b></div>`).join('') + '</div>' : ''}
+    <div class="spacer"></div>`;
 }
 function vacRangeText(v){ return v.to ? `${fmtS(v.from)} – ${fmtS(v.to)}` : `from ${fmtS(v.from)} until you resume`; }
 function tomorrowBody(){
-  const open = S.phase === 'open', my = lines().filter(l => l.cust === 'me');
-  const delivered = S.phase === 'delivered';
+  const open = S.phase === 'open', my = lines().filter(l => l.cust === 'me'), delivered = S.phase === 'delivered';
   const rows = my.map(l => {
     const p = P[l.prod], off = l.status !== 'ok';
-    const sub = l.kind === 'extra' ? '<span class="tag one">One-time</span>' : FREQ[l.freq];
+    const sub = l.kind === 'extra' ? '<span class="chip b">Just tomorrow</span>' : FREQ[l.freq];
     let right;
-    if (off) right = `<div class="lact"><span class="tag pz">${l.status === 'paused' ? 'Paused' : 'Skipped'} · ₹0</span>${open && l.status === 'skipped' ? `<button class="link" data-a="t-skip" data-v="${l.subId}">Undo</button>` : ''}</div>`;
-    else if (open) right = `<div class="lact">${stepper(l.kind==='extra'?'x-qty':'t-qty', l.kind==='extra'?l.xid:l.subId, l.qty)}${l.kind==='extra' ? `<button class="link red" data-a="x-del" data-v="${l.xid}">Remove</button>` : `<button class="link" data-a="t-skip" data-v="${l.subId}">Skip tomorrow</button>`}</div>`;
-    else right = `<div class="lact"><span class="amtline">${rs(l.amt)}</span>${delivered ? '<span class="tag ok">Delivered</span>' : `<span class="punit">× ${l.qty}</span>`}</div>`;
-    return `<div class="line ${off?'off':''}">${tile(p,'sm')}<div><div class="pname">${p.name}</div><div class="meta">${sub}${open&&!off?` · ${rs(l.amt)}`:''}</div></div>${right}</div>`;
-  }).join('') || `<div class="line"><div></div><div class="punit">Nothing scheduled for tomorrow.</div><div></div></div>`;
+    if (off) right = `<div class="rt"><span class="chip y">${l.status === 'paused' ? 'Paused' : 'Skipped'} · ₹0</span>${open && l.status === 'skipped' ? `<button class="lnk" data-a="t-skip" data-v="${l.subId}">Undo</button>` : ''}</div>`;
+    else if (open) right = `<div class="rt">${qbtn(l.kind === 'extra' ? 'x-qty' : 't-qty', l.kind === 'extra' ? l.xid : l.subId, l.qty, true)}${l.kind === 'extra' ? `<button class="lnk red" data-a="x-del" data-v="${l.xid}">Remove</button>` : `<button class="lnk" data-a="t-skip" data-v="${l.subId}">Skip</button>`}</div>`;
+    else right = `<div class="rt"><b>${rs(l.amt)}</b>${delivered ? '<span class="chip g">Delivered</span>' : `<small style="color:var(--muted);font-weight:600">× ${l.qty}</small>`}</div>`;
+    return `<div class="row ${off ? 'off' : ''}">${thumb(p)}<div class="t"><b>${p.name}</b><small>${sub}${open && !off ? ` · ${rs(l.amt)}` : ''}</small></div>${right}</div>`;
+  }).join('') || `<div class="row"><div class="t"><small>Nothing scheduled for tomorrow.</small></div></div>`;
   const charge = my.filter(l => l.status === 'ok').reduce((a,l) => a + l.amt, 0);
   const saved = my.filter(l => l.status !== 'ok').reduce((a,l) => a + l.amt, 0);
   const v = S.vac.me;
+  const cd = open ? `<span class="cd">${leftText()} to edit</span>` : S.phase === 'locked' ? `<span class="cd lk">${icon('lock', 11)} Locked</span>` : '<span class="cd dn">Delivered</span>';
   const vac = v
-    ? `<div class="vac on"><b>Vacation mode is on</b><span>${vacRangeText(v)}. Vaaradhi has been told and you won't be charged for these days.</span><button data-a="vac-end">I'm back, resume deliveries</button></div>`
-    : `<button class="vac" data-a="vac-open"><b>Going out of town?</b><span>Pause all deliveries for a few days. You pay nothing while you're away.</span></button>`;
+    ? `<div class="vac on"><span class="vi">${icon('plane', 20)}</span><div><b>Vacation mode is on</b><small>${vacRangeText(v)}. Vaaradhi has been told and you won't be charged for these days.</small><button class="vb" data-a="vac-end">I'm back, resume</button></div></div>`
+    : `<button class="vac" data-a="vac-open"><span class="vi">${icon('plane', 20)}</span><div><b>Going out of town?</b><small>Pause all deliveries for a few days. You pay nothing while you're away.</small></div></button>`;
   const plans = S.subs.filter(s => s.cust === 'me').map(s => {
     const p = P[s.prod];
-    let st = ['Active','ok'];
-    if (s.cancelledFrom) st = ['Cancelled from ' + fmtS(s.cancelledFrom), 'x'];
-    else if (s.pausedFrom) st = ['Paused from ' + fmtS(s.pausedFrom), 'pz'];
-    else if (v && (!v.to || v.to >= TMR)) st = ['Paused for vacation', 'pz'];
-    else if (s.start > TDY && s.isNew) st = ['First delivery ' + fmtS(firstDelivery(s)), 'n'];
+    let st = ['Active','g'];
+    if (s.cancelledFrom) st = ['Cancelled from ' + fmtS(s.cancelledFrom), 'r'];
+    else if (s.pausedFrom) st = ['Paused from ' + fmtS(s.pausedFrom), 'y'];
+    else if (v && (!v.to || v.to >= TMR)) st = ['Paused for vacation', 'y'];
+    else if (s.start > TDY && s.isNew) st = ['Starts ' + fmtS(firstDelivery(s)), 'b'];
     const btns = s.cancelledFrom ? '' :
-      `${s.pausedFrom ? `<button class="link" data-a="p-resume" data-v="${s.id}">Resume</button>` : `<button class="link" data-a="p-pause" data-v="${s.id}">Pause</button>`}
-       <button class="link red" data-a="p-cancel" data-v="${s.id}">${ui.confirmCancel === s.id ? 'Tap to confirm' : 'Cancel'}</button>`;
-    return `<div class="plan">${tile(p,'sm')}<div><div class="pname">${p.name} × ${s.qty}</div><div class="punit">${FREQ[s.freq]} · ${rs(s.qty*p.price)} a delivery</div><div class="pstat ${st[1]}">${st[0]}</div></div><div class="pbtns">${btns}</div></div>`;
+      `${s.pausedFrom ? `<button class="lnk" data-a="p-resume" data-v="${s.id}">Resume</button>` : `<button class="lnk" data-a="p-pause" data-v="${s.id}">Pause</button>`}
+       <button class="lnk red" data-a="p-cancel" data-v="${s.id}">${ui.confirmCancel === s.id ? 'Tap to confirm' : 'Cancel'}</button>`;
+    return `<div class="row">${thumb(p)}<div class="t"><b>${p.name} × ${s.qty}</b><small>${FREQ[s.freq]} · ${rs(s.qty*p.price)} a delivery</small><span class="chip ${st[1]}" style="margin-top:4px">${st[0]}</span></div><div class="rt">${btns}</div></div>`;
   }).join('');
-  return `${banner()}
-    <div class="sec">Tomorrow's basket</div>
-    <div class="card">${rows}</div>
-    <div class="total"><span>Tomorrow's charge</span><span>${rs(charge)}</span></div>
+  return `<div class="tm"><div class="tm-top"><div><small>Tomorrow · ${fmtD(TMR)}</small><b>6:30 – 8:00 AM</b></div>${cd}</div>
+      <div class="tm-body">${rows}</div>
+      <div class="tm-foot"><span>Tomorrow's charge</span><span>${rs(charge)}</span></div></div>
     ${saved ? `<div class="save">${rs(saved)} not charged because of skips or pauses</div>` : ''}
     ${vac}
-    <div class="sec">My plans</div>
-    <div class="card">${plans || '<div class="plan"><div></div><div class="punit">No plans yet.</div><div></div></div>'}</div>
-    <p class="fine">Change, skip or pause anything until ${CUTOFF} the night before. After that, changes apply from the following day.</p>`;
+    <div class="sh">My plans</div>
+    <div class="box">${plans || '<div class="row"><div class="t"><small>No plans yet.</small></div></div>'}</div>
+    <p class="fine">Change, skip or pause anything until ${CUTOFF} the night before. After that, changes apply from the following day.</p>
+    <div class="spacer"></div>`;
 }
 function walletBody(){
   const charge = lines().filter(l => l.cust === 'me' && l.status === 'ok').reduce((a,l) => a + l.amt, 0);
   const sorted = [...S.ledger].sort((a,b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : b.seq - a.seq));
   let html = '', last = '';
   sorted.forEach(l => {
-    if (l.date !== last){ last = l.date; html += `<div class="ldate">${l.date===TDY?'Today':l.date===iso(addD(-1))?'Yesterday':fmtD(l.date)}</div>`; }
-    html += `<div class="led"><span>${l.text}</span><span class="amt ${l.kind}">${sgn(l.amt)}</span></div>`;
+    if (l.date !== last){ last = l.date; html += `<div class="ld">${l.date === TDY ? 'Today' : l.date === iso(addD(-1)) ? 'Yesterday' : fmtD(l.date)}</div>`; }
+    html += `<div class="lg"><span>${l.text}</span><span class="amt ${l.kind}">${sgn(l.amt)}</span></div>`;
   });
-  return `<div class="wal" style="margin-top:14px"><span>Vaaradhi wallet</span><b>${rs(balance())}</b>
-      <div class="wal-row"><span>${S.phase==='delivered'?'Charged this morning':'Tomorrow\'s charge'}</span><span>${rs(charge)}</span></div>
-      <button data-a="topup">Add ₹1,000 via UPI</button></div>
+  return `<div class="wc"><small>Vaaradhi wallet balance</small><b>${rs(balance())}</b>
+      <div class="wc-row"><span>${S.phase === 'delivered' ? 'Charged this morning' : 'Tomorrow\'s charge'}</span><span>${rs(charge)}</span></div></div>
+    <div class="topups">${[500,1000,2000].map(a => `<button data-a="topup" data-v="${a}">+ ${rs(a)}</button>`).join('')}</div>
     <div class="note">You're charged only on days something is delivered. Paused or skipped days cost ₹0. Your balance is held by Vaaradhi Farms and can only be used there.</div>
-    <div class="sec">History</div>
-    <div class="card" style="padding-top:0">${html}</div>`;
+    <div class="sh">History</div>
+    <div class="box">${html}</div>
+    <div class="spacer"></div>`;
 }
 function sheetHTML(){
   const sh = ui.sheet; if (!sh) return '';
-  let inner = '';
+  let inner = '', foot = '';
   if (sh.type === 'buy'){
     const p = P[sh.prod], q = sh.qty;
     const modes = [['now','Now', nowOpen() ? '45 – 60 min' : 'Closed now'], ['tmr','Tomorrow','6:30 – 8 AM'], ['sub','Subscribe','Repeat it']];
     let body = '';
     if (sh.mode === 'now'){
-      body = `<div class="field row"><label>Quantity</label>${stepper('s-qty','q',q)}</div>
-        <div class="field"><label>Arrives</label><div class="static">${nowOpen() ? 'Today, in 45 – 60 min · Home, Manikonda' : 'Same-day delivery opens again at 7:00 AM'}</div></div>
-        <button class="btn primary block" data-a="cart-add" ${nowOpen() ? '' : 'disabled'}>Add to cart · ${rs(p.price*q)}</button>`;
+      body = `<div class="fld r"><label>QUANTITY</label>${qbtn('s-qty','q',q)}</div>
+        <div class="info">${icon('clock', 16)}${nowOpen() ? 'Arrives today in 45 – 60 min · Home, Manikonda' : 'Same-day delivery opens again at 7:00 AM'}</div>`;
+      foot = `<button class="cta" data-a="cart-add" ${nowOpen() ? '' : 'disabled'}><span>${rs(p.price*q)}<small>TOTAL</small></span><span>Add to cart ›</span></button>`;
     } else if (sh.mode === 'tmr'){
-      body = `<div class="field row"><label>Quantity</label>${stepper('s-qty','q',q)}</div>
-        <div class="field"><label>Arrives</label><div class="static">${S.phase === 'open' ? `Tomorrow, ${fmtD(TMR)} · 6:30 – 8:00 AM, with your usual basket` : `Tomorrow's basket is locked. Choose Subscribe to start from ${fmtD(DAT)}.`}</div></div>
-        <button class="btn primary block" data-a="add-go" ${S.phase !== 'open' ? 'disabled' : ''}>Add to tomorrow · ${rs(p.price*q)}</button>`;
+      body = `<div class="fld r"><label>QUANTITY</label>${qbtn('s-qty','q',q)}</div>
+        <div class="info">${icon('sun', 16)}${S.phase === 'open' ? `Tomorrow, ${fmtD(TMR)}, 6:30 – 8:00 AM with your usual basket` : `Tomorrow's basket is locked. Choose Subscribe to start from ${fmtD(DAT)}.`}</div>`;
+      foot = `<button class="cta" data-a="add-go" ${S.phase !== 'open' ? 'disabled' : ''}><span>${rs(p.price*q)}<small>FOR TOMORROW</small></span><span>Add to tomorrow ›</span></button>`;
     } else {
       const starts = S.phase === 'open' ? [[TMR,'Tomorrow'],[DAT,fmtD(DAT)]] : [[DAT,fmtD(DAT)],[iso(addD(3)),fmtD(iso(addD(3)))]];
-      body = `<div class="field"><label>How often</label><div class="seg">${Object.keys(FREQ).map(f => `<button class="${sh.freq===f?'on':''}" data-a="s-freq" data-v="${f}">${FREQ[f]}</button>`).join('')}</div></div>
-        <div class="field row"><label>Quantity</label>${stepper('s-qty','q',q)}</div>
-        <div class="field"><label>Start</label><div class="seg">${starts.map(([d,l]) => `<button class="${sh.start===d?'on':''}" data-a="s-start" data-v="${d}">${l}</button>`).join('')}</div></div>
-        <div class="sum"><div><span>Each delivery</span><b>${rs(p.price*q)}</b></div><div><span>About a month</span><b>${rs(p.price*q*PERMONTH[sh.freq])}</b></div></div>
-        <p class="fine">Delivered 6:30 – 8:00 AM. Skip, pause or cancel anytime before ${CUTOFF} the night before. You're charged only on days it's delivered.</p>
-        <button class="btn primary block" data-a="sub-go">Start subscription</button>`;
+      body = `<div class="fld"><label>HOW OFTEN</label><div class="opts">${Object.keys(FREQ).map(f => `<button class="${sh.freq === f ? 'on' : ''}" data-a="s-freq" data-v="${f}">${FREQ[f]}</button>`).join('')}</div></div>
+        <div class="fld r"><label>QUANTITY</label>${qbtn('s-qty','q',q)}</div>
+        <div class="fld"><label>START</label><div class="opts">${starts.map(([d,l]) => `<button class="${sh.start === d ? 'on' : ''}" data-a="s-start" data-v="${d}">${l}</button>`).join('')}</div></div>
+        <div class="sumg"><div><span>Each delivery</span><b>${rs(p.price*q)}</b></div><div><span>About a month</span><b>${rs(p.price*q*PERMONTH[sh.freq])}</b></div></div>
+        <div class="info">${icon('repeat', 16)}Delivered 6:30 – 8:00 AM. Skip or pause before ${CUTOFF} the night before. Pay only for days delivered.</div>`;
+      foot = `<button class="cta c" data-a="sub-go">Start subscription</button>`;
     }
-    inner = `<div class="sh-head">${tile(p,'lg')}<div><div class="sh-title">${p.name}</div><div class="punit">${p.unit} · ${rs(p.price)} each</div></div></div>
-      <div class="field"><label>When do you want it?</label><div class="modes">${modes.map(([k,l,sub]) => `<button class="${sh.mode===k?'on':''}" data-a="mode" data-v="${k}"><b>${l}</b><span>${sub}</span></button>`).join('')}</div></div>
-      ${body}`;
+    inner = `<div class="ps-img"><img src="${p.img}" alt="" style="object-position:${p.pos || 'center'}"><button class="x" data-a="close" aria-label="Close">×</button></div>
+      <div class="ps-b"><div><div class="ps-name">${p.name}</div><div class="ps-meta"><span>${p.unit}</span><b>${rs(p.price)}</b></div></div>
+      <div class="modes">${modes.map(([k,l,sub]) => `<button class="${sh.mode === k ? 'on' : ''}" data-a="mode" data-v="${k}"><b>${l}</b><small>${sub}</small></button>`).join('')}</div>
+      ${body}</div>`;
   } else if (sh.type === 'cart'){
     const total = orderAmt(S.cart), bal = balance();
-    inner = `<div class="sh-title">Your order</div>
-      <div class="card">${S.cart.map(c => `<div class="line">${tile(P[c.prod],'sm')}<div><div class="pname">${P[c.prod].name}</div><div class="meta">${rs(P[c.prod].price*c.qty)}</div></div>${stepper('c-qty',c.prod,c.qty)}</div>`).join('')}</div>
-      <div class="field"><label>Deliver to</label><div class="static">Home, Manikonda · today in 45 – 60 min</div></div>
-      <div class="sum"><div><span>Total</span><b>${rs(total)}</b></div><div><span>Wallet balance</span><b>${rs(bal)}</b></div></div>
-      <p class="fine">${bal >= total ? 'Paid from your Vaaradhi wallet.' : 'Your wallet will be topped up by UPI to cover this order.'} You can cancel until Vaaradhi accepts it.</p>
-      <button class="btn primary block" data-a="place" ${nowOpen() && S.cart.length ? '' : 'disabled'}>Place order · ${rs(total)}</button>`;
+    inner = `<div class="sh-pad"><div class="sh-title">Your cart</div>
+      <div class="info">${icon('clock', 16)}Delivery in 45 – 60 min · Home, Manikonda</div>
+      <div class="box">${S.cart.map(c => { const p = P[c.prod]; return `<div class="row">${thumb(p)}<div class="t"><b>${p.name}</b><small>${p.unit}</small></div><div class="rt">${qbtn('c-qty', c.prod, c.qty, true)}<b>${rs(p.price*c.qty)}</b></div></div>`; }).join('')}</div>
+      <div class="box bill"><div><span>Item total</span><span>${rs(total)}</span></div><div><span>Delivery fee</span><span class="free">FREE</span></div><div class="bt"><span>To pay</span><span>${rs(total)}</span></div></div>
+      <div class="info">${icon('wallet', 16)}Paying from Vaaradhi wallet · balance ${rs(bal)}${bal < total ? ' · we\'ll top up by UPI' : ''}</div>
+      <p class="fine" style="margin-top:0">You can cancel until Vaaradhi accepts your order.</p></div>`;
+    foot = `<button class="cta" data-a="place" ${nowOpen() && S.cart.length ? '' : 'disabled'}><span>${rs(total)}<small>TOTAL</small></span><span>Place order ›</span></button>`;
   } else if (sh.type === 'vac'){
     const from = editFrom(), len = sh.len, days = len || 7;
     let n = 0, amt = 0;
-    for (let i = 0; i < days; i++){ const d = plus(from, i); S.subs.forEach(s => { if (s.cust==='me' && delivers(s,d) && !s.pausedFrom){ n++; amt += s.qty*P[s.prod].price; } }); }
+    for (let i = 0; i < days; i++){ const d = plus(from, i); S.subs.forEach(s => { if (s.cust === 'me' && delivers(s,d) && !s.pausedFrom){ n++; amt += s.qty*P[s.prod].price; } }); }
     const to = len ? plus(from, len-1) : null;
-    inner = `<div class="sh-title">Going out of town?</div>
-      <div class="field"><label>Pause for</label><div class="seg">${[[3,'3 days'],[7,'1 week'],[14,'2 weeks'],[0,'Until I\'m back']].map(([k,l]) => `<button class="${len===k?'on':''}" data-a="vac-len" data-v="${k}">${l}</button>`).join('')}</div></div>
-      <div class="sum"><div><span>Paused</span><b style="font-size:15px">${to ? fmtS(from)+' – '+fmtS(to) : 'From '+fmtS(from)}</b></div><div><span>${len?'Not charged':'Saved each week'}</span><b>${rs(amt)}</b></div></div>
-      <p class="fine">${n} deliveries will be skipped. Vaaradhi is told right away, so nothing is packed for you.${S.phase!=='open'?` Tomorrow's basket is already locked, so the pause starts ${fmtD(DAT)}.`:''}</p>
-      <button class="btn primary block" data-a="vac-go">Pause deliveries</button>`;
+    inner = `<div class="sh-pad"><div class="sh-title">Going out of town?</div>
+      <div class="box" style="padding:14px;display:flex;flex-direction:column;gap:12px">
+        <div class="fld"><label>PAUSE FOR</label><div class="opts">${[[3,'3 days'],[7,'1 week'],[14,'2 weeks'],[0,'Until I\'m back']].map(([k,l]) => `<button class="${len === k ? 'on' : ''}" data-a="vac-len" data-v="${k}">${l}</button>`).join('')}</div></div>
+        <div class="sumg"><div><span>Paused</span><b style="font-size:15px">${to ? fmtS(from) + ' – ' + fmtS(to) : 'From ' + fmtS(from)}</b></div><div><span>${len ? 'Not charged' : 'Saved each week'}</span><b>${rs(amt)}</b></div></div></div>
+      <div class="info">${icon('bell', 16)}${n} deliveries will be skipped. Vaaradhi is told right away, so nothing is packed for you.${S.phase !== 'open' ? ` Tomorrow is already locked, so the pause starts ${fmtD(DAT)}.` : ''}</div></div>`;
+    foot = `<button class="cta c" data-a="vac-go">Pause deliveries</button>`;
   }
-  return `<div class="scrim" data-a="close"></div><div class="sheet" role="dialog"><div class="grab"></div>${inner}</div>`;
+  return `<div class="scrim" data-a="close"></div><div class="sheet" role="dialog"><div class="sheet-sc">${inner}</div>${foot ? `<div class="sh-foot">${foot}</div>` : ''}</div>`;
 }
 function custHTML(){
   const t = ui.cTab;
   const head = t === 'shop'
-    ? `<div class="c-head"><div><div class="hello">Good evening, Ananya</div><div class="addr">Home · Manikonda, Hyderabad</div></div><div class="avatar">AR</div></div>`
-    : `<div class="h-title">${{orders:'Orders', tmr:'Tomorrow', wallet:'Wallet'}[t]}</div>`;
+    ? `<div class="ch"><div class="ch-top"><div><div class="ch-eta">${nowOpen() ? 'Delivery in <em>45 min</em>' : 'Closed · opens <em>7 AM</em>'}</div>
+        <div class="ch-addr">${icon('pin', 13)}Home · Manikonda, Hyderabad${icon('down', 13)}</div></div><div class="ch-av">AR</div></div>
+        <label class="search">${icon('search', 18)}<input id="q" type="search" placeholder="Search pongal, milk, fruit…" value="${esc(ui.q)}" autocomplete="off" aria-label="Search products"></label></div>`
+    : `<div class="ct"><h2>${{orders:'Your orders', tmr:'Plans & tomorrow', wallet:'Wallet'}[t]}</h2><p>${{orders:'Same-day orders, tracked live', tmr:'Your morning deliveries from Vaaradhi', wallet:'Prepaid balance with Vaaradhi Farms'}[t]}</p></div>`;
   const body = t === 'shop' ? shopBody() : t === 'orders' ? ordersBody() : t === 'tmr' ? tomorrowBody() : walletBody();
   const n = S.cart.reduce((a,c) => a + c.qty, 0);
-  const cart = t === 'shop' && n ? `<button class="cartbar" data-a="cart-open"><span>${n} item${n > 1 ? 's' : ''} · ${rs(orderAmt(S.cart))}</span><span>View cart →</span></button>` : '';
-  return `${head}<div class="app-body" data-scroll="c-${t}">${body}</div>${cart}
-    ${nav([['shop','Shop','shop'],['orders','Orders','receipt'],['tmr','Tomorrow','sun'],['wallet','Wallet','wallet']], t, 'ctab', {orders:S.orders.filter(o => o.cust === 'me' && isLive(o)).length})}
-    ${toastHTML(ui.cToast,'c','c')}${sheetHTML()}`;
+  const cart = t === 'shop' && n ? `<button class="cartbar" data-a="cart-open"><span class="cb-th">${S.cart.slice(0,3).map(c => `<img src="${P[c.prod].img}" alt="">`).join('')}</span>
+      <span class="cb-t"><b>View cart</b><small>${n} item${n > 1 ? 's' : ''} · ${rs(orderAmt(S.cart))}</small></span><span class="cb-go">›</span></button>` : '';
+  return `<div class="body" data-scroll="c-${t}">${head}${body}</div>${cart}
+    ${nav([['shop','Home','home'],['orders','Orders','bag'],['tmr','Plans','sun'],['wallet','Wallet','wallet']], t, 'ctab', {orders:S.orders.filter(o => o.cust === 'me' && isLive(o)).length})}
+    ${toastHTML(ui.cToast,'c')}${sheetHTML()}`;
 }
 
 /* =====================================================================
@@ -739,35 +862,52 @@ function trackChanges(pr, k){
   ui.prevPrep = pr; ui.prevKpi = k;
 }
 const fl = key => { const f = ui.flash[key]; return f && f.until > Date.now() ? f : null; };
-const deltaHTML = (f, money) => f ? `<span class="delta ${f.d>0?'up':''}">${f.d>0?'+':'−'}${money?rs(Math.abs(f.d)):Math.abs(f.d)}</span>` : '';
+const deltaHTML = (f, money) => f ? `<span class="delta ${f.d > 0 ? 'up' : ''}">${f.d > 0 ? '+' : '−'}${money ? rs(Math.abs(f.d)) : Math.abs(f.d)}</span>` : '';
+function mOrders(){
+  const all = [...S.orders].sort((a,b) => b.id - a.id);
+  const live = all.filter(isLive), done = all.filter(o => o.status === 'delivered'), paid = all.filter(o => o.status !== 'cancelled');
+  const its = o => `<div class="ord-its">${o.items.map(it => `<span class="tk-it">${thumb(P[it.prod],'sm')}${P[it.prod].name.split(' ').slice(-2).join(' ')} × ${it.qty}</span>`).join('')}</div>`;
+  const card = o => `<div class="ord ${o.status === 'placed' ? 'new' : ''}">
+      <div class="ord-top"><div style="display:flex;gap:10px;align-items:center">${avatar(o.cust)}<div><b>${C[o.cust].name}${o.cust === 'me' ? '<span class="you">demo</span>' : ''}</b><small>#${o.id} · ${C[o.cust].area} · ${o.t}</small></div></div>
+        <div class="ord-amt">${rs(o.amt)}<br><span class="chip ${o.status === 'placed' ? 'y' : 'b'}">${o.status === 'placed' ? 'NEW · PAID' : OLBL[o.status]}</span></div></div>
+      ${its(o)}
+      <div class="ord-act"><button class="bigbtn ${o.status === 'placed' ? '' : 'dk'}" data-a="oadv" data-v="${o.id}">${NEXT[o.status]}</button></div></div>`;
+  return `<div class="stats"><div class="stat"><span>Orders today</span><b>${paid.length}</b></div><div class="stat"><span>In progress</span><b>${live.length}</b></div><div class="stat"><span>Paid</span><b>${rs(paid.reduce((a,o) => a + o.amt, 0))}</b></div></div>
+    <div class="sh">${nowOpen() ? 'Live orders · open till 9 PM' : 'Closed for tonight · opens 7 AM'}</div>
+    ${live.length ? live.map(card).join('') : '<div class="note" style="margin-top:0">No open orders right now.</div>'}
+    ${done.length ? '<div class="sh">Delivered today</div>' + done.map(o => `<div class="ord past"><div class="ord-top"><div style="display:flex;gap:10px;align-items:center">${avatar(o.cust)}<div><b>${C[o.cust].name}</b><small>#${o.id} · ${itemsText(o.items)}</small></div></div><div class="ord-amt">${rs(o.amt)}</div></div></div>`).join('') : ''}
+    <p class="fine">Every order is paid in the app before you accept it. No cash on delivery and nothing to confirm on WhatsApp.</p><div class="spacer"></div>`;
+}
 function mToday(){
-  const st = stops(), pr = prep(), items = Object.values(pr).reduce((a,b)=>a+b,0), rev = st.reduce((a,s)=>a+s.amt,0);
-  const off = lines().filter(l => l.status !== 'ok'), offQty = off.reduce((a,l)=>a+l.qty,0), offAmt = off.reduce((a,l)=>a+l.amt,0);
-  const sub = S.phase === 'open' ? `List locks at ${CUTOFF} · ${leftText()}` : S.phase === 'locked' ? 'Locked at 9:00 PM. Pack by 6:00 AM.' : 'All deliveries done';
-  const kpi = (key, label, val, money) => { const f = fl('k_'+key); return `<div class="kpi ${f?'chg':''}"><span>${label}</span><b>${money?rs(val):val}</b>${deltaHTML(f,money)}</div>`; };
+  const st = stops(), pr = prep(), items = Object.values(pr).reduce((a,b) => a+b, 0), rev = st.reduce((a,s) => a+s.amt, 0);
+  const off = lines().filter(l => l.status !== 'ok'), offQty = off.reduce((a,l) => a+l.qty, 0), offAmt = off.reduce((a,l) => a+l.amt, 0);
+  const sub = S.phase === 'open' ? `List locks at ${CUTOFF} · ${leftText()}` : S.phase === 'locked' ? 'Locked at 9:00 PM · pack by 6:00 AM' : 'All deliveries done';
+  const kpi = (key, label, val, money) => { const f = fl('k_'+key); return `<div class="${f ? 'chg' : ''}"><span>${label}</span><b>${money ? rs(val) : val}</b>${deltaHTML(f, money)}</div>`; };
   const rows = PRODUCTS.filter(p => pr[p.id] || fl('p_'+p.id)).map(p => {
     const f = fl('p_'+p.id);
-    return `<div class="prow ${f?'chg':''}">${tile(p,'xs')}<div><div class="pname">${p.name}</div><div class="punit">${p.unit}</div></div><div class="q">${deltaHTML(f)}× ${pr[p.id]||0}</div></div>`;
+    return `<div class="row ${f ? 'chg' : ''}">${thumb(p)}<div class="t"><b>${p.name}</b><small>${p.unit}</small></div><div class="q">${deltaHTML(f)}× ${pr[p.id] || 0}</div></div>`;
   }).join('');
-  return `<div class="m-date"><b>Tomorrow · ${fmtD(TMR)}</b><span>${sub}</span></div>
-    <div class="kpis">${kpi('stops','Deliveries',st.length)}${kpi('items','Items to pack',items)}${kpi('rev','Revenue',rev,true)}</div>
-    <div class="sec">Prep sheet</div>
-    <div class="card">${rows}</div>
+  return `<div class="mcard"><small>Tomorrow · ${fmtD(TMR)}</small><div class="big">${sub}</div>
+      <div class="mstats">${kpi('stops','Deliveries',st.length)}${kpi('items','Items to pack',items)}${kpi('rev','Revenue',rev,true)}</div></div>
     ${offQty ? `<div class="saved"><b>${offQty} items not packed</b> because customers paused or skipped (${rs(offAmt)}). Nothing is made that won't be paid for.</div>` : ''}
-    <div class="sec">Live updates</div>
-    <div class="card feed">${S.feed.slice(0,10).map(f => `<div class="fi ${f.kind}"><span class="d"></span><span>${f.text}</span><time>${f.t}</time></div>`).join('')}</div>`;
+    <div class="sh">Prep sheet</div>
+    <div class="box prep">${rows}</div>
+    <div class="sh">Live updates</div>
+    <div class="box feed">${S.feed.slice(0,10).map(f => `<div class="fi ${f.kind}"><span class="d">${icon(FEED_IC[f.kind] || 'bell', 14)}</span><span class="tx">${f.text}</span><time>${f.t}</time></div>`).join('')}</div>
+    <div class="spacer"></div>`;
 }
 function mRun(){
   const st = stops(), done = st.filter(s => S.done[s.cust]).length, open = S.phase === 'open';
   const groups = AREAS.map(a => [a, st.filter(s => s.area === a)]).filter(g => g[1].length);
   const away = [...new Set(lines().filter(l => l.status !== 'ok').map(l => l.cust))].filter(c => !st.find(s => s.cust === c));
-  return `<div class="prog"><div class="row"><span>${done} of ${st.length} delivered</span><span>${rs(st.filter(s=>S.done[s.cust]).reduce((a,s)=>a+s.amt,0))}</span></div><div class="bar"><i style="width:${st.length?done/st.length*100:0}%"></i></div>
-      <span class="punit">${open ? `Preview. Customers can still make changes until ${CUTOFF}.` : S.phase === 'locked' ? 'Locked. Mark each stop as it\'s delivered.' : 'Morning run complete.'}</span></div>
-    ${groups.map(([a, list]) => `<div class="area">${a}<span>${list.length} stop${list.length>1?'s':''}</span></div>
-      ${list.map(s => `<div class="stop ${s.cust==='me'?'me':''} ${S.done[s.cust]?'done':''}"><div><div class="sname">${C[s.cust].name}${s.cust==='me'?'<span class="you">demo customer</span>':''}</div>
-        <div class="sitems">${s.lines.map(l => P[l.prod].name + ' × ' + l.qty).join(', ')}</div></div>
-        <div class="sact">${rs(s.amt)}${S.done[s.cust] ? '<span class="okt">Delivered</span>' : `<button class="btn xs" data-a="deliver" data-v="${s.cust}" ${open?'disabled':''}>Mark delivered</button>`}</div></div>`).join('')}`).join('')}
-    ${away.length ? `<div class="area">Not on tomorrow's run<span>${away.length}</span></div>${away.map(c => `<div class="stop away"><div><div class="sname">${C[c].name}</div><div class="sitems">${C[c].area} · ${S.vac[c] ? 'away, paused by customer' : 'paused or skipped by customer'}</div></div><div class="sact"><span class="okt" style="color:var(--sun)">₹0</span></div></div>`).join('')}` : ''}`;
+  return `<div class="prog"><div class="pr"><span>${done} of ${st.length} delivered</span><span>${rs(st.filter(s => S.done[s.cust]).reduce((a,s) => a+s.amt, 0))}</span></div><div class="bar"><i style="width:${st.length ? done/st.length*100 : 0}%"></i></div>
+      <small>${open ? `Preview. Customers can still make changes until ${CUTOFF}.` : S.phase === 'locked' ? 'Locked. Mark each stop as it\'s delivered.' : 'Morning run complete.'}</small></div>
+    ${groups.map(([a, list]) => `<div class="area">${a}<span>${list.length} stop${list.length > 1 ? 's' : ''}</span></div>
+      ${list.map(s => `<div class="stop ${s.cust === 'me' ? 'me' : ''} ${S.done[s.cust] ? 'done' : ''}">${avatar(s.cust)}<div class="t"><b>${C[s.cust].name}${s.cust === 'me' ? '<span class="you">demo</span>' : ''}</b>
+        <small>${s.lines.map(l => P[l.prod].name + ' × ' + l.qty).join(', ')}</small></div>
+        <div class="rt"><b>${rs(s.amt)}</b>${S.done[s.cust] ? '<span class="chip g">Delivered</span>' : `<button class="sbtn" data-a="deliver" data-v="${s.cust}" ${open ? 'disabled' : ''}>Mark delivered</button>`}</div></div>`).join('')}`).join('')}
+    ${away.length ? `<div class="area">Not on tomorrow's run<span>${away.length}</span></div>${away.map(c => `<div class="stop away">${avatar(c)}<div class="t"><b>${C[c].name}</b><small>${C[c].area} · ${S.vac[c] ? 'away, paused by customer' : 'paused or skipped by customer'}</small></div><span class="chip y">₹0</span></div>`).join('')}` : ''}
+    <div class="spacer"></div>`;
 }
 function mCustomers(){
   const list = CUSTOMERS.map(c => {
@@ -775,56 +915,47 @@ function mCustomers(){
     const v = S.vac[c.id], vOn = v && (!v.to || v.to >= TMR);
     const allPaused = subs.length && subs.every(s => s.pausedFrom);
     const isNew = subs.some(s => s.isNew);
-    const st = vOn ? [v.to ? 'Away till ' + fmtS(v.to) : 'Away', 'p'] : allPaused ? ['Paused','p'] : isNew ? ['New plan','n'] : subs.length ? ['Active','a'] : ['No plans','p'];
+    const st = vOn ? [v.to ? 'Away till ' + fmtS(v.to) : 'Away', 'y'] : allPaused ? ['Paused','y'] : isNew ? ['New plan','b'] : subs.length ? ['Active','g'] : ['No plans','y'];
     return {c, subs, st};
   });
-  const active = list.filter(x => x.st[1] !== 'p').length;
-  return `<div class="ccount"><div class="kpi"><span>Subscribers</span><b>${list.length}</b></div><div class="kpi"><span>Active</span><b>${active}</b></div><div class="kpi"><span>Paused</span><b>${list.length-active}</b></div></div>
-    <div class="card">${list.map(({c, subs, st}) => `<div class="cust"><div class="ini">${initials(c.id)}</div><div><div class="sname">${c.name}${c.id==='me'?'<span class="you">demo customer</span>':''}</div>
-      <div class="sitems">${c.area} · ${subs.map(s => P[s.prod].name.split(' ').slice(-2).join(' ') + ' × ' + s.qty).join(', ') || 'No active plans'}</div></div><span class="st ${st[1]}">${st[0]}</span></div>`).join('')}</div>
-    <div class="note">Bring your WhatsApp regulars onto the app and their orders show up here automatically.</div>`;
+  const active = list.filter(x => x.st[1] !== 'y').length;
+  return `<div class="stats"><div class="stat"><span>Subscribers</span><b>${list.length}</b></div><div class="stat"><span>Active</span><b>${active}</b></div><div class="stat"><span>Paused</span><b>${list.length - active}</b></div></div>
+    <div class="sh">All customers</div>
+    <div class="box">${list.map(({c, subs, st}) => `<div class="row">${avatar(c.id)}<div class="t"><b>${c.name}${c.id === 'me' ? '<span class="you">demo</span>' : ''}</b>
+      <small>${c.area} · ${subs.map(s => P[s.prod].name.split(' ').slice(-2).join(' ') + ' × ' + s.qty).join(', ') || 'No active plans'}</small></div><span class="chip ${st[1]}">${st[0]}</span></div>`).join('')}</div>
+    <div class="note">Bring your WhatsApp regulars onto the app and their orders show up here automatically.</div><div class="spacer"></div>`;
 }
 function mEarnings(){
   const start = iso(new Date(TODAY.getFullYear(), TODAY.getMonth(), 1, 12));
   let mtd = 0, n = 0;
   for (let d = start; d <= TDY; d = plus(d, 1)){ const r = dayRevenue(d); mtd += r.amt; n += r.n; }
-  const st = stops(), collected = st.filter(s => S.done[s.cust]).reduce((a,s)=>a+s.amt,0), expected = st.reduce((a,s)=>a+s.amt,0);
+  const st = stops(), collected = st.filter(s => S.done[s.cust]).reduce((a,s) => a+s.amt, 0), expected = st.reduce((a,s) => a+s.amt, 0);
   const monthName = TODAY.toLocaleDateString('en-IN', {month:'long'});
   const inst = S.orders.filter(o => o.status !== 'cancelled'), instAmt = inst.reduce((a,o) => a + o.amt, 0);
   let setl = '';
-  if (collected) setl += `<div class="led"><span>Collected this morning<br><span class="punit">Settling to your account</span></span><span class="amt">${rs(collected)}</span></div>`;
-  setl += `<div class="led"><span>Today's one-time orders<br><span class="punit">Settling to your account</span></span><span class="amt">${rs(instAmt)}</span></div>`;
-  setl += `<div class="led"><span>Today's subscription deliveries<br><span class="punit">Settling to your account</span></span><span class="amt">${rs(dayRevenue(TDY).amt)}</span></div>`;
-  for (let k = 1; k <= 5; k++){ const d = iso(addD(-k)); setl += `<div class="led"><span>${fmtD(d)} deliveries<br><span class="punit">Settled to your account</span></span><span class="amt in">${rs(dayRevenue(d).amt)}</span></div>`; }
-  return `<div class="earn"><span>App orders in ${monthName}</span><b>${rs(mtd + collected + instAmt)}</b><span>${n + st.filter(s=>S.done[s.cust]).length} subscription deliveries and ${inst.length} one-time orders</span></div>
-    <div class="kpis two"><div class="kpi"><span>Aggregator commission</span><b>₹0</b></div><div class="kpi"><span>${S.phase==='delivered'?'Collected today':'Tomorrow, expected'}</span><b>${rs(S.phase==='delivered'?collected:expected)}</b></div></div>
-    <div class="sec">Collections · paid into your account</div>
-    <div class="card">${setl}</div>
-    <p class="fine">Customers pay into Vaaradhi's own payment account (for example Razorpay), and the money settles to your bank on your provider's schedule. Scribr keeps the records and never holds your money. Standard payment gateway fees apply. There's no aggregator commission.</p>`;
-}
-function mOrders(){
-  const all = [...S.orders].sort((a,b) => b.id - a.id);
-  const live = all.filter(isLive), done = all.filter(o => o.status === 'delivered'), paid = all.filter(o => o.status !== 'cancelled');
-  const row = (o, past) => `<div class="ord ${o.status === 'placed' ? 'new' : ''} ${past ? 'past' : ''}"><div>
-      <div class="sname">#${o.id} · ${C[o.cust].name}${o.cust === 'me' ? '<span class="you">demo customer</span>' : ''}</div>
-      <div class="sitems">${itemsText(o.items)}</div><div class="sitems">${C[o.cust].area} · placed ${o.t}</div></div>
-      <div class="sact">${rs(o.amt)}<span class="st ${o.status === 'placed' ? 'p' : o.status === 'delivered' ? 'a' : 'o'}">${OLBL[o.status]}</span>${NEXT[o.status] ? `<button class="btn xs" data-a="oadv" data-v="${o.id}">${NEXT[o.status]}</button>` : ''}</div></div>`;
-  return `<div class="m-date"><b>Order now · today</b><span>${nowOpen() ? 'Same-day delivery open till 9:00 PM' : 'Closed for tonight. Opens at 7:00 AM.'}</span></div>
-    <div class="kpis"><div class="kpi"><span>Orders today</span><b>${paid.length}</b></div><div class="kpi"><span>In progress</span><b>${live.length}</b></div><div class="kpi"><span>Paid</span><b>${rs(paid.reduce((a,o) => a + o.amt, 0))}</b></div></div>
-    ${live.length ? '<div class="sec">In progress</div>' + live.map(o => row(o)).join('') : '<div class="note">No open orders right now.</div>'}
-    ${done.length ? '<div class="sec">Delivered today</div>' + done.map(o => row(o, true)).join('') : ''}
-    <p class="fine">Every order is paid in the app before you accept it. No cash on delivery and nothing to confirm on WhatsApp.</p>`;
+  const ln = (a, b, amt, cls = '') => `<div class="row"><div class="t"><b>${a}</b><small>${b}</small></div><b class="amt ${cls}">${rs(amt)}</b></div>`;
+  if (collected) setl += ln('Collected this morning', 'Settling to your account', collected);
+  setl += ln('Today\'s one-time orders', 'Settling to your account', instAmt);
+  setl += ln('Today\'s subscription deliveries', 'Settling to your account', dayRevenue(TDY).amt);
+  for (let k = 1; k <= 5; k++){ const d = iso(addD(-k)); setl += ln(fmtD(d) + ' deliveries', 'Settled to your account', dayRevenue(d).amt, 'in'); }
+  return `<div class="mcard"><small>App orders in ${monthName}</small><div class="big" style="font-size:34px;margin-bottom:4px">${rs(mtd + collected + instAmt)}</div>
+      <small>${n + st.filter(s => S.done[s.cust]).length} subscription deliveries and ${inst.length} one-time orders</small></div>
+    <div class="stats" style="grid-template-columns:1fr 1fr"><div class="stat"><span>Aggregator commission</span><b>₹0</b></div><div class="stat"><span>${S.phase === 'delivered' ? 'Collected today' : 'Tomorrow, expected'}</span><b>${rs(S.phase === 'delivered' ? collected : expected)}</b></div></div>
+    <div class="sh">Collections · paid into your account</div>
+    <div class="box">${setl}</div>
+    <p class="fine">Customers pay into Vaaradhi's own payment account (for example Razorpay), and the money settles to your bank on your provider's schedule. Scribr keeps the records and never holds your money. Standard payment gateway fees apply. There's no aggregator commission.</p>
+    <div class="spacer"></div>`;
 }
 function merchHTML(){
   const st = stops(), pr = prep();
-  trackChanges(pr, {stops:st.length, items:Object.values(pr).reduce((a,b)=>a+b,0), rev:st.reduce((a,s)=>a+s.amt,0)});
-  const pill = S.phase === 'open' ? ['Taking changes',''] : S.phase === 'locked' ? ['Locked · packing','locked'] : ['Delivered','delivered'];
+  trackChanges(pr, {stops:st.length, items:Object.values(pr).reduce((a,b) => a+b, 0), rev:st.reduce((a,s) => a+s.amt, 0)});
+  const pill = S.phase === 'open' ? ['Open',''] : S.phase === 'locked' ? ['Locked','lk'] : ['Run done','dn'];
   const t = ui.mTab;
   const body = t === 'orders' ? mOrders() : t === 'today' ? mToday() : t === 'run' ? mRun() : t === 'cust' ? mCustomers() : mEarnings();
-  return `<div class="m-head"><div><div class="m-brand">Vaaradhi Farms</div><div class="m-sub">Manikonda store · ${clock()}</div></div><span class="pill ${pill[1]}">${pill[0]}</span></div>
-    <div class="app-body" data-scroll="m-${t}">${body}</div>
-    ${nav([['orders','Orders','receipt'],['today','Tomorrow','list'],['run','Run','truck'],['cust','Customers','people'],['earn','Earnings','chart']], t, 'mtab', {orders:S.orders.filter(o => o.status === 'placed').length})}
-    ${toastHTML(ui.mToast,'m','m')}`;
+  return `<div class="mh"><span class="lg2">VF</span><div class="nm"><b>Vaaradhi Farms</b><small>Manikonda store · ${clock()}</small></div><span class="st-pill ${pill[1]}"><i></i>${pill[0]}</span></div>
+    <div class="body mbody" data-scroll="m-${t}">${body}</div>
+    ${nav([['orders','Orders','bag'],['today','Tomorrow','list'],['run','Run','truck'],['cust','Customers','people'],['earn','Earnings','chart']], t, 'mtab', {orders:S.orders.filter(o => o.status === 'placed').length})}
+    ${toastHTML(ui.mToast,'m')}`;
 }
 
 /* =====================================================================
@@ -832,9 +963,11 @@ function merchHTML(){
    ===================================================================== */
 function render(){
   const keep = {}; document.querySelectorAll('[data-scroll]').forEach(e => keep[e.dataset.scroll] = e.scrollTop);
+  const a = document.activeElement, typing = a && a.id === 'q' ? a.selectionStart : null;
   document.getElementById('custApp').innerHTML = custHTML();
   document.getElementById('merchApp').innerHTML = merchHTML();
   document.querySelectorAll('[data-scroll]').forEach(e => { if (keep[e.dataset.scroll] != null) e.scrollTop = keep[e.dataset.scroll]; });
+  if (typing != null){ const q = document.getElementById('q'); if (q){ q.focus(); q.setSelectionRange(typing, typing); } }
   document.body.dataset.view = ui.view;
   ['vCust','vMerch','vHow'].forEach((id,i) => document.getElementById(id).classList.toggle('on', ['customer','merchant','how'][i] === ui.view));
   const b = document.getElementById('bdg'); b.hidden = !S.unread; b.textContent = S.unread;
@@ -856,23 +989,26 @@ function settle(){
 function finishRun(){
   S.phase = 'delivered'; settle();
   const st = stops();
-  notify(`Morning run complete: ${st.length} deliveries, ${rs(st.reduce((a,s)=>a+s.amt,0))} collected into your payment account.`, 'lock');
+  notify(`Morning run complete: ${st.length} deliveries, ${rs(st.reduce((a,s) => a+s.amt, 0))} collected into your payment account.`, 'lock');
 }
 const A = {
   view(v){ ui.view = v; ui.demoOpen = false; if (v === 'merchant') S.unread = 0; },
   demo(){ ui.demoOpen = !ui.demoOpen; },
   ctab(v){ ui.cTab = v; ui.sheet = null; ui.confirmCancel = null; },
   mtab(v){ ui.mTab = v; },
-  cat(v){ ui.cCat = v; },
+  cat(v){ ui.cCat = v; ui.q = ''; },
   close(){ ui.sheet = null; },
-  'sub-open'(v){ ui.sheet = {type:'sub', prod:v, freq:'daily', qty:1, start:editFrom()}; },
-  'add-open'(v){ ui.sheet = {type:'add', prod:v, qty:1}; },
   'vac-open'(){ ui.sheet = {type:'vac', len:7}; },
   's-freq'(v){ ui.sheet.freq = v; },
   's-start'(v){ ui.sheet.start = v; },
   's-qty'(v){ ui.sheet.qty = Math.max(1, Math.min(6, ui.sheet.qty + +v.split('|')[1])); },
-  'a-qty'(v){ ui.sheet.qty = Math.max(1, Math.min(6, ui.sheet.qty + +v.split('|')[1])); },
   'vac-len'(v){ ui.sheet.len = +v; },
+  cq(v){
+    if (!nowOpen()) return;
+    const [prod, d] = v.split('|'), c = S.cart.find(x => x.prod === prod);
+    if (c){ c.qty = Math.min(9, c.qty + +d); if (c.qty < 1) S.cart = S.cart.filter(x => x !== c); }
+    else if (+d > 0) S.cart.push({prod, qty:1});
+  },
   'sub-go'(){
     const sh = ui.sheet, p = P[sh.prod];
     const s = {id:'n'+Date.now(), cust:'me', prod:sh.prod, freq:sh.freq, qty:sh.qty, start:sh.start, pausedFrom:null, cancelledFrom:null, isNew:true};
@@ -890,8 +1026,8 @@ const A = {
   'vac-go'(){
     const from = editFrom(), len = ui.sheet.len, to = len ? plus(from, len-1) : null;
     S.vac.me = {from, to}; ui.sheet = null;
-    let n = 0; for (let i = 0; i < (len||7); i++){ const d = plus(from,i); S.subs.forEach(s => { if (s.cust==='me' && delivers(s,d) && !s.pausedFrom) n++; }); }
-    notify(`Ananya R. is away ${to ? fmtS(from)+' – '+fmtS(to) : 'from '+fmtS(from)+' until she resumes'}. ${n} deliveries removed${len?'':' a week'}, no charge.`, 'pause');
+    let n = 0; for (let i = 0; i < (len||7); i++){ const d = plus(from,i); S.subs.forEach(s => { if (s.cust === 'me' && delivers(s,d) && !s.pausedFrom) n++; }); }
+    notify(`Ananya R. is away ${to ? fmtS(from)+' – '+fmtS(to) : 'from '+fmtS(from)+' until she resumes'}. ${n} deliveries removed${len ? '' : ' a week'}, no charge.`, 'pause');
     toastC(`Paused. Vaaradhi has been told and you won't be charged ${to ? 'from '+fmtS(from)+' to '+fmtS(to) : 'while you\'re away'}.`);
   },
   'vac-end'(){
@@ -965,12 +1101,12 @@ const A = {
     o.status = FLOW[i + 1];
     if (o.cust === 'me') toastC(CTXT[o.status]);
   },
-  topup(){ S.ledger.push({date:TDY, seq:S.seq++, text:'Added to wallet via UPI', amt:1000, kind:'in'}); toastC('₹1,000 added to your wallet.'); },
+  topup(v){ const a = +v || 1000; S.ledger.push({date:TDY, seq:S.seq++, text:'Added to wallet via UPI', amt:a, kind:'in'}); toastC(`${rs(a)} added to your wallet.`); },
   lock(){
     if (S.phase !== 'open') return;
     S.snapshot = computeLines(); S.phase = 'locked'; S.lockedAt = Date.now(); ui.demoOpen = false; ui.sheet = null;
-    const st = stops(), items = okLines().reduce((a,l)=>a+l.qty,0);
-    notify(`Tomorrow's list is locked: ${st.length} deliveries, ${items} items, ${rs(st.reduce((a,s)=>a+s.amt,0))}.`, 'lock');
+    const st = stops(), items = okLines().reduce((a,l) => a+l.qty, 0);
+    notify(`Tomorrow's list is locked: ${st.length} deliveries, ${items} items, ${rs(st.reduce((a,s) => a+s.amt, 0))}.`, 'lock');
   },
   deliver(v){
     if (S.phase === 'open') return;
@@ -982,7 +1118,7 @@ const A = {
     stops().forEach(s => { S.done[s.cust] = true; });
     ui.demoOpen = false; finishRun();
   },
-  reset(){ seed(); Object.assign(ui, {cTab:'shop', cCat:'All', mTab:'today', sheet:null, cToast:null, mToast:null, demoOpen:false, confirmCancel:null, prevPrep:null, prevKpi:null, flash:{}}); },
+  reset(){ seed(); Object.assign(ui, {cTab:'shop', cCat:'All', q:'', mTab:'orders', sheet:null, cToast:null, mToast:null, demoOpen:false, confirmCancel:null, prevPrep:null, prevKpi:null, flash:{}}); },
 };
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-a]'); if (!el || el.disabled) return;
@@ -990,6 +1126,7 @@ document.addEventListener('click', e => {
   if (a !== 'p-cancel') ui.confirmCancel = null;
   if (A[a]) { A[a](el.dataset.v); render(); }
 });
+document.addEventListener('input', e => { if (e.target.id === 'q'){ ui.q = e.target.value; render(); } });
 
 S = load() || seed();
 render();
