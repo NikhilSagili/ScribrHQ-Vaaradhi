@@ -1,0 +1,978 @@
+{
+ "source": "vaaradhifarms.com public Shopify catalogue (/products.json)",
+ "capturedOn": "2026-10-28",
+ "note": "Reference only. Not used for customer-facing prices.",
+ "products": [
+  {
+   "title": "Cold Pressed White Sesame Oil",
+   "handle": "cold-pressed-white-sesame-oil",
+   "variants": [
+    {
+     "title": "500ml",
+     "price": 505.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul31_2026_12_51_10PM.png?v=1785482491"
+  },
+  {
+   "title": "Watermelon Seeds",
+   "handle": "watermelon-seeds",
+   "variants": [
+    {
+     "title": "50g",
+     "price": 145.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul30_2026_06_23_13PM.png?v=1785416053"
+  },
+  {
+   "title": "Wild Raw Forest Honey",
+   "handle": "wild-honey",
+   "variants": [
+    {
+     "title": "500gms",
+     "price": 549.0,
+     "available": true
+    },
+    {
+     "title": "1kg",
+     "price": 999.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul30_2026_06_55_41PM.png?v=1785417980"
+  },
+  {
+   "title": "Palm Jelly",
+   "handle": "palm-jelly",
+   "variants": [
+    {
+     "title": "250 gms",
+     "price": 399.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/20250417_205330_2.png?v=1744949638"
+  },
+  {
+   "title": "Amla Powder",
+   "handle": "amla-powder",
+   "variants": [
+    {
+     "title": "200g",
+     "price": 249.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/20250429_161532_1.png?v=1745924852"
+  },
+  {
+   "title": "Mixed Murukulu",
+   "handle": "mixed-murukulu",
+   "variants": [
+    {
+     "title": "250gms",
+     "price": 299.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/20250426_172520_1.jpg?v=1745672816"
+  },
+  {
+   "title": "Ariselu",
+   "handle": "ariselu",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 279.0,
+     "available": false
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul31_2026_12_14_17PM.png?v=1785480282"
+  },
+  {
+   "title": "Kasuri Methi",
+   "handle": "kasuri-methi",
+   "variants": [
+    {
+     "title": "50g",
+     "price": 90.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageMay31_2026_11_45_46AM.png?v=1780209663"
+  },
+  {
+   "title": "Desi Red Peanuts",
+   "handle": "desi-red-peanuts",
+   "variants": [
+    {
+     "title": "500gm",
+     "price": 249.0,
+     "available": false
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPT_Image_Jul_30_2026_04_33_37_PM.png?v=1785409462"
+  },
+  {
+   "title": "Pandu mirchi pickle",
+   "handle": "pandu-mirchi-pickle",
+   "variants": [
+    {
+     "title": "300g",
+     "price": 320.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ecommified_grated_dry_red_chilli_pickle_paste_in_a_white_bowl_f_6f4c1b1e-be34-4f0a-83d9-6fcde5168731.webp?v=1717779798"
+  },
+  {
+   "title": "Lemon pickle",
+   "handle": "lemon-pickle",
+   "variants": [
+    {
+     "title": "300g",
+     "price": 329.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ecommified_red_lime_pickle_paste_in_a_white_bowl_table_backgrou_4f4a3c66-7924-44b2-8a54-f244a09c2cd3.webp?v=1717780772"
+  },
+  {
+   "title": "Mango pickle",
+   "handle": "mango-pickle",
+   "variants": [
+    {
+     "title": "300g",
+     "price": 320.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ecommified_brown_mango_pickle_in_a_bowl_front_angle_kitchen_bac_1ef99a2f-2733-4f99-bbf3-7c14cbc7dcd5.webp?v=1717774635"
+  },
+  {
+   "title": "Cloves",
+   "handle": "cloves",
+   "variants": [
+    {
+     "title": "25gms",
+     "price": 169.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul30_2026_04_45_18PM.png?v=1785410201"
+  },
+  {
+   "title": "Medjoul Dates",
+   "handle": "medjoul-dates",
+   "variants": [
+    {
+     "title": "500gms",
+     "price": 1490.0,
+     "available": false
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/20250419_152932_1_4b507349-042d-4d3a-a988-7210ab16281a.png?v=1745068961"
+  },
+  {
+   "title": "Black Jeera",
+   "handle": "black-jeera-1",
+   "variants": [
+    {
+     "title": "50g",
+     "price": 110.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul30_2026_06_30_47PM.png?v=1785416481"
+  },
+  {
+   "title": "Extra Virgin Coconut Oil",
+   "handle": "extra-virgin-coconut-oil",
+   "variants": [
+    {
+     "title": "500ml",
+     "price": 595.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul31_2026_12_38_31PM.png?v=1785481748"
+  },
+  {
+   "title": "Rosemary Essential Oil",
+   "handle": "rosemary-essential-oil",
+   "variants": [
+    {
+     "title": "30ml",
+     "price": 448.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPT_Image_Jul_31_2026_01_51_38_PM.png?v=1785486152"
+  },
+  {
+   "title": "Tea Tree Essential Oil",
+   "handle": "tea-tree-oil",
+   "variants": [
+    {
+     "title": "30ml",
+     "price": 520.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPT_Image_Jul_31_2026_01_57_35_PM.png?v=1785486475"
+  },
+  {
+   "title": "Kura Karam",
+   "handle": "kura-karam",
+   "variants": [
+    {
+     "title": "250gms",
+     "price": 269.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul30_2026_01_29_17PM.png?v=1785398430"
+  },
+  {
+   "title": "Eucalyptus Essential Oil",
+   "handle": "eucalyptus-essential-oil",
+   "variants": [
+    {
+     "title": "30ml",
+     "price": 279.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPT_Image_Jul_31_2026_01_59_43_PM.png?v=1785486663"
+  },
+  {
+   "title": "Goat Milk Soap",
+   "handle": "goat-milk-soap",
+   "variants": [
+    {
+     "title": "100g",
+     "price": 175.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/20250331_152259_1.png?v=1743420114"
+  },
+  {
+   "title": "Pure Coconut Oil",
+   "handle": "coconut-oil",
+   "variants": [
+    {
+     "title": "500ml",
+     "price": 560.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul31_2026_12_35_07PM.png?v=1785481563"
+  },
+  {
+   "title": "Allam Pickle",
+   "handle": "allam-pickle",
+   "variants": [
+    {
+     "title": "300g",
+     "price": 359.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/Allampickle1.png?v=1730175392"
+  },
+  {
+   "title": "Dasadinusulu",
+   "handle": "dasadinusulu",
+   "variants": [
+    {
+     "title": "300g",
+     "price": 365.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageFeb4_2026_05_05_32PM.png?v=1770205165"
+  },
+  {
+   "title": "Himalayan Shilajith",
+   "handle": "shilajith",
+   "variants": [
+    {
+     "title": "10g",
+     "price": 720.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/shilajit_1.png?v=1730115668"
+  },
+  {
+   "title": "Cold Pressed Groundnut Oil",
+   "handle": "groundnut-oil-1",
+   "variants": [
+    {
+     "title": "1L",
+     "price": 610.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul31_2026_12_28_23PM.png?v=1785481142"
+  },
+  {
+   "title": "Bhringraj Powder",
+   "handle": "bhringraj-powder",
+   "variants": [
+    {
+     "title": "200g",
+     "price": 299.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageMar3_2026_05_44_34PM.png?v=1772540392"
+  },
+  {
+   "title": "Sindhoor (Kumkuma)",
+   "handle": "sindhoor-kumkuma",
+   "variants": [
+    {
+     "title": "10g",
+     "price": 129.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/Gemini_Generated_Image_imelljimelljimel.png?v=1768891305"
+  },
+  {
+   "title": "Pumpkin Seeds",
+   "handle": "pumpkin-seeds",
+   "variants": [
+    {
+     "title": "100g",
+     "price": 199.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul30_2026_05_14_25PM.png?v=1785411906"
+  },
+  {
+   "title": "Cold Pressed Black Sesame Oil",
+   "handle": "cold-pressed-black-sesame-oil",
+   "variants": [
+    {
+     "title": "500ml",
+     "price": 355.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul31_2026_12_56_04PM.png?v=1785482805"
+  },
+  {
+   "title": "Coconut Sugar",
+   "handle": "cococnut-sugar",
+   "variants": [
+    {
+     "title": "500g",
+     "price": 449.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/41Coconutsuger.png?v=1730925034"
+  },
+  {
+   "title": "Jaggery Bar",
+   "handle": "jaggrey-bar",
+   "variants": [
+    {
+     "title": "1kg",
+     "price": 189.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/6Jaggery.png?v=1730907747"
+  },
+  {
+   "title": "Rosemary Leaves",
+   "handle": "rosemary-leaves",
+   "variants": [
+    {
+     "title": "100g",
+     "price": 229.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/IMG-0248.png?v=1785334558"
+  },
+  {
+   "title": "Forest Turmeric Powder",
+   "handle": "forest-turmeric-powder",
+   "variants": [
+    {
+     "title": "250 gms",
+     "price": 289.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/deepixelstudios_wild_turmeric_powder_in_a_pouch_1080x1080_6ffdbe7d-eba2-434a-940f-9d40d1290ee2.png?v=1714064230"
+  },
+  {
+   "title": "Hand Pounded Cashews",
+   "handle": "organic-cashew",
+   "variants": [
+    {
+     "title": "250 gms",
+     "price": 565.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/amer_med_roasted_cashews_in_a_white_bown_on_top_of_a_wooden_cou_2b1dd2d1-1690-45f2-ad3b-e79afcd643ab.png?v=1714074548"
+  },
+  {
+   "title": "Authentic Kashmiri Saffron 1gm",
+   "handle": "kashmiri-saffron-1gm",
+   "variants": [
+    {
+     "title": "Default Title",
+     "price": 650.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ecommified_Indian_dry_Saffron_-_kesar_on_a_brown_bowl_kitchen_b_bc1c5136-f9e9-4f28-8a0f-51d3308b093d.png?v=1705982784"
+  },
+  {
+   "title": "Kansa Baby Thali Set",
+   "handle": "kansa-baby-thali-set",
+   "variants": [
+    {
+     "title": "1set",
+     "price": 5800.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/IMG_8758.heic?v=1770798593"
+  },
+  {
+   "title": "Special Dry Fruit Laddu",
+   "handle": "special-dry-fruit-laddu",
+   "variants": [
+    {
+     "title": "250gms",
+     "price": 429.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul30_2026_06_41_39PM.png?v=1785417125"
+  },
+  {
+   "title": "Gongura pickle",
+   "handle": "gongura-pickle",
+   "variants": [
+    {
+     "title": "300g",
+     "price": 359.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ecommified_dark_red_pickle_paste_soaking_in_oil_in_a_white_bowl_eef36501-a599-44f3-88c4-743bedafae43.webp?v=1717776675"
+  },
+  {
+   "title": "Kobbari Laddu",
+   "handle": "kobbari-laddu",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 279.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/lgxiwva8_4b0ddc7f-5823-427d-a49c-109a18bda05d.png?v=1731351510"
+  },
+  {
+   "title": "Cinnamon Rolls",
+   "handle": "cinnamon-sticks",
+   "variants": [
+    {
+     "title": "100g",
+     "price": 199.0,
+     "available": false
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/freepik-export-20241107125347DM7i.jpg?v=1730984046"
+  },
+  {
+   "title": "Gavvalu",
+   "handle": "gavvalu",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 249.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/SweetGavvalu.png?v=1732360082"
+  },
+  {
+   "title": "Beetroot Murukulu",
+   "handle": "beetroot-murukulu",
+   "variants": [
+    {
+     "title": "250gms",
+     "price": 309.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul30_2026_05_17_06PM.png?v=1785412090"
+  },
+  {
+   "title": "Bee Wax Lip Balm Beetroot",
+   "handle": "bee-wax-lip-balm-beetroot",
+   "variants": [
+    {
+     "title": "10gms",
+     "price": 345.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul29_2026_12_47_32PM.png?v=1785309497"
+  },
+  {
+   "title": "Bee Wax Lip balm Strawberry",
+   "handle": "bee-wax-lip-balm-strawberry",
+   "variants": [
+    {
+     "title": "10g",
+     "price": 329.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/Screenshot_29-10-2025_115032.jpg?v=1761718877"
+  },
+  {
+   "title": "Natural Red Chilli Powder",
+   "handle": "desi-black-rice",
+   "variants": [
+    {
+     "title": "1/4kg",
+     "price": 255.0,
+     "available": true
+    },
+    {
+     "title": "1/2kg",
+     "price": 470.0,
+     "available": true
+    },
+    {
+     "title": "1kg",
+     "price": 909.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/image_519177bc-9938-4cfb-b9ad-8b723ca31af2.png?v=1689100808"
+  },
+  {
+   "title": "Jaggery Powder",
+   "handle": "jaggery-powder",
+   "variants": [
+    {
+     "title": "1kg",
+     "price": 199.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/42bellampowder.png?v=1730945058"
+  },
+  {
+   "title": "Sunflower Seeds",
+   "handle": "sunflower-seeds",
+   "variants": [
+    {
+     "title": "100g",
+     "price": 149.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul30_2026_05_08_50PM.png?v=1785411640"
+  },
+  {
+   "title": "Desi Khand Sugar",
+   "handle": "desi-khand-sugar",
+   "variants": [
+    {
+     "title": "1kg",
+     "price": 319.0,
+     "available": false
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/38desikhand_1.png?v=1730922532"
+  },
+  {
+   "title": "Sky Fruit (Mahogany Seed)",
+   "handle": "sky-fruit-mahogany-seed",
+   "variants": [
+    {
+     "title": "30g",
+     "price": 89.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/Gemini_Generated_Image_qet3zeqet3zeqet3.png?v=1768899117"
+  },
+  {
+   "title": "Black Sesame Seeds",
+   "handle": "black-sesame-seeds",
+   "variants": [
+    {
+     "title": "100g",
+     "price": 139.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/black-sesame-dark-background.jpg?v=1730979041"
+  },
+  {
+   "title": "Munagaku Plain Podi",
+   "handle": "munagaku-plain-podi",
+   "variants": [
+    {
+     "title": "100g",
+     "price": 209.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/MunagakuPowder.png?v=1751187594"
+  },
+  {
+   "title": "Bee Wax Lip Balm Original 10gms",
+   "handle": "bee-wax-lip-balm-chocolate-and-vannila",
+   "variants": [
+    {
+     "title": "Default Title",
+     "price": 319.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/LIP_BALM_ORIGINAL_TYPE_3.png?v=1750331198"
+  },
+  {
+   "title": "Jeera",
+   "handle": "jeera",
+   "variants": [
+    {
+     "title": "250gm",
+     "price": 379.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul31_2026_11_17_06AM.png?v=1785476877"
+  },
+  {
+   "title": "Ragi Laddu",
+   "handle": "ragi-laddu",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 289.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/RagiLaddu.png?v=1732359982"
+  },
+  {
+   "title": "Dried Red Chilli",
+   "handle": "dried-red-chilli",
+   "variants": [
+    {
+     "title": "100g",
+     "price": 149.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/5DryChilly.png?v=1730907059"
+  },
+  {
+   "title": "Ajwain(vaamu)",
+   "handle": "ajwainvaamu",
+   "variants": [
+    {
+     "title": "100g",
+     "price": 95.0,
+     "available": false
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/vaamu.jpg?v=1730868275"
+  },
+  {
+   "title": "Munagaaku Kaaram",
+   "handle": "munagaaku-kaaram",
+   "variants": [
+    {
+     "title": "100g",
+     "price": 189.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/Munaggakukaaram.png?v=1735307958"
+  },
+  {
+   "title": "Mustard Oil",
+   "handle": "mustard-oil",
+   "variants": [
+    {
+     "title": "500ml",
+     "price": 410.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul31_2026_01_44_08PM.png?v=1785485696"
+  },
+  {
+   "title": "Nalla Nuvvulu Laddu",
+   "handle": "nalla-nuvvulu-laddu",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 279.0,
+     "available": false
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/NallaNUVVULALADDU2.png?v=1750429440"
+  },
+  {
+   "title": "Ribbon Pakoda",
+   "handle": "ribbon-pakoda",
+   "variants": [
+    {
+     "title": "200g",
+     "price": 249.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul30_2026_06_16_17PM.png?v=1785415621"
+  },
+  {
+   "title": "Sanna Poosa",
+   "handle": "sanna-poosa",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 259.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul30_2026_06_34_28PM.png?v=1785416700"
+  },
+  {
+   "title": "Jonna Murukulu",
+   "handle": "jonna-murukulu",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 259.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/JonnaMurukulu.png?v=1732281009"
+  },
+  {
+   "title": "Star Anise",
+   "handle": "star-anise",
+   "variants": [
+    {
+     "title": "25gms",
+     "price": 149.0,
+     "available": false
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPTImageJul31_2026_12_10_03PM.png?v=1785480031"
+  },
+  {
+   "title": "Black pepper",
+   "handle": "pepper-corn",
+   "variants": [
+    {
+     "title": "100gms",
+     "price": 259.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPT_Image_Jul_30_2026_04_42_07_PM.png?v=1785409987"
+  },
+  {
+   "title": "Papaya Soap",
+   "handle": "papaya-soap",
+   "variants": [
+    {
+     "title": "100g",
+     "price": 175.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/20250331_150450.png?v=1743424260"
+  },
+  {
+   "title": "Verusenaga Undalu",
+   "handle": "verusenaga-undalu",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 259.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/Verusenagaundalu.png?v=1732360188"
+  },
+  {
+   "title": "Nuvvu Undalu",
+   "handle": "nuvvu-undalu",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 269.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/Nuvvulaundalu.png?v=1732281166"
+  },
+  {
+   "title": "Sunni Laddu",
+   "handle": "sunni-laddu",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 289.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/9.png?v=1731326527"
+  },
+  {
+   "title": "Karapu Boondi",
+   "handle": "bhoondi",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 259.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/6_1.png?v=1731324964"
+  },
+  {
+   "title": "Korra Murukulu",
+   "handle": "korra-murukulu",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 259.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/4.png?v=1731322032"
+  },
+  {
+   "title": "Tomato Pickle",
+   "handle": "tomato-pickle",
+   "variants": [
+    {
+     "title": "300g",
+     "price": 359.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ecommified_red_tomato_pickle_paste_soaking_in_oil_in_a_white_bo_c71296a6-5057-4889-91bb-ef92c5b4b189.webp?v=1718338434"
+  },
+  {
+   "title": "Chia Seeds",
+   "handle": "chia-seeds",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 289.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/chia-seeds-wooden-spoon.jpg?v=1730979704"
+  },
+  {
+   "title": "Bassil Seeds",
+   "handle": "bassil-seeds",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 259.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/black-cumin-seeds-wooden-spoon-concrete-surface.jpg?v=1730977797"
+  },
+  {
+   "title": "Lakshman Phal Juice",
+   "handle": "lakshman-phal",
+   "variants": [
+    {
+     "title": "500ml",
+     "price": 1090.0,
+     "available": false
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/WhatsApp_Image_2024-09-24_at_11.20.47_PM.jpg?v=1727416947"
+  },
+  {
+   "title": "A2 Desi Cow Cultured Ghee",
+   "handle": "a2-desi-cow-ghee",
+   "variants": [
+    {
+     "title": "250ml",
+     "price": 975.0,
+     "available": true
+    },
+    {
+     "title": "500ml",
+     "price": 1799.0,
+     "available": true
+    },
+    {
+     "title": "1000ml",
+     "price": 3499.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/Ghee_productcard.png?v=1788597282"
+  },
+  {
+   "title": "Unprocessed Natural Turmeric",
+   "handle": "natural-turmeric",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 279.0,
+     "available": true
+    },
+    {
+     "title": "500g",
+     "price": 449.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/Adityark_a_bag_of_a_tan_colored_product_filled_with_turmeric_ki_30bdb482-db0c-4404-8b6c-cb59bec40502.png?v=1685016262"
+  },
+  {
+   "title": "Farm Fresh Raw Natural Honey",
+   "handle": "natural-honey",
+   "variants": [
+    {
+     "title": "500gms",
+     "price": 499.0,
+     "available": true
+    },
+    {
+     "title": "1kg",
+     "price": 949.0,
+     "available": true
+    }
+   ],
+   "image": "https://cdn.shopify.com/s/files/1/0748/0089/0143/files/ChatGPT_Image_Jul_30_2026_04_37_50_PM.png?v=1785409736"
+  }
+ ]
+}

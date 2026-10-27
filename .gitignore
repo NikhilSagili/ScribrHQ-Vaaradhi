@@ -1,2 +1,5 @@
 _*.png
 .DS_Store
+# Local-only meeting copy with Vaaradhi brand assets. Never commit.
+meeting-copy/
+__pycache__/

@@ -1,0 +1,149 @@
+{
+ "note": "Shopify matches for curated products. Reference only; never shown to customers.",
+ "capturedOn": "2026-10-28",
+ "matches": {
+  "white-sesame-oil-500-ml": {
+   "shopifyTitle": "Cold Pressed White Sesame Oil",
+   "handle": "cold-pressed-white-sesame-oil",
+   "variants": [
+    {
+     "title": "500ml",
+     "price": 505.0,
+     "available": true
+    }
+   ]
+  },
+  "pure-coconut-oil-500-ml": {
+   "shopifyTitle": "Pure Coconut Oil",
+   "handle": "coconut-oil",
+   "variants": [
+    {
+     "title": "500ml",
+     "price": 560.0,
+     "available": true
+    }
+   ]
+  },
+  "black-sesame-oil-500-ml": {
+   "shopifyTitle": "Cold Pressed Black Sesame Oil",
+   "handle": "cold-pressed-black-sesame-oil",
+   "variants": [
+    {
+     "title": "500ml",
+     "price": 355.0,
+     "available": true
+    }
+   ]
+  },
+  "mustard-oil-500-ml": {
+   "shopifyTitle": "Mustard Oil",
+   "handle": "mustard-oil",
+   "variants": [
+    {
+     "title": "500ml",
+     "price": 410.0,
+     "available": true
+    }
+   ]
+  },
+  "arikelu-1-kg": {
+   "shopifyTitle": "Ariselu",
+   "handle": "ariselu",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 279.0,
+     "available": false
+    }
+   ]
+  },
+  "desi-khand-sugar-1-kg": {
+   "shopifyTitle": "Desi Khand Sugar",
+   "handle": "desi-khand-sugar",
+   "variants": [
+    {
+     "title": "1kg",
+     "price": 319.0,
+     "available": false
+    }
+   ]
+  },
+  "mango-pickle-300-g": {
+   "shopifyTitle": "Mango pickle",
+   "handle": "mango-pickle",
+   "variants": [
+    {
+     "title": "300g",
+     "price": 320.0,
+     "available": true
+    }
+   ]
+  },
+  "gongura-pickle-300-g": {
+   "shopifyTitle": "Gongura pickle",
+   "handle": "gongura-pickle",
+   "variants": [
+    {
+     "title": "300g",
+     "price": 359.0,
+     "available": true
+    }
+   ]
+  },
+  "chia-seeds-250-g": {
+   "shopifyTitle": "Chia Seeds",
+   "handle": "chia-seeds",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 289.0,
+     "available": true
+    }
+   ]
+  },
+  "ribbon-pakoda-200-g": {
+   "shopifyTitle": "Ribbon Pakoda",
+   "handle": "ribbon-pakoda",
+   "variants": [
+    {
+     "title": "200g",
+     "price": 249.0,
+     "available": true
+    }
+   ]
+  },
+  "korra-murukulu-250-g": {
+   "shopifyTitle": "Korra Murukulu",
+   "handle": "korra-murukulu",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 259.0,
+     "available": true
+    }
+   ]
+  },
+  "ragi-laddu-250-g": {
+   "shopifyTitle": "Ragi Laddu",
+   "handle": "ragi-laddu",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 289.0,
+     "available": true
+    }
+   ]
+  },
+  "nuvvula-undalu-250-g": {
+   "shopifyTitle": "Nuvvu Undalu",
+   "handle": "nuvvu-undalu",
+   "variants": [
+    {
+     "title": "250g",
+     "price": 269.0,
+     "available": true
+    }
+   ]
+  }
+ }
+}

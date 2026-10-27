@@ -1,22 +1,14 @@
 /* =====================================================================
-   EDIT THIS: Vaaradhi's menu. Swap names, units, prices and photos.
-   Photos live in /img. pos = which part of the photo to keep in view.
+   Product data lives in data/catalogue.js (EkSecond displayed prices, verified
+   2026-10-28) and meal-plan concepts in data/plans.js. Edit those files, not this one.
    ===================================================================== */
-const PRODUCTS = [
-  {id:'pongal',   name:'Millet Pongal Box',      cat:'Breakfast',       unit:'1 box · serves 1', price:120, img:'img/pongal.jpg'},
-  {id:'batter',   name:'Ragi Dosa Batter',       cat:'Breakfast',       unit:'1 kg',             price:110, img:'img/batter.jpg'},
-  {id:'bowl',     name:'Sprouts & Fruit Bowl',   cat:'Breakfast',       unit:'350 g',            price:99,  img:'img/bowl.jpg'},
-  {id:'juice',    name:'Cold-pressed ABC Juice', cat:'Breakfast',       unit:'300 ml',           price:89,  img:'img/juice.jpg'},
-  {id:'fruitbox', name:'Seasonal Fruit Box',     cat:'Fruits',          unit:'1 kg mixed',       price:180, img:'img/fruitbox.jpg'},
-  {id:'banana',   name:'Organic Bananas',        cat:'Fruits',          unit:'6 pcs',            price:60,  img:'img/banana.jpg'},
-  {id:'vegbasket',name:'Daily Veg Basket',       cat:'Vegetables',      unit:'1 kg mixed',       price:140, img:'img/vegbasket.jpg'},
-  {id:'greens',   name:'Leafy Greens Bundle',    cat:'Vegetables',      unit:'3 bunches',        price:45,  img:'img/greens.jpg'},
-  {id:'milk',     name:'A2 Cow Milk',            cat:'Dairy & Staples', unit:'500 ml',           price:55,  img:'img/milk.jpg', pos:'22% center'},
-  {id:'curd',     name:'Farm Curd',              cat:'Dairy & Staples', unit:'500 g',            price:70,  img:'img/curd.jpg'},
-  {id:'eggs',     name:'Country Eggs',           cat:'Dairy & Staples', unit:'6 pcs',            price:90,  img:'img/eggs.jpg'},
-];
-const CATS = ['All','Breakfast','Fruits','Vegetables','Dairy & Staples'];
-const CAT_IMG = {Breakfast:'pongal', Fruits:'fruitbox', Vegetables:'vegbasket', 'Dairy & Staples':'eggs'};
+const CFG = window.DEMO_CONFIG || {assetMode:'placeholder', brandAssets:{}};
+const BRAND = CFG.assetMode === 'brand';
+const CAT_LIST = window.CATALOGUE.categories.filter(c => window.CATALOGUE.products.some(p => p.category === c.id));
+const CATMAP = Object.fromEntries(CAT_LIST.map(c => [c.id, c]));
+const PRODUCTS = window.CATALOGUE.products.map(p => ({...p, cat: CATMAP[p.category].name, unit: p.variant || 'Pack size not listed'}));
+const CATS = ['All', ...CAT_LIST.map(c => c.name)];
+const CAT_SHORT = Object.fromEntries(CAT_LIST.map(c => [c.name, c.shortName]));
 const CUSTOMERS = [
   ['me','Ananya Rao','Manikonda'],['c1','Rahul Kumar','Gachibowli'],['c2','Sneha Reddy','Kondapur'],['c3','Farhan Ali','Tolichowki'],
   ['c4','Priya Sharma','Narsingi'],['c5','Vikram Goud','Puppalaguda'],['c6','Meera Iyer','Financial District'],['c7','Arjun Varma','Kokapet'],
@@ -27,8 +19,11 @@ const CUSTOMERS = [
   ['c24','Naveen Chandra','Narsingi'],
 ].map(([id,name,area])=>({id,name,area}));
 const AREAS = ['Manikonda','Puppalaguda','Narsingi','Kokapet','Financial District','Gachibowli','Kondapur','Madhapur','Tolichowki','Jubilee Hills'];
-const FREQ = {daily:'Daily', alternate:'Alternate days', weekdays:'Mon – Fri', weekends:'Sat & Sun'};
-const PERMONTH = {daily:30, alternate:15, weekdays:22, weekends:8};
+const FREQ = {daily:'Daily', alternate:'Alternate days', weekdays:'Mon – Fri', weekends:'Sat & Sun', weekly:'Weekly', fortnightly:'Every 2 weeks', monthly:'Monthly'};
+const PERMONTH = {daily:30, alternate:15, weekdays:22, weekends:8, weekly:4, fortnightly:2, monthly:1};
+/* The schedule engine currently handles these. Weekly, fortnightly and monthly are modelled in the catalogue and arrive with the grocery-subscription work. */
+const ENGINE_FREQS = ['daily','alternate','weekdays','weekends'];
+const subFreqs = p => p && p.subscription && p.subscription.eligible ? p.subscription.frequencies.filter(f => ENGINE_FREQS.includes(f)) : [];
 const CUTOFF = '9:00 PM';
 const AV_COLORS = ['#E7F6EC|#0B5A2D','#EAF1FF|#2563EB','#FFF5D1|#7A5B00','#FDE8EA|#B4232F','#F1EAFE|#6D28D9','#E6F7F7|#0E7490'];
 
@@ -54,7 +49,7 @@ const initials = id => C[id].name.split(' ').map(w => w[0]).join('').slice(0,2);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ---------- state ---------- */
-const KEY = 'vaaradhi-demo-v3';
+const KEY = 'vaaradhi-demo-v4';
 let S;
 const ui = {view:'customer', cTab:'shop', cCat:'All', q:'', mTab:'orders', sheet:null, cToast:null, mToast:null, demoOpen:false,
             confirmCancel:null, prevPrep:null, prevKpi:null, flash:{}, shownToast:{}};
@@ -66,18 +61,18 @@ function seed(){
     const sub = {id:'s'+(n++), cust, prod, freq, qty, start:iso(addD(startOff)), pausedFrom:null, cancelledFrom:null, isNew:false};
     subs.push(sub); return sub;
   };
-  add('me','milk','daily',1,-21); add('me','pongal','daily',1,-21); add('me','greens','alternate',1,-11);
-  const seedFreqs = ['daily','daily','daily','alternate','weekends','weekdays'];
+  add('me','desi-eggs-6-pcs','daily',1,-21); add('me','potato-500-g','alternate',1,-11); add('me','onion-1-kg','alternate',1,-11);
+  const SEEDABLE = PRODUCTS.filter(p => subFreqs(p).length);
   CUSTOMERS.slice(1).forEach(c => {
     const k = 1 + Math.floor(r()*3), picks = new Set();
-    while (picks.size < k) picks.add(PRODUCTS[Math.floor(r()*PRODUCTS.length)].id);
-    picks.forEach(pid => add(c.id, pid, seedFreqs[Math.floor(r()*seedFreqs.length)], (pid==='milk' && r() > .4) ? 2 : 1, -2 - Math.floor(r()*20)));
+    while (picks.size < k) picks.add(SEEDABLE[Math.floor(r()*SEEDABLE.length)].id);
+    picks.forEach(pid => { const fs = subFreqs(P[pid]); add(c.id, pid, fs[Math.floor(r()*fs.length)], (pid==='desi-eggs-6-pcs' && r() > .4) ? 2 : 1, -2 - Math.floor(r()*20)); });
   });
-  const rahul = add('c1','milk','daily',2,1); rahul.isNew = true;
+  const rahul = add('c1','desi-eggs-6-pcs','daily',2,1); rahul.isNew = true;
   const harshaSub = subs.find(x => x.cust === 'c18'); harshaSub.pausedFrom = iso(addD(-2));
 
   const st = {day:TDY, phase:'open', subs, vac:{c2:{from:TDY, to:iso(addD(3))}, c6:{from:TMR, to:iso(addD(7))}},
-    ovr:{}, extras:[{id:1, cust:'c3', prod:'eggs', qty:1}, {id:2, cust:'c12', prod:'fruitbox', qty:1}],
+    ovr:{}, extras:[{id:1, cust:'c3', prod:'desi-eggs-6-pcs', qty:1}, {id:2, cust:'c12', prod:'apple-500-g', qty:1}],
     done:{}, meSettled:false, orders:[], cart:[], oseq:1043, snapshot:null, ledger:[], seq:0, feed:[], unread:0, simStart:Date.now(), lockedAt:null};
   S = st;
   const led = (date, text, amt, kind) => st.ledger.push({date, text, amt, kind, seq:st.seq++});
@@ -87,18 +82,18 @@ function seed(){
     subs.filter(x => x.cust === 'me' && delivers(x, day)).forEach(x => led(day, 'Delivered · ' + P[x.prod].name + ' × ' + x.qty, -x.qty*P[x.prod].price, 'out'));
   }
   st.feed = [
-    {t:'7:31 PM', kind:'new',   text:`Rahul K. subscribed to A2 Cow Milk × 2 · Daily · starts ${fmtD(TMR)}`},
-    {t:'6:52 PM', kind:'add',   text:'Pooja A. added Seasonal Fruit Box × 1 for tomorrow'},
+    {t:'7:31 PM', kind:'new',   text:`Rahul K. subscribed to Desi Eggs × 2 · Daily · starts ${fmtD(TMR)}`},
+    {t:'6:52 PM', kind:'add',   text:'Pooja A. added Apple × 1 for tomorrow'},
     {t:'5:40 PM', kind:'pause', text:`Meera I. is away ${fmtS(TMR)} – ${fmtS(iso(addD(7)))}. Deliveries paused, no charge.`},
-    {t:'4:12 PM', kind:'add',   text:'Farhan A. added Country Eggs × 1 for tomorrow'},
+    {t:'4:12 PM', kind:'add',   text:'Farhan A. added Desi Eggs × 1 for tomorrow'},
     {t:'Yesterday', kind:'pause', text:`Harsha V. paused ${P[harshaSub.prod].name}`},
   ];
   const mk = (id, cust, items, status, t) => st.orders.push({id, cust, items, amt:orderAmt(items), status, t});
-  mk(1038,'c8', [{prod:'fruitbox',qty:1},{prod:'curd',qty:1}], 'delivered', '11:20 AM');
-  mk(1039,'c11',[{prod:'vegbasket',qty:1},{prod:'greens',qty:2}], 'delivered', '1:05 PM');
-  mk(1040,'c10',[{prod:'bowl',qty:2},{prod:'juice',qty:2}], 'out', '7:05 PM');
-  mk(1041,'c9', [{prod:'batter',qty:1},{prod:'eggs',qty:1}], 'packed', '7:20 PM');
-  mk(1042,'c19',[{prod:'pongal',qty:2},{prod:'juice',qty:1}], 'placed', '7:38 PM');
+  mk(1038,'c8', [{prod:'mango-pickle-300-g',qty:1},{prod:'white-poha-500-g',qty:1}], 'delivered', '11:20 AM');
+  mk(1039,'c11',[{prod:'sunflower-oil-1-litre',qty:1},{prod:'wheat-flour-1-kg',qty:1}], 'delivered', '1:05 PM');
+  mk(1040,'c10',[{prod:'ragi-laddu-250-g',qty:2},{prod:'dates-250-g',qty:1}], 'out', '7:05 PM');
+  mk(1041,'c9', [{prod:'ragi-idli-rava-500-g',qty:1},{prod:'desi-eggs-6-pcs',qty:1}], 'packed', '7:20 PM');
+  mk(1042,'c19',[{prod:'white-sesame-oil-500-ml',qty:1},{prod:'jowar-flakes-150-g',qty:2}], 'placed', '7:38 PM');
   const k = st.orders[4];
   st.feed.unshift({t:'7:38 PM', kind:'order', text:`New order #1042 from Kavya M. · ${itemsText(k.items)} · ${rs(k.amt)} · Madhapur`});
   return st;
@@ -210,7 +205,14 @@ const I = {
 const icon = (k, sz = 0) => `<svg ${sz ? `width="${sz}" height="${sz}"` : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
 const FEED_IC = {order:'bag', new:'repeat', add:'plus', pause:'plane', skip:'x', cancel:'x', lock:'lock', resume:'check'};
 const nav = (tabs, cur, act, badges = {}) => `<nav class="nav">${tabs.map(([k,label,ic]) => `<button class="${cur===k?'on':''}" data-a="${act}" data-v="${k}">${icon(ic)}${label}${badges[k] ? `<i class="nb">${badges[k]}</i>` : ''}</button>`).join('')}</nav>`;
-const thumb = (p, sz = '') => `<span class="th ${sz}"><img src="${p.img}" alt="" style="object-position:${p.pos || 'center'}"></span>`;
+/* Product visual: Vaaradhi's photo in the local meeting copy (assetMode 'brand'), otherwise a neutral tile. */
+function brandSrc(p){ const m = BRAND && CFG.brandAssets && CFG.brandAssets.productImages; return m && m[p.id] ? CFG.brandAssets.productImageDir + m[p.id] : null; }
+const initialsOf = name => name.replace(/\(.*?\)/g, '').split(/\s+/).filter(Boolean).slice(0,2).map(w => w[0]).join('').toUpperCase();
+function visual(p){ const src = brandSrc(p); return src ? `<img src="${src}" alt="" loading="lazy">` : `<span class="ph" style="--c:${CATMAP[p.category].color}" aria-hidden="true"><b>${initialsOf(p.name)}</b></span>`; }
+function catVisual(name){ const c = CAT_LIST.find(x => x.name === name), p = BRAND && PRODUCTS.find(x => x.category === c.id && brandSrc(x));
+  return p ? `<img src="${brandSrc(p)}" alt="">` : `<span class="ph" style="--c:${c.color}" aria-hidden="true"><b>${c.shortName[0]}</b></span>`; }
+const thumb = (p, sz = '') => `<span class="th ${sz}">${visual(p)}</span>`;
+const demoTag = () => '<span class="demo" title="Simulated for this demo. No real money moves.">Demo</span>';
 const qbtn = (a, id, q, lt) => `<div class="qbtn ${lt ? 'lt' : ''}"><button data-a="${a}" data-v="${id}|-1" aria-label="Less">−</button><b>${q}</b><button data-a="${a}" data-v="${id}|1" aria-label="More">+</button></div>`;
 function avatar(id){ const [bg, fg] = AV_COLORS[CUSTOMERS.findIndex(c => c.id === id) % AV_COLORS.length].split('|'); return `<span class="av" style="background:${bg};color:${fg}">${initials(id)}</span>`; }
 function toastHTML(t, which){
@@ -228,16 +230,16 @@ function card(p, mine){
   const add = !nowOpen() ? `<button class="addbtn" disabled>ADD</button>`
     : q ? qbtn('cq', p.id, q) : `<button class="addbtn" data-a="cq" data-v="${p.id}|1">ADD</button>`;
   return `<div class="pc">
-    <button class="pc-img" data-a="buy-open" data-v="${p.id}|now" aria-label="${p.name}"><img src="${p.img}" alt="" loading="lazy" style="object-position:${p.pos || 'center'}">${mine ? `<span class="pc-tag">${FREQ[mine.freq]} plan</span>` : ''}</button>
+    <button class="pc-img" data-a="buy-open" data-v="${p.id}|now" aria-label="${p.name}">${visual(p)}${mine ? `<span class="pc-tag">${FREQ[mine.freq]} plan</span>` : ''}</button>
     <span class="pc-eta">${icon('clock', 11)}${nowOpen() ? '45 MINS' : 'OPENS 7 AM'}</span>
     <div class="pc-name">${p.name}</div><div class="pc-unit">${p.unit}</div>
     <div class="pc-row"><b>${rs(p.price)}</b>${add}</div>
-    <button class="pc-sub" data-a="buy-open" data-v="${p.id}|sub">${icon('repeat', 12)}Subscribe daily</button></div>`;
+    ${subFreqs(p).length ? `<button class="pc-sub" data-a="buy-open" data-v="${p.id}|sub">${icon('repeat', 12)}Subscribe</button>` : '<span class="pc-sub off">One-time purchase</span>'}</div>`;
 }
 function heroBanner(){
   const pill = S.phase === 'open' ? `Plan tomorrow · ${leftText()}` : S.phase === 'locked' ? 'Tomorrow is locked · packing' : 'Delivered at 7:12 AM';
-  return `<button class="hb" data-a="ctab" data-v="tmr"><img src="img/banner.jpg" alt=""><div class="hb-in"><span class="hb-pill">${pill}</span>
-    <b>Fresh breakfast at your door by 6:30 AM</b><span>Subscribe once. Skip or pause anytime.</span><i>See tomorrow's basket ›</i></div></button>`;
+  return `<button class="hb" data-a="ctab" data-v="tmr"><div class="hb-in"><span class="hb-pill">${pill}</span>
+    <b>Your regular basket, on a schedule</b><span>Set it once. Skip or pause anytime.</span><i>See tomorrow's basket ›</i></div></button>`;
 }
 function shopBody(){
   const mine = {}; S.subs.forEach(s => { if (s.cust === 'me' && !s.cancelledFrom) mine[s.prod] = s; });
@@ -253,7 +255,7 @@ function shopBody(){
       <div class="rail">${PRODUCTS.filter(p => p.cat === c).map(p => card(p, mine[p.id])).join('')}</div>`).join('');
   }
   return `${q ? '' : heroBanner()}
-    <div class="cats">${CATS.map(c => `<button class="cat ${ui.cCat === c && !q ? 'on' : ''}" data-a="cat" data-v="${c}"><span class="cat-i">${c === 'All' ? '<b>All</b>' : `<img src="${P[CAT_IMG[c]].img}" alt="" style="object-position:${P[CAT_IMG[c]].pos || 'center'}">`}</span>${c === 'Dairy & Staples' ? 'Dairy' : c}</button>`).join('')}</div>
+    <div class="cats">${CATS.map(c => `<button class="cat ${ui.cCat === c && !q ? 'on' : ''}" data-a="cat" data-v="${c}"><span class="cat-i">${c === 'All' ? '<b>All</b>' : catVisual(c)}</span>${c === 'All' ? 'All' : CAT_SHORT[c]}</button>`).join('')}</div>
     ${list}<div style="height:${S.cart.length ? 90 : 20}px"></div>`;
 }
 function ordersBody(){
@@ -319,10 +321,10 @@ function walletBody(){
     if (l.date !== last){ last = l.date; html += `<div class="ld">${l.date === TDY ? 'Today' : l.date === iso(addD(-1)) ? 'Yesterday' : fmtD(l.date)}</div>`; }
     html += `<div class="lg"><span>${l.text}</span><span class="amt ${l.kind}">${sgn(l.amt)}</span></div>`;
   });
-  return `<div class="wc"><small>Vaaradhi wallet balance</small><b>${rs(balance())}</b>
+  return `<div class="wc"><small>Vaaradhi wallet balance ${demoTag()}</small><b>${rs(balance())}</b>
       <div class="wc-row"><span>${S.phase === 'delivered' ? 'Charged this morning' : 'Tomorrow\'s charge'}</span><span>${rs(charge)}</span></div></div>
     <div class="topups">${[500,1000,2000].map(a => `<button data-a="topup" data-v="${a}">+ ${rs(a)}</button>`).join('')}</div>
-    <div class="note">You're charged only on days something is delivered. Paused or skipped days cost ₹0. Your balance is held by Vaaradhi Farms and can only be used there.</div>
+    <div class="note">Demo only: balances and top-ups are simulated and no real payment happens. In the proposed setup, customers are charged only on days something is delivered, paused or skipped days cost ₹0, and the balance is held by Vaaradhi Farms.</div>
     <div class="sh">History</div>
     <div class="box">${html}</div>
     <div class="spacer"></div>`;
@@ -332,7 +334,7 @@ function sheetHTML(){
   let inner = '', foot = '';
   if (sh.type === 'buy'){
     const p = P[sh.prod], q = sh.qty;
-    const modes = [['now','Now', nowOpen() ? '45 – 60 min' : 'Closed now'], ['tmr','Tomorrow','6:30 – 8 AM'], ['sub','Subscribe','Repeat it']];
+    const modes = [['now','Now', nowOpen() ? '45 – 60 min' : 'Closed now'], ['tmr','Tomorrow','6:30 – 8 AM'], ['sub','Subscribe','Repeat it']].filter(m => m[0] !== 'sub' || subFreqs(p).length);
     let body = '';
     if (sh.mode === 'now'){
       body = `<div class="fld r"><label>QUANTITY</label>${qbtn('s-qty','q',q)}</div>
@@ -344,14 +346,14 @@ function sheetHTML(){
       foot = `<button class="cta" data-a="add-go" ${S.phase !== 'open' ? 'disabled' : ''}><span>${rs(p.price*q)}<small>FOR TOMORROW</small></span><span>Add to tomorrow ›</span></button>`;
     } else {
       const starts = S.phase === 'open' ? [[TMR,'Tomorrow'],[DAT,fmtD(DAT)]] : [[DAT,fmtD(DAT)],[iso(addD(3)),fmtD(iso(addD(3)))]];
-      body = `<div class="fld"><label>HOW OFTEN</label><div class="opts">${Object.keys(FREQ).map(f => `<button class="${sh.freq === f ? 'on' : ''}" data-a="s-freq" data-v="${f}">${FREQ[f]}</button>`).join('')}</div></div>
+      body = `<div class="fld"><label>HOW OFTEN</label><div class="opts">${subFreqs(p).map(f => `<button class="${sh.freq === f ? 'on' : ''}" data-a="s-freq" data-v="${f}">${FREQ[f]}</button>`).join('')}</div></div>
         <div class="fld r"><label>QUANTITY</label>${qbtn('s-qty','q',q)}</div>
         <div class="fld"><label>START</label><div class="opts">${starts.map(([d,l]) => `<button class="${sh.start === d ? 'on' : ''}" data-a="s-start" data-v="${d}">${l}</button>`).join('')}</div></div>
         <div class="sumg"><div><span>Each delivery</span><b>${rs(p.price*q)}</b></div><div><span>About a month</span><b>${rs(p.price*q*PERMONTH[sh.freq])}</b></div></div>
         <div class="info">${icon('repeat', 16)}Delivered 6:30 – 8:00 AM. Skip or pause before ${CUTOFF} the night before. Pay only for days delivered.</div>`;
       foot = `<button class="cta c" data-a="sub-go">Start subscription</button>`;
     }
-    inner = `<div class="ps-img"><img src="${p.img}" alt="" style="object-position:${p.pos || 'center'}"><button class="x" data-a="close" aria-label="Close">×</button></div>
+    inner = `<div class="ps-img">${visual(p)}<button class="x" data-a="close" aria-label="Close">×</button></div>
       <div class="ps-b"><div><div class="ps-name">${p.name}</div><div class="ps-meta"><span>${p.unit}</span><b>${rs(p.price)}</b></div></div>
       <div class="modes">${modes.map(([k,l,sub]) => `<button class="${sh.mode === k ? 'on' : ''}" data-a="mode" data-v="${k}"><b>${l}</b><small>${sub}</small></button>`).join('')}</div>
       ${body}</div>`;
@@ -361,7 +363,7 @@ function sheetHTML(){
       <div class="info">${icon('clock', 16)}Delivery in 45 – 60 min · Home, Manikonda</div>
       <div class="box">${S.cart.map(c => { const p = P[c.prod]; return `<div class="row">${thumb(p)}<div class="t"><b>${p.name}</b><small>${p.unit}</small></div><div class="rt">${qbtn('c-qty', c.prod, c.qty, true)}<b>${rs(p.price*c.qty)}</b></div></div>`; }).join('')}</div>
       <div class="box bill"><div><span>Item total</span><span>${rs(total)}</span></div><div><span>Delivery fee</span><span class="free">FREE</span></div><div class="bt"><span>To pay</span><span>${rs(total)}</span></div></div>
-      <div class="info">${icon('wallet', 16)}Paying from Vaaradhi wallet · balance ${rs(bal)}${bal < total ? ' · we\'ll top up by UPI' : ''}</div>
+      <div class="info">${icon('wallet', 16)}Paying from Vaaradhi wallet · balance ${rs(bal)}${bal < total ? ' · simulated UPI top-up' : ''} ${demoTag()}</div>
       <p class="fine" style="margin-top:0">You can cancel until Vaaradhi accepts your order.</p></div>`;
     foot = `<button class="cta" data-a="place" ${nowOpen() && S.cart.length ? '' : 'disabled'}><span>${rs(total)}<small>TOTAL</small></span><span>Place order ›</span></button>`;
   } else if (sh.type === 'vac'){
@@ -383,11 +385,11 @@ function custHTML(){
   const head = t === 'shop'
     ? `<div class="ch"><div class="ch-top"><div><div class="ch-eta">${nowOpen() ? 'Delivery in <em>45 min</em>' : 'Closed · opens <em>7 AM</em>'}</div>
         <div class="ch-addr">${icon('pin', 13)}Home · Manikonda, Hyderabad${icon('down', 13)}</div></div><div class="ch-av">AR</div></div>
-        <label class="search">${icon('search', 18)}<input id="q" type="search" placeholder="Search pongal, milk, fruit…" value="${esc(ui.q)}" autocomplete="off" aria-label="Search products"></label></div>`
+        <label class="search">${icon('search', 18)}<input id="q" type="search" placeholder="Search oils, millets, dals…" value="${esc(ui.q)}" autocomplete="off" aria-label="Search products"></label></div>`
     : `<div class="ct"><h2>${{orders:'Your orders', tmr:'Plans & tomorrow', wallet:'Wallet'}[t]}</h2><p>${{orders:'Same-day orders, tracked live', tmr:'Your morning deliveries from Vaaradhi', wallet:'Prepaid balance with Vaaradhi Farms'}[t]}</p></div>`;
   const body = t === 'shop' ? shopBody() : t === 'orders' ? ordersBody() : t === 'tmr' ? tomorrowBody() : walletBody();
   const n = S.cart.reduce((a,c) => a + c.qty, 0);
-  const cart = t === 'shop' && n ? `<button class="cartbar" data-a="cart-open"><span class="cb-th">${S.cart.slice(0,3).map(c => `<img src="${P[c.prod].img}" alt="">`).join('')}</span>
+  const cart = t === 'shop' && n ? `<button class="cartbar" data-a="cart-open"><span class="cb-th">${S.cart.slice(0,3).map(c => `<span class="cbv">${visual(P[c.prod])}</span>`).join('')}</span>
       <span class="cb-t"><b>View cart</b><small>${n} item${n > 1 ? 's' : ''} · ${rs(orderAmt(S.cart))}</small></span><span class="cb-go">›</span></button>` : '';
   return `<div class="body" data-scroll="c-${t}">${head}${body}</div>${cart}
     ${nav([['shop','Home','home'],['orders','Orders','bag'],['tmr','Plans','sun'],['wallet','Wallet','wallet']], t, 'ctab', {orders:S.orders.filter(o => o.cust === 'me' && isLive(o)).length})}
@@ -485,12 +487,12 @@ function mEarnings(){
   setl += ln('Today\'s one-time orders', 'Settling to your account', instAmt);
   setl += ln('Today\'s subscription deliveries', 'Settling to your account', dayRevenue(TDY).amt);
   for (let k = 1; k <= 5; k++){ const d = iso(addD(-k)); setl += ln(fmtD(d) + ' deliveries', 'Settled to your account', dayRevenue(d).amt, 'in'); }
-  return `<div class="mcard"><small>App orders in ${monthName}</small><div class="big" style="font-size:34px;margin-bottom:4px">${rs(mtd + collected + instAmt)}</div>
+  return `<div class="mcard"><small>App orders in ${monthName} ${demoTag()}</small><div class="big" style="font-size:34px;margin-bottom:4px">${rs(mtd + collected + instAmt)}</div>
       <small>${n + st.filter(s => S.done[s.cust]).length} subscription deliveries and ${inst.length} one-time orders</small></div>
     <div class="stats" style="grid-template-columns:1fr 1fr"><div class="stat"><span>Aggregator commission</span><b>₹0</b></div><div class="stat"><span>${S.phase === 'delivered' ? 'Collected today' : 'Tomorrow, expected'}</span><b>${rs(S.phase === 'delivered' ? collected : expected)}</b></div></div>
-    <div class="sh">Collections · paid into your account</div>
+    <div class="sh">Collections · demo data</div>
     <div class="box">${setl}</div>
-    <p class="fine">Customers pay into Vaaradhi's own payment account (for example Razorpay), and the money settles to your bank on your provider's schedule. Scribr keeps the records and never holds your money. Standard payment gateway fees apply. There's no aggregator commission.</p>
+    <p class="fine">All figures on this screen are simulated sample data. No payment integration is connected. In the proposed setup, payments would settle to Vaaradhi's own payment-provider account, and Scribr would keep the records without holding funds.</p>
     <div class="spacer"></div>`;
 }
 function merchHTML(){
@@ -499,7 +501,7 @@ function merchHTML(){
   const pill = S.phase === 'open' ? ['Open',''] : S.phase === 'locked' ? ['Locked','lk'] : ['Run done','dn'];
   const t = ui.mTab;
   const body = t === 'orders' ? mOrders() : t === 'today' ? mToday() : t === 'run' ? mRun() : t === 'cust' ? mCustomers() : mEarnings();
-  return `<div class="mh"><span class="lg2">VF</span><div class="nm"><b>Vaaradhi Farms</b><small>Manikonda store · ${clock()}</small></div><span class="st-pill ${pill[1]}"><i></i>${pill[0]}</span></div>
+  return `<div class="mh">${BRAND && CFG.brandAssets.logo ? `<span class="lg2 img"><img src="${CFG.brandAssets.logo}" alt="Vaaradhi Farms"></span>` : '<span class="lg2">VF</span>'}<div class="nm"><b>Vaaradhi Farms</b><small>Manikonda store · ${clock()}</small></div><span class="st-pill ${pill[1]}"><i></i>${pill[0]}</span></div>
     <div class="body mbody" data-scroll="m-${t}">${body}</div>
     ${nav([['orders','Orders','bag'],['today','Tomorrow','list'],['run','Run','truck'],['cust','Customers','people'],['earn','Earnings','chart']], t, 'mtab', {orders:S.orders.filter(o => o.status === 'placed').length})}
     ${toastHTML(ui.mToast,'m')}`;
@@ -611,7 +613,7 @@ const A = {
     const s = S.subs.find(x => x.id === v); s.cancelledFrom = editFrom(); ui.confirmCancel = null;
     notify(`Ananya R. cancelled ${P[s.prod].name} from ${fmtD(s.cancelledFrom)}`, 'cancel'); toastC('Plan cancelled.');
   },
-  'buy-open'(v){ const [prod, mode] = v.split('|'); ui.sheet = {type:'buy', prod, mode, qty:1, freq:'daily', start:editFrom()}; },
+  'buy-open'(v){ const [prod, mode] = v.split('|'), fs = subFreqs(P[prod]); ui.sheet = {type:'buy', prod, mode: mode === 'sub' && !fs.length ? 'now' : mode, qty:1, freq: fs[0] || 'daily', start:editFrom()}; },
   mode(v){ ui.sheet.mode = v; },
   'cart-add'(){
     if (!nowOpen()) return;
@@ -675,6 +677,7 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('input', e => { if (e.target.id === 'q'){ ui.q = e.target.value; render(); } });
 
+if (BRAND && CFG.brandAssets.logo){ const l = document.querySelector('.wm .logo'); l.classList.add('img'); l.innerHTML = `<img src="${CFG.brandAssets.logo}" alt="Vaaradhi Farms">`; }
 S = load() || seed();
 render();
 setInterval(() => { if (S.phase !== 'delivered') render(); }, 30000);
