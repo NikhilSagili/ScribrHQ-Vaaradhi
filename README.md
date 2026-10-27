@@ -8,13 +8,14 @@ A clickable pitch demo for Vaaradhi Farms (Manikonda, Hyderabad). It has two con
   - iPhone: open in Safari, tap Share, then **Add to Home Screen**.
   - Android: open in Chrome, tap the ⋮ menu, then **Install app** or **Add to Home screen**.
 
-## Demo script (about 3 minutes)
-1. **Home → tap ADD on a couple of items → View cart → Place order.** A new order pops up on Vaaradhi's Orders tab. Tap **Accept → Mark packed → Send out → Mark delivered** and watch the customer's tracker follow along.
-2. **Plans tab → "Going out of town?" → 1 week.** Vaaradhi gets an alert, the prep sheet and revenue drop, and the wallet shows ₹0 for those days.
-3. **Home → tap any product photo → Tomorrow → Add to tomorrow.** It appears on Vaaradhi's prep sheet for the morning.
-4. **Home → Subscribe daily (under any product) → Start subscription.** It shows up in Vaaradhi's customers and tomorrow's list.
-5. **Demo → Skip to 9:01 PM.** Customer edits lock, same-day ordering closes for the night, and Vaaradhi's list is ready to pack.
-6. **Demo → Run morning deliveries,** or mark stops on the Run tab. The wallet is charged only for what was delivered, and Earnings shows collections settling to Vaaradhi's own payment account.
+## Demo script (about 5 minutes)
+1. **Home.** "Healthy habits, made easier." with three entry points: Healthy Meal Plans, Shop Groceries and Order Again.
+2. **Shop Groceries.** Search ("oil"), tap a category chip, or use "Can subscribe". Tap a photo for product details. Tap ADD on a few items, then **View cart → Place order**. On the Vaaradhi side, **Accept → Mark packed → Send out → Mark delivered** while the customer's tracker follows along.
+3. **Save and reorder.** In the cart, **Save** the basket. Then **Orders → Saved baskets → Add all to cart**, or **Reorder** a previous order.
+4. **Subscriptions.** Tap **Subscribe** on eggs, a vegetable or fruit. On **Schedule**, skip tomorrow, change a quantity, or go on vacation. Vaaradhi's Tomorrow tab updates live.
+5. **Healthy Meal Plans** (concept). Four plan ideas, all marked "Menu and pricing to be confirmed". Tap "I'm interested" and Vaaradhi's feed records it.
+6. **Cutoff.** Use **Demo → Skip past 9 PM**, then try to skip tomorrow on Schedule. The app explains that tomorrow is being prepared and offers to skip the next eligible date instead.
+7. **Demo → Run morning deliveries.** Charges appear in the wallet (simulated).
 
 Use **Demo → Reset demo** before each pitch. State is saved in the browser and resets on its own each new day.
 
@@ -36,6 +37,8 @@ Use **Demo → Reset demo** before each pitch. State is saved in the browser and
 ## Editing
 - **Products, prices, eligibility:** edit `CURATED`, `ELIGIBILITY` and `NOT_ELIGIBLE_ITEMS` in `tools/build_catalogue.py`, then run `python tools/build_catalogue.py`. Or edit `data/catalogue.js` directly.
 - **Breakfast plans:** edit `data/plans.js` after the owner confirms menu, prices and capacity.
+- **Subscription cutoff (provisional):** `subscriptionCutoff` in `data/config.js` (24-hour local time, Asia/Kolkata assumed). Every label in the app follows it.
+- **Home "Everyday essentials" row:** `homeEssentials` in `data/config.js`. This is a presentation choice, not a sales ranking.
 - **Brand assets:** the public demo uses neutral tiles. For the meeting, run `python tools/make_meeting_copy.py` and open `meeting-copy/index.html`.
 
 ## Tests

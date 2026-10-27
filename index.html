@@ -28,11 +28,11 @@
     <button data-a="view" data-v="how" id="vHow">How it works</button>
   </div>
   <div class="script" aria-label="Demo script">
-    <span><i>1</i>Order now</span><span><i>2</i>Pause for a trip</span><span><i>3</i>Add for tomorrow</span><span><i>4</i>Subscribe</span><span><i>5</i>Lock at 9 PM</span><span><i>6</i>Run deliveries</span>
+    <span><i>1</i>Order now</span><span><i>2</i>Pause for a trip</span><span><i>3</i>Add for tomorrow</span><span><i>4</i>Subscribe</span><span><i>5</i>Lock at <b class="cutoff-label">9 PM</b></span><span><i>6</i>Run deliveries</span>
   </div>
   <button class="dbtn demo-toggle" data-a="demo">Demo ▾</button>
   <div class="demo-btns" id="demoBtns">
-    <button class="dbtn hot" data-a="lock" id="bLock">Skip to 9:01 PM</button>
+    <button class="dbtn hot" data-a="lock" id="bLock">Skip past <span class="cutoff-label">9 PM</span></button>
     <button class="dbtn" data-a="morning" id="bMorn">Run morning deliveries</button>
     <button class="dbtn" data-a="reset">Reset demo</button>
   </div>
@@ -51,20 +51,20 @@
 
 <section class="how" id="how">
   <h2>How a day works</h2>
-  <p class="sub">Customers order for right now during the day, and plan tomorrow's basket by 9 PM. Vaaradhi gets every order in one place, packs only what was ordered, and gets paid for what was delivered.</p>
+  <p class="sub">Customers order for right now during the day, and plan tomorrow's basket by the evening cutoff. Vaaradhi gets every order in one place, packs only what was ordered, and gets paid for what was delivered.</p>
   <ol class="steps">
-    <li><time>7:00 AM – 9:00 PM</time><b>Order now</b><p>Customers order for right now and pay from their wallet. Vaaradhi accepts, packs and delivers the same day, and the customer can follow each step.</p></li>
-    <li><time>Anytime till 9:00 PM</time><b>Plan tomorrow</b><p>Subscribe, add extras for tomorrow, skip a day or pause for a trip, all from the app.</p></li>
-    <li><time>9:00 PM</time><b>Tomorrow's list locks</b><p>Vaaradhi gets the prep sheet: exact items and quantities, so nothing is made that won't be bought.</p></li>
-    <li><time>5:00 AM</time><b>Pack by area</b><p>Stops come grouped by area, from Manikonda to Gachibowli and Kondapur, so the run is planned already.</p></li>
-    <li><time>6:30 – 8:00 AM</time><b>Deliver</b><p>Each stop is marked delivered. Customers who paused are left off the list automatically.</p></li>
+    <li><time>During the day</time><b>Order now</b><p>Customers order for right now and pay from their wallet. Vaaradhi accepts, packs and delivers the same day, and the customer can follow each step.</p></li>
+    <li><time>Until <span class="cutoff-label">9 PM</span></time><b>Plan tomorrow</b><p>Subscribe, add extras for tomorrow, skip a day or pause for a trip, all from the app.</p></li>
+    <li><time><span class="cutoff-label">9 PM</span> cutoff</time><b>Tomorrow's list locks</b><p>Vaaradhi gets the prep sheet: exact items and quantities, so nothing is made that won't be bought.</p></li>
+    <li><time>Before delivery</time><b>Pack by area</b><p>Stops come grouped by area, from Manikonda to Gachibowli and Kondapur, so the run is planned already.</p></li>
+    <li><time>Delivery</time><b>Deliver</b><p>Each stop is marked delivered. Customers who paused are left off the list automatically.</p></li>
     <li><time>After delivery</time><b>Billing runs itself</b><p>Customers pay from a prepaid balance held by Vaaradhi, only for what arrived. Every payment goes straight into Vaaradhi's own payment account.</p></li>
   </ol>
   <div class="cols">
     <div class="col"><h3>For Vaaradhi</h3><ul>
       <li>Your own app with your name on it</li>
       <li>One-time and recurring orders in one view, alongside your existing ordering channels</li>
-      <li>Know tomorrow's demand by 9 PM tonight, so there's less waste</li>
+      <li>Know tomorrow's demand at the cutoff, so there's less waste</li>
       <li>Customer changes (skips, pauses, extras) visible before preparation</li>
       <li>Proposed: payments settle to your own payment account. Not connected in this demo.</li>
     </ul></div>

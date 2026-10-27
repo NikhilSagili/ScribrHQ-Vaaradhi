@@ -24,7 +24,10 @@ const PERMONTH = {daily:30, alternate:15, weekdays:22, weekends:8, weekly:4, for
 /* The schedule engine currently handles these. Weekly, fortnightly and monthly are modelled in the catalogue and arrive with the grocery-subscription work. */
 const ENGINE_FREQS = ['daily','alternate','weekdays','weekends'];
 const subFreqs = p => p && p.subscription && p.subscription.eligible ? p.subscription.frequencies.filter(f => ENGINE_FREQS.includes(f)) : [];
-const CUTOFF = '9:00 PM';
+/* PROVISIONAL cutoff from data/config.js (local time, Asia/Kolkata assumed). */
+const CUT_MIN = (() => { const [h, m] = String(CFG.subscriptionCutoff || '21:00').split(':').map(Number); return h*60 + (m || 0); })();
+const fmtMin = (m, full) => { let h = Math.floor(m/60) % 24; const mm = m % 60, ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return h + (mm || full ? ':' + String(mm).padStart(2,'0') : '') + ' ' + ap; };
+const CUTOFF = fmtMin(CUT_MIN);
 const AV_COLORS = ['#E7F6EC|#0B5A2D','#EAF1FF|#2563EB','#FFF5D1|#7A5B00','#FDE8EA|#B4232F','#F1EAFE|#6D28D9','#E6F7F7|#0E7490'];
 
 /* ---------- dates ---------- */
@@ -49,9 +52,9 @@ const initials = id => C[id].name.split(' ').map(w => w[0]).join('').slice(0,2);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ---------- state ---------- */
-const KEY = 'vaaradhi-demo-v4';
+const KEY = 'vaaradhi-demo-v5';
 let S;
-const ui = {view:'customer', cTab:'shop', cCat:'All', q:'', mTab:'orders', sheet:null, cToast:null, mToast:null, demoOpen:false,
+const ui = {view:'customer', cTab:'home', cCat:'All', q:'', subOnly:false, bname:null, confirmDel:null, mTab:'orders', sheet:null, cToast:null, mToast:null, demoOpen:false,
             confirmCancel:null, prevPrep:null, prevKpi:null, flash:{}, shownToast:{}};
 
 function seed(){
@@ -73,10 +76,10 @@ function seed(){
 
   const st = {day:TDY, phase:'open', subs, vac:{c2:{from:TDY, to:iso(addD(3))}, c6:{from:TMR, to:iso(addD(7))}},
     ovr:{}, extras:[{id:1, cust:'c3', prod:'desi-eggs-6-pcs', qty:1}, {id:2, cust:'c12', prod:'apple-500-g', qty:1}],
-    done:{}, meSettled:false, orders:[], cart:[], oseq:1043, snapshot:null, ledger:[], seq:0, feed:[], unread:0, simStart:Date.now(), lockedAt:null};
+    done:{}, meSettled:false, orders:[], cart:[], baskets:[], interest:{}, oseq:1043, snapshot:null, ledger:[], seq:0, feed:[], unread:0, simStart:Date.now(), lockedAt:null};
   S = st;
   const led = (date, text, amt, kind) => st.ledger.push({date, text, amt, kind, seq:st.seq++});
-  led(iso(addD(-6)), 'Added to wallet via UPI', 3000, 'in');
+  led(iso(addD(-6)), 'Added to wallet via UPI', 5000, 'in');
   for (let d = -5; d <= 0; d++) {
     const day = iso(addD(d));
     subs.filter(x => x.cust === 'me' && delivers(x, day)).forEach(x => led(day, 'Delivered · ' + P[x.prod].name + ' × ' + x.qty, -x.qty*P[x.prod].price, 'out'));
@@ -88,13 +91,18 @@ function seed(){
     {t:'4:12 PM', kind:'add',   text:'Farhan A. added Desi Eggs × 1 for tomorrow'},
     {t:'Yesterday', kind:'pause', text:`Harsha V. paused ${P[harshaSub.prod].name}`},
   ];
-  const mk = (id, cust, items, status, t) => st.orders.push({id, cust, items, amt:orderAmt(items), status, t});
+  const mk = (id, cust, items, status, t, date = TDY) => st.orders.push({id, cust, items, amt:orderAmt(items), status, t, date});
+  // The demo customer's earlier orders, for Order Again.
+  mk(1017,'me',[{prod:'white-sesame-oil-500-ml',qty:1},{prod:'jowar-flakes-150-g',qty:1},{prod:'dates-250-g',qty:1}], 'delivered', '6:40 PM', iso(addD(-9)));
+  mk(1024,'me',[{prod:'desi-eggs-6-pcs',qty:2},{prod:'onion-1-kg',qty:1},{prod:'ragi-idli-rava-500-g',qty:1}], 'delivered', '10:15 AM', iso(addD(-3)));
+  st.orders.filter(o => o.cust === 'me').forEach(o => led(o.date, `Order #${o.id} · ${itemsText(o.items)}`, -o.amt, 'out'));
+  st.baskets.push({id:'b1', name:'Monthly staples', items:[{prod:'sunflower-oil-1-litre',qty:1},{prod:'sona-masuri-rice-1-kg',qty:2},{prod:'minapappu-500-g',qty:1},{prod:'wheat-flour-1-kg',qty:2}]});
   mk(1038,'c8', [{prod:'mango-pickle-300-g',qty:1},{prod:'white-poha-500-g',qty:1}], 'delivered', '11:20 AM');
   mk(1039,'c11',[{prod:'sunflower-oil-1-litre',qty:1},{prod:'wheat-flour-1-kg',qty:1}], 'delivered', '1:05 PM');
   mk(1040,'c10',[{prod:'ragi-laddu-250-g',qty:2},{prod:'dates-250-g',qty:1}], 'out', '7:05 PM');
   mk(1041,'c9', [{prod:'ragi-idli-rava-500-g',qty:1},{prod:'desi-eggs-6-pcs',qty:1}], 'packed', '7:20 PM');
   mk(1042,'c19',[{prod:'white-sesame-oil-500-ml',qty:1},{prod:'jowar-flakes-150-g',qty:2}], 'placed', '7:38 PM');
-  const k = st.orders[4];
+  const k = st.orders.find(o => o.id === 1042);
   st.feed.unshift({t:'7:38 PM', kind:'order', text:`New order #1042 from Kavya M. · ${itemsText(k.items)} · ${rs(k.amt)} · Madhapur`});
   return st;
 }
@@ -117,14 +125,14 @@ function pausedOn(s, d){
   return !!(v && d >= v.from && (!v.to || d <= v.to));
 }
 function firstDelivery(s){ for (let i = 0; i < 14; i++){ const d = plus(s.start, i); if (delivers(s, d)) return d; } return s.start; }
-const editFrom = () => S.phase === 'open' ? TMR : DAT;   // the 9 PM rule
+const editFrom = () => S.phase === 'open' ? TMR : DAT;   // the cutoff rule
 
 function computeLines(){
   const out = [];
   for (const s of S.subs){
     if (!delivers(s, TMR)) continue;
     const o = S.ovr[s.id] || {}, qty = o.qty || s.qty;
-    const status = pausedOn(s, TMR) ? 'paused' : o.skip ? 'skipped' : 'ok';
+    const status = pausedOn(s, TMR) ? 'paused' : (o.skip || (s.skips || []).includes(TMR)) ? 'skipped' : 'ok';
     out.push({cust:s.cust, prod:s.prod, qty, subId:s.id, amt:qty*P[s.prod].price, status, kind:'plan', freq:s.freq});
   }
   S.extras.forEach(x => out.push({cust:x.cust, prod:x.prod, qty:x.qty, xid:x.id, amt:x.qty*P[x.prod].price, status:'ok', kind:'extra'}));
@@ -146,7 +154,7 @@ const FLOW = ['placed','accepted','packed','out','delivered'];
 const OLBL = {placed:'New', accepted:'Accepted', packed:'Packed', out:'Out for delivery', delivered:'Delivered', cancelled:'Cancelled'};
 const NEXT = {placed:'Accept order', accepted:'Mark packed', packed:'Send out', out:'Mark delivered'};
 const CTITLE = {placed:'Waiting for Vaaradhi to accept', accepted:'Order accepted', packed:'Packed and ready', out:'On the way to you', delivered:'Delivered'};
-const CTXT = {accepted:'Vaaradhi accepted your order and is packing it.', packed:'Your order is packed and waiting for the rider.', out:'Your order is on the way. About 20 min.', delivered:'Your order was delivered. Enjoy!'};
+const CTXT = {accepted:'Vaaradhi accepted your order and is packing it.', packed:'Your order is packed and waiting for the rider.', out:'Your order is on the way.', delivered:'Your order was delivered. Enjoy!'};
 const orderAmt = items => items.reduce((a, i) => a + i.qty*P[i.prod].price, 0);
 const itemsText = items => items.map(i => P[i.prod].name + ' × ' + i.qty).join(', ');
 const isLive = o => o.status !== 'delivered' && o.status !== 'cancelled';
@@ -155,16 +163,15 @@ const cartQty = id => (S.cart.find(c => c.prod === id) || {}).qty || 0;
 
 /* ---------- sim clock ---------- */
 function simMin(){
-  if (S.phase === 'locked') return 21*60 + 1 + Math.floor((Date.now() - S.lockedAt) / 60000);
+  if (S.phase === 'locked') return CUT_MIN + 1 + Math.floor((Date.now() - S.lockedAt) / 60000);
   if (S.phase === 'delivered') return null;
-  return Math.min(20*60 + 58, 19*60 + 42 + Math.floor((Date.now() - S.simStart) / 60000));
+  return Math.min(CUT_MIN - 2, CUT_MIN - 78 + Math.floor((Date.now() - S.simStart) / 60000));
 }
 function clock(){
   const m = simMin(); if (m == null) return '8:04 AM';
-  let h = Math.floor(m/60) % 24; const mm = m % 60, ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
-  return h + ':' + String(mm).padStart(2,'0') + ' ' + ap;
+  return fmtMin(m, true);
 }
-function leftText(){ const l = 21*60 - simMin(), h = Math.floor(l/60), mm = l % 60; return (h ? h + 'h ' : '') + mm + 'm left'; }
+function leftText(){ const l = CUT_MIN - simMin(), h = Math.floor(l/60), mm = l % 60; return (h ? h + 'h ' : '') + mm + 'm left'; }
 
 /* ---------- notifications ---------- */
 let mTimer, cTimer;
@@ -201,6 +208,8 @@ const I = {
   check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   x:'<path d="M6 6l12 12M18 6L6 18"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
+  bowl:'<path d="M3.5 11h17a8.5 8.5 0 0 1-17 0z"/><path d="M8 7.5c0-1.3 1-1.7 1-3M12 7.5c0-1.3 1-1.7 1-3M16 7.5c0-1.3 1-1.7 1-3"/>',
+  back:'<path d="M15 5l-7 7 7 7"/>',
 };
 const icon = (k, sz = 0) => `<svg ${sz ? `width="${sz}" height="${sz}"` : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
 const FEED_IC = {order:'bag', new:'repeat', add:'plus', pause:'plane', skip:'x', cancel:'x', lock:'lock', resume:'check'};
@@ -225,69 +234,102 @@ function toastHTML(t, which){
 /* =====================================================================
    CUSTOMER APP
    ===================================================================== */
+const ESSENTIALS = (CFG.homeEssentials || []).filter(id => P[id]);
+const mySubs = () => { const m = {}; S.subs.forEach(s => { if (s.cust === 'me' && !s.cancelledFrom) m[s.prod] = s; }); return m; };
+const dayLabel = d => d === TDY ? 'Today' : d === iso(addD(-1)) ? 'Yesterday' : fmtD(d);
 function card(p, mine){
   const q = cartQty(p.id);
-  const add = !nowOpen() ? `<button class="addbtn" disabled>ADD</button>`
-    : q ? qbtn('cq', p.id, q) : `<button class="addbtn" data-a="cq" data-v="${p.id}|1">ADD</button>`;
+  const add = !nowOpen() ? `<button class="addbtn" disabled title="Same-day ordering is closed for tonight">ADD</button>`
+    : q ? qbtn('cq', p.id, q) : `<button class="addbtn" data-a="cq" data-v="${p.id}|1" aria-label="Add ${esc(p.name)} to cart">ADD</button>`;
   return `<div class="pc">
-    <button class="pc-img" data-a="buy-open" data-v="${p.id}|now" aria-label="${p.name}">${visual(p)}${mine ? `<span class="pc-tag">${FREQ[mine.freq]} plan</span>` : ''}</button>
-    <span class="pc-eta">${icon('clock', 11)}${nowOpen() ? '45 MINS' : 'OPENS 7 AM'}</span>
+    <button class="pc-img" data-a="buy-open" data-v="${p.id}|now" aria-label="${esc(p.name)}, details">${visual(p)}${mine ? `<span class="pc-tag">${FREQ[mine.freq]} plan</span>` : ''}</button>
     <div class="pc-name">${p.name}</div><div class="pc-unit">${p.unit}</div>
     <div class="pc-row"><b>${rs(p.price)}</b>${add}</div>
     ${subFreqs(p).length ? `<button class="pc-sub" data-a="buy-open" data-v="${p.id}|sub">${icon('repeat', 12)}Subscribe</button>` : '<span class="pc-sub off">One-time purchase</span>'}</div>`;
 }
-function heroBanner(){
-  const pill = S.phase === 'open' ? `Plan tomorrow · ${leftText()}` : S.phase === 'locked' ? 'Tomorrow is locked · packing' : 'Delivered at 7:12 AM';
-  return `<button class="hb" data-a="ctab" data-v="tmr"><div class="hb-in"><span class="hb-pill">${pill}</span>
-    <b>Your regular basket, on a schedule</b><span>Set it once. Skip or pause anytime.</span><i>See tomorrow's basket ›</i></div></button>`;
+function homeBody(){
+  const my = lines().filter(l => l.cust === 'me'), okn = my.filter(l => l.status === 'ok'), mine = mySubs();
+  const past = S.orders.filter(o => o.cust === 'me' && o.status === 'delivered');
+  const again = S.baskets.length ? `${S.baskets.length} saved basket${S.baskets.length > 1 ? 's' : ''}` : past.length ? 'Reorder a past order' : 'Your past orders';
+  const tmr = my.length ? `<button class="tstrip" data-a="ctab" data-v="sched"><span class="ts-i">${icon('sun', 18)}</span>
+      <span class="ts-t"><b>Tomorrow · ${okn.length} item${okn.length === 1 ? '' : 's'} · ${rs(okn.reduce((a,l) => a + l.amt, 0))}</b>
+      <small>${S.phase === 'open' ? `Change or skip until ${CUTOFF}` : S.phase === 'locked' ? 'Being prepared' : 'Delivered'}</small></span><span class="ts-go">›</span></button>` : '';
+  return `<section class="hero2"><h1>Healthy habits, made easier.</h1><p>Shop everyday essentials, keep a regular basket, or explore a breakfast routine.</p></section>
+    <div class="entries">
+      <button class="entry e-meals" data-a="ctab" data-v="meals"><span class="ei">${icon('bowl', 22)}</span><span class="et"><b>Healthy Meal Plans</b><small>Preview a regular breakfast routine</small></span><span class="etag">Concept</span></button>
+      <button class="entry e-shop" data-a="ctab" data-v="shop"><span class="ei">${icon('bag', 22)}</span><span class="et"><b>Shop Groceries</b><small>${PRODUCTS.length} essentials · same-day</small></span></button>
+      <button class="entry e-again" data-a="ctab" data-v="orders"><span class="ei">${icon('repeat', 22)}</span><span class="et"><b>Order Again</b><small>${again}</small></span></button>
+    </div>
+    ${tmr}
+    <div class="sec-h"><h3>Everyday essentials</h3><button data-a="ctab" data-v="shop">See all ›</button></div>
+    <div class="rail">${ESSENTIALS.map(id => card(P[id], mine[id])).join('')}</div>
+    <div class="sec-h"><h3>Shop by category</h3></div>
+    <div class="catgrid">${CAT_LIST.map(c => `<button class="cg" data-a="cat" data-v="${esc(c.name)}"><span class="cg-i">${catVisual(c.name)}</span><span>${c.shortName}</span></button>`).join('')}</div>
+    <div style="height:${S.cart.length ? 96 : 24}px"></div>`;
+}
+function shopHead(){
+  return `<div class="sh-head"><div class="ct2"><h2>Shop groceries</h2>${nowOpen() ? `<span class="sdd">${icon('truck', 13)}Same-day delivery</span>` : `<span class="sdd off">${icon('lock', 13)}Closed tonight</span>`}</div>
+    <label class="search">${icon('search', 18)}<input id="q" type="search" placeholder="Search oils, millets, dals…" value="${esc(ui.q)}" autocomplete="off" aria-label="Search products"></label>
+    <div class="chips" role="toolbar" aria-label="Categories">${CATS.map(c => `<button class="cchip ${ui.cCat === c ? 'on' : ''}" data-a="cat" data-v="${esc(c)}" aria-pressed="${ui.cCat === c}">${c === 'All' ? 'All' : CAT_SHORT[c]}</button>`).join('')}</div>
+    <div class="filters"><button class="fchip ${ui.subOnly ? 'on' : ''}" data-a="sub-only" aria-pressed="${ui.subOnly}">${icon('repeat', 12)}Can subscribe</button></div></div>`;
 }
 function shopBody(){
-  const mine = {}; S.subs.forEach(s => { if (s.cust === 'me' && !s.cancelledFrom) mine[s.prod] = s; });
-  const q = ui.q.trim().toLowerCase();
-  let list;
-  if (q){
-    const hits = PRODUCTS.filter(p => p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q));
-    list = `<div class="sec-h"><h3>Results for “${esc(ui.q.trim())}”</h3></div><div class="grid">${hits.map(p => card(p, mine[p.id])).join('') || '<div class="empty">Nothing matches that yet.</div>'}</div>`;
-  } else if (ui.cCat !== 'All'){
-    list = `<div class="sec-h"><h3>${ui.cCat}</h3><button data-a="cat" data-v="All">Show all</button></div><div class="grid">${PRODUCTS.filter(p => p.cat === ui.cCat).map(p => card(p, mine[p.id])).join('')}</div>`;
-  } else {
-    list = CATS.slice(1).map(c => `<div class="sec-h"><h3>${c}</h3><button data-a="cat" data-v="${c}">See all ›</button></div>
-      <div class="rail">${PRODUCTS.filter(p => p.cat === c).map(p => card(p, mine[p.id])).join('')}</div>`).join('');
-  }
-  return `${q ? '' : heroBanner()}
-    <div class="cats">${CATS.map(c => `<button class="cat ${ui.cCat === c && !q ? 'on' : ''}" data-a="cat" data-v="${c}"><span class="cat-i">${c === 'All' ? '<b>All</b>' : catVisual(c)}</span>${c === 'All' ? 'All' : CAT_SHORT[c]}</button>`).join('')}</div>
-    ${list}<div style="height:${S.cart.length ? 90 : 20}px"></div>`;
+  const mine = mySubs(), q = ui.q.trim().toLowerCase();
+  const list = PRODUCTS.filter(p => (!q || p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q))
+    && (ui.cCat === 'All' || p.cat === ui.cCat) && (!ui.subOnly || subFreqs(p).length));
+  const count = `<div class="rcount">${list.length} product${list.length === 1 ? '' : 's'}${ui.cCat !== 'All' ? ' in ' + ui.cCat : ''}${q ? ` for “${esc(ui.q.trim())}”` : ''}</div>`;
+  let grid;
+  if (!list.length) grid = `<div class="empty"><b>No products found</b><span>Try another word or clear the filters.</span><button class="lnk" data-a="clear-filters">Clear search and filters</button></div>`;
+  else if (ui.cCat === 'All' && !q) grid = CAT_LIST.map(c => { const ps = list.filter(p => p.category === c.id); return ps.length ? `<div class="gh">${c.name}</div><div class="grid">${ps.map(p => card(p, mine[p.id])).join('')}</div>` : ''; }).join('');
+  else grid = `<div class="grid">${list.map(p => card(p, mine[p.id])).join('')}</div>`;
+  return `${count}${grid}<div style="height:${S.cart.length ? 96 : 24}px"></div>`;
 }
 function ordersBody(){
   const mine = S.orders.filter(o => o.cust === 'me').sort((a,b) => b.id - a.id);
-  const active = mine.filter(isLive), past = mine.filter(o => !isLive(o));
+  const active = mine.filter(isLive), past = mine.filter(o => o.status === 'delivered');
   const track = o => { const i = FLOW.indexOf(o.status); return `<div class="tk">
-      <div class="tk-top"><div><small>Order #${o.id} · ${o.t}</small><b>${CTITLE[o.status]}</b></div><span class="eta">${o.status === 'placed' ? 'Just now' : o.status === 'out' ? '~20 min' : '45 – 60 min'}</span></div>
+      <div class="tk-top"><div><small>Order #${o.id} · ${o.t}</small><b>${CTITLE[o.status]}</b></div><span class="eta">${o.status === 'placed' ? 'Awaiting' : o.status === 'out' ? 'On the way' : 'Today'}</span></div>
       <div class="tk-bar">${FLOW.map((_,k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div>
       <div class="tk-steps">${['Placed','Accepted','Packed','On the way','Delivered'].map((l,k) => `<span class="${k <= i ? 'on' : ''}">${l}</span>`).join('')}</div>
-      <div class="tk-items">${o.items.map(it => `<span class="tk-it">${thumb(P[it.prod],'sm')}${P[it.prod].name.split(' ').slice(-2).join(' ')} × ${it.qty}</span>`).join('')}</div>
-      <div class="tk-foot"><span>${rs(o.amt)} · paid from wallet</span>${o.status === 'placed' ? `<button class="lnk red" data-a="o-cancel" data-v="${o.id}">Cancel order</button>` : ''}</div></div>`; };
+      <div class="tk-items">${o.items.map(it => `<span class="tk-it">${thumb(P[it.prod],'sm')}${P[it.prod].name} × ${it.qty}</span>`).join('')}</div>
+      <div class="tk-foot"><span>${rs(o.amt)} · paid from wallet ${demoTag()}</span>${o.status === 'placed' ? `<button class="lnk red" data-a="o-cancel" data-v="${o.id}">Cancel order</button>` : ''}</div></div>`; };
+  const baskets = S.baskets.map(b => { const total = orderAmt(b.items), n = b.items.reduce((a,i) => a + i.qty, 0);
+    return `<div class="bk"><div class="bk-top"><div><b>${esc(b.name)}</b><small>${n} item${n > 1 ? 's' : ''} · ${rs(total)}</small></div>
+      <button class="lnk red" data-a="del-basket" data-v="${b.id}">${ui.confirmDel === b.id ? 'Tap to delete' : 'Delete'}</button></div>
+      <div class="bk-th">${b.items.slice(0,5).map(i => thumb(P[i.prod],'sm')).join('')}${b.items.length > 5 ? `<span class="more">+${b.items.length - 5}</span>` : ''}</div>
+      <div class="bk-items">${b.items.map(i => `${P[i.prod].name} × ${i.qty}`).join(' · ')}</div>
+      <button class="btn2 pri" data-a="basket-cart" data-v="${b.id}" ${nowOpen() ? '' : 'disabled'}>${icon('repeat', 15)}Add all to cart</button></div>`; }).join('');
   return `${active.length ? '<div class="sh" style="padding-top:4px">On the way</div>' + active.map(track).join('')
-      : `<div class="note" style="margin-top:4px">No orders on the way. ${nowOpen() ? 'Tap <b>ADD</b> on anything in Home to get it in 45 minutes.' : 'Same-day delivery opens again at 7:00 AM.'}</div>`}
-    ${past.length ? '<div class="sh">Earlier today</div><div class="box">' + past.map(o => `<div class="row">${thumb(P[o.items[0].prod])}<div class="t"><b>#${o.id} · ${o.items.length} item${o.items.length > 1 ? 's' : ''}</b><small>${o.t} · ${OLBL[o.status]}</small></div><b>${rs(o.amt)}</b></div>`).join('') + '</div>' : ''}
+      : `<div class="note" style="margin-top:4px">${nowOpen() ? 'No orders on the way. Tap <b>ADD</b> on anything in Shop for same-day delivery.' : 'Same-day ordering is closed for tonight.'}</div>`}
+    <div class="sh">Saved baskets</div>
+    ${baskets || '<div class="note" style="margin-top:0">Save a basket from your cart, then reorder it here in one tap.</div>'}
+    <div class="sh">Previous orders</div>
+    ${past.length ? '<div class="box">' + past.map(o => `<div class="row">${thumb(P[o.items[0].prod])}<div class="t"><b>#${o.id} · ${o.items.length} item${o.items.length > 1 ? 's' : ''} · ${rs(o.amt)}</b><small>${dayLabel(o.date)} · ${o.items.map(i => P[i.prod].name).join(', ')}</small></div>
+      <div class="rt"><button class="sbtn2" data-a="reorder" data-v="${o.id}" ${nowOpen() ? '' : 'disabled'}>Reorder</button></div></div>`).join('') + '</div>'
+      : '<div class="note" style="margin-top:0">Delivered orders will show here for one-tap reordering.</div>'}
+    ${nowOpen() ? '' : '<p class="fine">Reordering opens again tomorrow, when same-day ordering reopens.</p>'}
     <div class="spacer"></div>`;
 }
 function vacRangeText(v){ return v.to ? `${fmtS(v.from)} – ${fmtS(v.to)}` : `from ${fmtS(v.from)} until you resume`; }
+function nextEligible(s){
+  for (let i = 0; i < 31; i++){ const d = plus(DAT, i); if (delivers(s, d) && !pausedOn(s, d) && !(s.skips || []).includes(d)) return d; }
+  return null;
+}
 function tomorrowBody(){
-  const open = S.phase === 'open', my = lines().filter(l => l.cust === 'me'), delivered = S.phase === 'delivered';
+  const open = S.phase === 'open', delivered = S.phase === 'delivered', my = lines().filter(l => l.cust === 'me');
   const rows = my.map(l => {
     const p = P[l.prod], off = l.status !== 'ok';
     const sub = l.kind === 'extra' ? '<span class="chip b">Just tomorrow</span>' : FREQ[l.freq];
     let right;
     if (off) right = `<div class="rt"><span class="chip y">${l.status === 'paused' ? 'Paused' : 'Skipped'} · ₹0</span>${open && l.status === 'skipped' ? `<button class="lnk" data-a="t-skip" data-v="${l.subId}">Undo</button>` : ''}</div>`;
-    else if (open) right = `<div class="rt">${qbtn(l.kind === 'extra' ? 'x-qty' : 't-qty', l.kind === 'extra' ? l.xid : l.subId, l.qty, true)}${l.kind === 'extra' ? `<button class="lnk red" data-a="x-del" data-v="${l.xid}">Remove</button>` : `<button class="lnk" data-a="t-skip" data-v="${l.subId}">Skip</button>`}</div>`;
-    else right = `<div class="rt"><b>${rs(l.amt)}</b>${delivered ? '<span class="chip g">Delivered</span>' : `<small style="color:var(--muted);font-weight:600">× ${l.qty}</small>`}</div>`;
-    return `<div class="row ${off ? 'off' : ''}">${thumb(p)}<div class="t"><b>${p.name}</b><small>${sub}${open && !off ? ` · ${rs(l.amt)}` : ''}</small></div>${right}</div>`;
+    else if (!delivered) right = `<div class="rt">${qbtn(l.kind === 'extra' ? 'x-qty' : 't-qty', l.kind === 'extra' ? l.xid : l.subId, l.qty, true)}${l.kind === 'extra' ? `<button class="lnk red" data-a="x-del" data-v="${l.xid}">Remove</button>` : `<button class="lnk" data-a="t-skip" data-v="${l.subId}">Skip</button>`}</div>`;
+    else right = `<div class="rt"><b>${rs(l.amt)}</b><span class="chip g">Delivered</span></div>`;
+    return `<div class="row ${off ? 'off' : ''}">${thumb(p)}<div class="t"><b>${p.name}</b><small>${sub}${!off ? ` · ${rs(l.amt)}` : ''}</small></div>${right}</div>`;
   }).join('') || `<div class="row"><div class="t"><small>Nothing scheduled for tomorrow.</small></div></div>`;
   const charge = my.filter(l => l.status === 'ok').reduce((a,l) => a + l.amt, 0);
   const saved = my.filter(l => l.status !== 'ok').reduce((a,l) => a + l.amt, 0);
   const v = S.vac.me;
-  const cd = open ? `<span class="cd">${leftText()} to edit</span>` : S.phase === 'locked' ? `<span class="cd lk">${icon('lock', 11)} Locked</span>` : '<span class="cd dn">Delivered</span>';
+  const cd = open ? `<span class="cd">Edit until ${CUTOFF}</span>` : S.phase === 'locked' ? `<span class="cd lk">${icon('lock', 11)} Being prepared</span>` : '<span class="cd dn">Delivered</span>';
   const vac = v
     ? `<div class="vac on"><span class="vi">${icon('plane', 20)}</span><div><b>Vacation mode is on</b><small>${vacRangeText(v)}. Vaaradhi has been told and you won't be charged for these days.</small><button class="vb" data-a="vac-end">I'm back, resume</button></div></div>`
     : `<button class="vac" data-a="vac-open"><span class="vi">${icon('plane', 20)}</span><div><b>Going out of town?</b><small>Pause all deliveries for a few days. You pay nothing while you're away.</small></div></button>`;
@@ -298,19 +340,20 @@ function tomorrowBody(){
     else if (s.pausedFrom) st = ['Paused from ' + fmtS(s.pausedFrom), 'y'];
     else if (v && (!v.to || v.to >= TMR)) st = ['Paused for vacation', 'y'];
     else if (s.start > TDY && s.isNew) st = ['Starts ' + fmtS(firstDelivery(s)), 'b'];
+    const skips = (s.skips || []).filter(d => d > TMR && !s.cancelledFrom).map(d => `<span class="chip y" style="margin-top:4px">Skipping ${fmtS(d)}</span>`).join(' ');
     const btns = s.cancelledFrom ? '' :
       `${s.pausedFrom ? `<button class="lnk" data-a="p-resume" data-v="${s.id}">Resume</button>` : `<button class="lnk" data-a="p-pause" data-v="${s.id}">Pause</button>`}
        <button class="lnk red" data-a="p-cancel" data-v="${s.id}">${ui.confirmCancel === s.id ? 'Tap to confirm' : 'Cancel'}</button>`;
-    return `<div class="row">${thumb(p)}<div class="t"><b>${p.name} × ${s.qty}</b><small>${FREQ[s.freq]} · ${rs(s.qty*p.price)} a delivery</small><span class="chip ${st[1]}" style="margin-top:4px">${st[0]}</span></div><div class="rt">${btns}</div></div>`;
+    return `<div class="row">${thumb(p)}<div class="t"><b>${p.name} × ${s.qty}</b><small>${FREQ[s.freq]} · ${rs(s.qty*p.price)} a delivery</small><span class="chip ${st[1]}" style="margin-top:4px">${st[0]}</span> ${skips}</div><div class="rt">${btns}</div></div>`;
   }).join('');
-  return `<div class="tm"><div class="tm-top"><div><small>Tomorrow · ${fmtD(TMR)}</small><b>6:30 – 8:00 AM</b></div>${cd}</div>
+  return `<div class="tm"><div class="tm-top"><div><small>Tomorrow · ${fmtD(TMR)}</small><b>Your next delivery</b></div>${cd}</div>
       <div class="tm-body">${rows}</div>
       <div class="tm-foot"><span>Tomorrow's charge</span><span>${rs(charge)}</span></div></div>
     ${saved ? `<div class="save">${rs(saved)} not charged because of skips or pauses</div>` : ''}
     ${vac}
-    <div class="sh">My plans</div>
-    <div class="box">${plans || '<div class="row"><div class="t"><small>No plans yet.</small></div></div>'}</div>
-    <p class="fine">Change, skip or pause anything until ${CUTOFF} the night before. After that, changes apply from the following day.</p>
+    <div class="sh">Recurring orders</div>
+    <div class="box">${plans || '<div class="row"><div class="t"><small>No recurring orders yet. Tap Subscribe on an eligible product.</small></div></div>'}</div>
+    <p class="fine">Change, skip or pause anything until ${CUTOFF} the day before. After that, changes apply from the next delivery.</p>
     <div class="spacer"></div>`;
 }
 function walletBody(){
@@ -318,7 +361,7 @@ function walletBody(){
   const sorted = [...S.ledger].sort((a,b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : b.seq - a.seq));
   let html = '', last = '';
   sorted.forEach(l => {
-    if (l.date !== last){ last = l.date; html += `<div class="ld">${l.date === TDY ? 'Today' : l.date === iso(addD(-1)) ? 'Yesterday' : fmtD(l.date)}</div>`; }
+    if (l.date !== last){ last = l.date; html += `<div class="ld">${dayLabel(l.date)}</div>`; }
     html += `<div class="lg"><span>${l.text}</span><span class="amt ${l.kind}">${sgn(l.amt)}</span></div>`;
   });
   return `<div class="wc"><small>Vaaradhi wallet balance ${demoTag()}</small><b>${rs(balance())}</b>
@@ -329,20 +372,33 @@ function walletBody(){
     <div class="box">${html}</div>
     <div class="spacer"></div>`;
 }
+function mealsBody(){
+  const MP = window.MEAL_PLANS;
+  const sched = p => p.schedule === 'weekdays' ? 'Weekdays' : p.schedule === 'weekly' ? 'Once a week' : 'You choose the days';
+  const serv = p => p.servingsOptions.length > 1 ? `${p.servingsOptions[0]}–${p.servingsOptions[p.servingsOptions.length - 1]} servings` : `${p.servingsOptions[0]} serving`;
+  return `<div class="mp-intro"><span class="etag">Concept preview</span><p>A regular healthy-breakfast option is being explored with Vaaradhi Farms. Tell us which idea would suit you. ${MP.unconfirmedLabel}.</p></div>
+    ${MP.plans.map(p => { const on = S.interest[p.id]; return `<div class="mp">
+      <div class="mp-top"><span class="ei">${icon('bowl', 20)}</span><div><b>${p.name}</b><small>${p.summary}</small></div></div>
+      <div class="mp-chips"><span class="chip g">${sched(p)}</span><span class="chip b">${serv(p)}</span></div>
+      <div class="mp-tbc">${icon('clock', 14)}${MP.unconfirmedLabel}</div>
+      <button class="btn2 ${on ? 'on' : ''}" data-a="meal-interest" data-v="${p.id}" aria-pressed="${!!on}">${on ? icon('check', 15) + 'Interested' : 'I\'m interested'}</button></div>`; }).join('')}
+    <p class="fine">This is a concept for discussion. Meal plans can't be ordered or paid for in this demo.</p>
+    <div class="spacer"></div>`;
+}
 function sheetHTML(){
   const sh = ui.sheet; if (!sh) return '';
   let inner = '', foot = '';
   if (sh.type === 'buy'){
     const p = P[sh.prod], q = sh.qty;
-    const modes = [['now','Now', nowOpen() ? '45 – 60 min' : 'Closed now'], ['tmr','Tomorrow','6:30 – 8 AM'], ['sub','Subscribe','Repeat it']].filter(m => m[0] !== 'sub' || subFreqs(p).length);
+    const modes = [['now','Today', nowOpen() ? 'Same-day' : 'Closed now'], ['tmr','Tomorrow','Next delivery'], ['sub','Subscribe','Repeat it']].filter(m => m[0] !== 'sub' || subFreqs(p).length);
     let body = '';
     if (sh.mode === 'now'){
       body = `<div class="fld r"><label>QUANTITY</label>${qbtn('s-qty','q',q)}</div>
-        <div class="info">${icon('clock', 16)}${nowOpen() ? 'Arrives today in 45 – 60 min · Home, Manikonda' : 'Same-day delivery opens again at 7:00 AM'}</div>`;
+        <div class="info">${icon('truck', 16)}${nowOpen() ? 'Same-day delivery · Home, Manikonda' : 'Same-day ordering is closed for tonight. It reopens tomorrow.'}</div>`;
       foot = `<button class="cta" data-a="cart-add" ${nowOpen() ? '' : 'disabled'}><span>${rs(p.price*q)}<small>TOTAL</small></span><span>Add to cart ›</span></button>`;
     } else if (sh.mode === 'tmr'){
       body = `<div class="fld r"><label>QUANTITY</label>${qbtn('s-qty','q',q)}</div>
-        <div class="info">${icon('sun', 16)}${S.phase === 'open' ? `Tomorrow, ${fmtD(TMR)}, 6:30 – 8:00 AM with your usual basket` : `Tomorrow's basket is locked. Choose Subscribe to start from ${fmtD(DAT)}.`}</div>`;
+        <div class="info">${icon('sun', 16)}${S.phase === 'open' ? `Added to your delivery on ${fmtD(TMR)}, with your regular basket` : `Changes for ${fmtD(TMR)} closed at ${CUTOFF}. ${subFreqs(p).length ? `Choose Subscribe to start from ${fmtD(DAT)}.` : 'Order it for same-day delivery tomorrow instead.'}`}</div>`;
       foot = `<button class="cta" data-a="add-go" ${S.phase !== 'open' ? 'disabled' : ''}><span>${rs(p.price*q)}<small>FOR TOMORROW</small></span><span>Add to tomorrow ›</span></button>`;
     } else {
       const starts = S.phase === 'open' ? [[TMR,'Tomorrow'],[DAT,fmtD(DAT)]] : [[DAT,fmtD(DAT)],[iso(addD(3)),fmtD(iso(addD(3)))]];
@@ -350,22 +406,32 @@ function sheetHTML(){
         <div class="fld r"><label>QUANTITY</label>${qbtn('s-qty','q',q)}</div>
         <div class="fld"><label>START</label><div class="opts">${starts.map(([d,l]) => `<button class="${sh.start === d ? 'on' : ''}" data-a="s-start" data-v="${d}">${l}</button>`).join('')}</div></div>
         <div class="sumg"><div><span>Each delivery</span><b>${rs(p.price*q)}</b></div><div><span>About a month</span><b>${rs(p.price*q*PERMONTH[sh.freq])}</b></div></div>
-        <div class="info">${icon('repeat', 16)}Delivered 6:30 – 8:00 AM. Skip or pause before ${CUTOFF} the night before. Pay only for days delivered.</div>`;
+        <div class="info">${icon('repeat', 16)}Skip or pause before ${CUTOFF} the day before. Pay only for days delivered.</div>`;
       foot = `<button class="cta c" data-a="sub-go">Start subscription</button>`;
     }
     inner = `<div class="ps-img">${visual(p)}<button class="x" data-a="close" aria-label="Close">×</button></div>
-      <div class="ps-b"><div><div class="ps-name">${p.name}</div><div class="ps-meta"><span>${p.unit}</span><b>${rs(p.price)}</b></div></div>
-      <div class="modes">${modes.map(([k,l,sub]) => `<button class="${sh.mode === k ? 'on' : ''}" data-a="mode" data-v="${k}"><b>${l}</b><small>${sub}</small></button>`).join('')}</div>
+      <div class="ps-b"><div><div class="ps-cat">${p.cat}</div><div class="ps-name">${p.name}</div><div class="ps-meta"><span>${p.unit}${subFreqs(p).length ? '' : ' · one-time purchase'}</span><b>${rs(p.price)}</b></div></div>
+      <div class="modes" role="tablist">${modes.map(([k,l,sub]) => `<button class="${sh.mode === k ? 'on' : ''}" data-a="mode" data-v="${k}" role="tab" aria-selected="${sh.mode === k}"><b>${l}</b><small>${sub}</small></button>`).join('')}</div>
       ${body}</div>`;
   } else if (sh.type === 'cart'){
     const total = orderAmt(S.cart), bal = balance();
+    const def = `My basket ${S.baskets.length + 1}`;
     inner = `<div class="sh-pad"><div class="sh-title">Your cart</div>
-      <div class="info">${icon('clock', 16)}Delivery in 45 – 60 min · Home, Manikonda</div>
-      <div class="box">${S.cart.map(c => { const p = P[c.prod]; return `<div class="row">${thumb(p)}<div class="t"><b>${p.name}</b><small>${p.unit}</small></div><div class="rt">${qbtn('c-qty', c.prod, c.qty, true)}<b>${rs(p.price*c.qty)}</b></div></div>`; }).join('')}</div>
-      <div class="box bill"><div><span>Item total</span><span>${rs(total)}</span></div><div><span>Delivery fee</span><span class="free">FREE</span></div><div class="bt"><span>To pay</span><span>${rs(total)}</span></div></div>
+      <div class="info">${icon('truck', 16)}Same-day delivery · Home, Manikonda</div>
+      <div class="box">${S.cart.map(c => { const p = P[c.prod]; return `<div class="row">${thumb(p)}<div class="t"><b>${p.name}</b><small>${p.unit} · ${rs(p.price)}</small></div><div class="rt">${qbtn('c-qty', c.prod, c.qty, true)}<b>${rs(p.price*c.qty)}</b></div></div>`; }).join('')}</div>
+      <div class="box bill"><div><span>Item total</span><span>${rs(total)}</span></div><div class="bt"><span>To pay</span><span>${rs(total)}</span></div></div>
+      <div class="savebk"><label for="bname">Save this basket to reorder in one tap</label><div class="sb-row"><input id="bname" maxlength="30" value="${esc(ui.bname != null ? ui.bname : def)}" autocomplete="off"><button class="btn2" data-a="save-basket">Save</button></div></div>
       <div class="info">${icon('wallet', 16)}Paying from Vaaradhi wallet · balance ${rs(bal)}${bal < total ? ' · simulated UPI top-up' : ''} ${demoTag()}</div>
       <p class="fine" style="margin-top:0">You can cancel until Vaaradhi accepts your order.</p></div>`;
     foot = `<button class="cta" data-a="place" ${nowOpen() && S.cart.length ? '' : 'disabled'}><span>${rs(total)}<small>TOTAL</small></span><span>Place order ›</span></button>`;
+  } else if (sh.type === 'cutoff'){
+    const s = sh.subId ? S.subs.find(x => x.id === sh.subId) : null, next = s ? nextEligible(s) : null, p = P[sh.prod];
+    inner = `<div class="sh-pad"><div class="sh-title">Tomorrow's delivery is being prepared</div>
+      <div class="info">${icon('lock', 16)}Changes for ${fmtD(TMR)} closed at ${CUTOFF}. ${p.name} will arrive as planned.</div>
+      ${next ? `<div class="info">${icon('sun', 16)}<span>Next delivery you can change: <b>${fmtD(next)}</b></span></div>`
+             : s ? '' : `<div class="info">${icon('bag', 16)}This one-time item is already packed into tomorrow's delivery.</div>`}</div>`;
+    foot = next ? `<div class="two-btn"><button class="btn2" data-a="close">Keep as planned</button><button class="btn2 pri" data-a="skip-date" data-v="${s.id}|${next}">Skip ${fmtS(next)} instead</button></div>`
+                : `<button class="cta c" data-a="close">OK</button>`;
   } else if (sh.type === 'vac'){
     const from = editFrom(), len = sh.len, days = len || 7;
     let n = 0, amt = 0;
@@ -375,24 +441,27 @@ function sheetHTML(){
       <div class="box" style="padding:14px;display:flex;flex-direction:column;gap:12px">
         <div class="fld"><label>PAUSE FOR</label><div class="opts">${[[3,'3 days'],[7,'1 week'],[14,'2 weeks'],[0,'Until I\'m back']].map(([k,l]) => `<button class="${len === k ? 'on' : ''}" data-a="vac-len" data-v="${k}">${l}</button>`).join('')}</div></div>
         <div class="sumg"><div><span>Paused</span><b style="font-size:15px">${to ? fmtS(from) + ' – ' + fmtS(to) : 'From ' + fmtS(from)}</b></div><div><span>${len ? 'Not charged' : 'Saved each week'}</span><b>${rs(amt)}</b></div></div></div>
-      <div class="info">${icon('bell', 16)}${n} deliveries will be skipped. Vaaradhi is told right away, so nothing is packed for you.${S.phase !== 'open' ? ` Tomorrow is already locked, so the pause starts ${fmtD(DAT)}.` : ''}</div></div>`;
+      <div class="info">${icon('bell', 16)}${n} deliveries will be skipped. Vaaradhi is told right away, so nothing is packed for you.${S.phase !== 'open' ? ` Tomorrow is already being prepared, so the pause starts ${fmtD(DAT)}.` : ''}</div></div>`;
     foot = `<button class="cta c" data-a="vac-go">Pause deliveries</button>`;
   }
-  return `<div class="scrim" data-a="close"></div><div class="sheet" role="dialog"><div class="sheet-sc">${inner}</div>${foot ? `<div class="sh-foot">${foot}</div>` : ''}</div>`;
+  return `<div class="scrim" data-a="close"></div><div class="sheet" role="dialog" aria-modal="true"><div class="sheet-sc">${inner}</div>${foot ? `<div class="sh-foot">${foot}</div>` : ''}</div>`;
 }
 function custHTML(){
   const t = ui.cTab;
-  const head = t === 'shop'
-    ? `<div class="ch"><div class="ch-top"><div><div class="ch-eta">${nowOpen() ? 'Delivery in <em>45 min</em>' : 'Closed · opens <em>7 AM</em>'}</div>
-        <div class="ch-addr">${icon('pin', 13)}Home · Manikonda, Hyderabad${icon('down', 13)}</div></div><div class="ch-av">AR</div></div>
-        <label class="search">${icon('search', 18)}<input id="q" type="search" placeholder="Search oils, millets, dals…" value="${esc(ui.q)}" autocomplete="off" aria-label="Search products"></label></div>`
-    : `<div class="ct"><h2>${{orders:'Your orders', tmr:'Plans & tomorrow', wallet:'Wallet'}[t]}</h2><p>${{orders:'Same-day orders, tracked live', tmr:'Your morning deliveries from Vaaradhi', wallet:'Prepaid balance with Vaaradhi Farms'}[t]}</p></div>`;
-  const body = t === 'shop' ? shopBody() : t === 'orders' ? ordersBody() : t === 'tmr' ? tomorrowBody() : walletBody();
+  const logo = BRAND && CFG.brandAssets.logo;
+  let head;
+  if (t === 'home') head = `<div class="hh"><div class="hh-top"><div class="hh-brand">${logo ? `<img class="hh-logo" src="${logo}" alt="Vaaradhi Farms">` : '<b class="hh-name">Vaaradhi Farms</b>'}
+      <span class="ch-addr">${icon('pin', 13)}Home · Manikonda, Hyderabad</span></div><div class="ch-av" aria-label="Ananya Rao">AR</div></div>
+      <button class="search sfake" data-a="go-search">${icon('search', 18)}<span>Search oils, millets, dals…</span></button></div>`;
+  else if (t === 'shop') head = shopHead();
+  else if (t === 'meals') head = `<div class="ct ctb"><button class="back" data-a="ctab" data-v="home" aria-label="Back to Home">${icon('back', 20)}</button><div><h2>Healthy Meal Plans</h2><p>Concept preview · ${window.MEAL_PLANS.unconfirmedLabel.toLowerCase()}</p></div></div>`;
+  else head = `<div class="ct"><h2>${{orders:'Orders', sched:'Your schedule', wallet:'Wallet'}[t]}</h2><p>${{orders:'Track today\'s orders and order again', sched:'Recurring deliveries and tomorrow\'s basket', wallet:'Prepaid balance with Vaaradhi Farms'}[t]}</p></div>`;
+  const body = t === 'home' ? homeBody() : t === 'shop' ? shopBody() : t === 'orders' ? ordersBody() : t === 'sched' ? tomorrowBody() : t === 'meals' ? mealsBody() : walletBody();
   const n = S.cart.reduce((a,c) => a + c.qty, 0);
-  const cart = t === 'shop' && n ? `<button class="cartbar" data-a="cart-open"><span class="cb-th">${S.cart.slice(0,3).map(c => `<span class="cbv">${visual(P[c.prod])}</span>`).join('')}</span>
+  const cart = (t === 'home' || t === 'shop') && n ? `<button class="cartbar" data-a="cart-open"><span class="cb-th">${S.cart.slice(0,3).map(c => `<span class="cbv">${visual(P[c.prod])}</span>`).join('')}</span>
       <span class="cb-t"><b>View cart</b><small>${n} item${n > 1 ? 's' : ''} · ${rs(orderAmt(S.cart))}</small></span><span class="cb-go">›</span></button>` : '';
   return `<div class="body" data-scroll="c-${t}">${head}${body}</div>${cart}
-    ${nav([['shop','Home','home'],['orders','Orders','bag'],['tmr','Plans','sun'],['wallet','Wallet','wallet']], t, 'ctab', {orders:S.orders.filter(o => o.cust === 'me' && isLive(o)).length})}
+    ${nav([['home','Home','home'],['shop','Shop','bag'],['orders','Orders','receipt'],['sched','Schedule','sun'],['wallet','Wallet','wallet']], t === 'meals' ? 'home' : t, 'ctab', {orders:S.orders.filter(o => o.cust === 'me' && isLive(o)).length})}
     ${toastHTML(ui.cToast,'c')}${sheetHTML()}`;
 }
 
@@ -413,7 +482,7 @@ function trackChanges(pr, k){
 const fl = key => { const f = ui.flash[key]; return f && f.until > Date.now() ? f : null; };
 const deltaHTML = (f, money) => f ? `<span class="delta ${f.d > 0 ? 'up' : ''}">${f.d > 0 ? '+' : '−'}${money ? rs(Math.abs(f.d)) : Math.abs(f.d)}</span>` : '';
 function mOrders(){
-  const all = [...S.orders].sort((a,b) => b.id - a.id);
+  const all = S.orders.filter(o => o.date === TDY).sort((a,b) => b.id - a.id);
   const live = all.filter(isLive), done = all.filter(o => o.status === 'delivered'), paid = all.filter(o => o.status !== 'cancelled');
   const its = o => `<div class="ord-its">${o.items.map(it => `<span class="tk-it">${thumb(P[it.prod],'sm')}${P[it.prod].name.split(' ').slice(-2).join(' ')} × ${it.qty}</span>`).join('')}</div>`;
   const card = o => `<div class="ord ${o.status === 'placed' ? 'new' : ''}">
@@ -422,7 +491,7 @@ function mOrders(){
       ${its(o)}
       <div class="ord-act"><button class="bigbtn ${o.status === 'placed' ? '' : 'dk'}" data-a="oadv" data-v="${o.id}">${NEXT[o.status]}</button></div></div>`;
   return `<div class="stats"><div class="stat"><span>Orders today</span><b>${paid.length}</b></div><div class="stat"><span>In progress</span><b>${live.length}</b></div><div class="stat"><span>Paid</span><b>${rs(paid.reduce((a,o) => a + o.amt, 0))}</b></div></div>
-    <div class="sh">${nowOpen() ? 'Live orders · open till 9 PM' : 'Closed for tonight · opens 7 AM'}</div>
+    <div class="sh">${nowOpen() ? 'Live orders · same-day' : 'Same-day ordering closed for tonight'}</div>
     ${live.length ? live.map(card).join('') : '<div class="note" style="margin-top:0">No open orders right now.</div>'}
     ${done.length ? '<div class="sh">Delivered today</div>' + done.map(o => `<div class="ord past"><div class="ord-top"><div style="display:flex;gap:10px;align-items:center">${avatar(o.cust)}<div><b>${C[o.cust].name}</b><small>#${o.id} · ${itemsText(o.items)}</small></div></div><div class="ord-amt">${rs(o.amt)}</div></div></div>`).join('') : ''}
     <p class="fine">Every order is paid in the app before you accept it. No cash on delivery and nothing to confirm on WhatsApp.</p><div class="spacer"></div>`;
@@ -430,7 +499,7 @@ function mOrders(){
 function mToday(){
   const st = stops(), pr = prep(), items = Object.values(pr).reduce((a,b) => a+b, 0), rev = st.reduce((a,s) => a+s.amt, 0);
   const off = lines().filter(l => l.status !== 'ok'), offQty = off.reduce((a,l) => a+l.qty, 0), offAmt = off.reduce((a,l) => a+l.amt, 0);
-  const sub = S.phase === 'open' ? `List locks at ${CUTOFF} · ${leftText()}` : S.phase === 'locked' ? 'Locked at 9:00 PM · pack by 6:00 AM' : 'All deliveries done';
+  const sub = S.phase === 'open' ? `List locks at ${CUTOFF} · ${leftText()}` : S.phase === 'locked' ? `Locked at ${CUTOFF} · ready to pack` : 'All deliveries done';
   const kpi = (key, label, val, money) => { const f = fl('k_'+key); return `<div class="${f ? 'chg' : ''}"><span>${label}</span><b>${money ? rs(val) : val}</b>${deltaHTML(f, money)}</div>`; };
   const rows = PRODUCTS.filter(p => pr[p.id] || fl('p_'+p.id)).map(p => {
     const f = fl('p_'+p.id);
@@ -480,7 +549,7 @@ function mEarnings(){
   for (let d = start; d <= TDY; d = plus(d, 1)){ const r = dayRevenue(d); mtd += r.amt; n += r.n; }
   const st = stops(), collected = st.filter(s => S.done[s.cust]).reduce((a,s) => a+s.amt, 0), expected = st.reduce((a,s) => a+s.amt, 0);
   const monthName = TODAY.toLocaleDateString('en-IN', {month:'long'});
-  const inst = S.orders.filter(o => o.status !== 'cancelled'), instAmt = inst.reduce((a,o) => a + o.amt, 0);
+  const inst = S.orders.filter(o => o.date === TDY && o.status !== 'cancelled'), instAmt = inst.reduce((a,o) => a + o.amt, 0);
   let setl = '';
   const ln = (a, b, amt, cls = '') => `<div class="row"><div class="t"><b>${a}</b><small>${b}</small></div><b class="amt ${cls}">${rs(amt)}</b></div>`;
   if (collected) setl += ln('Collected this morning', 'Settling to your account', collected);
@@ -503,7 +572,7 @@ function merchHTML(){
   const body = t === 'orders' ? mOrders() : t === 'today' ? mToday() : t === 'run' ? mRun() : t === 'cust' ? mCustomers() : mEarnings();
   return `<div class="mh">${BRAND && CFG.brandAssets.logo ? `<span class="lg2 img"><img src="${CFG.brandAssets.logo}" alt="Vaaradhi Farms"></span>` : '<span class="lg2">VF</span>'}<div class="nm"><b>Vaaradhi Farms</b><small>Manikonda store · ${clock()}</small></div><span class="st-pill ${pill[1]}"><i></i>${pill[0]}</span></div>
     <div class="body mbody" data-scroll="m-${t}">${body}</div>
-    ${nav([['orders','Orders','bag'],['today','Tomorrow','list'],['run','Run','truck'],['cust','Customers','people'],['earn','Earnings','chart']], t, 'mtab', {orders:S.orders.filter(o => o.status === 'placed').length})}
+    ${nav([['orders','Orders','bag'],['today','Tomorrow','list'],['run','Run','truck'],['cust','Customers','people'],['earn','Earnings','chart']], t, 'mtab', {orders:S.orders.filter(o => o.date === TDY && o.status === 'placed').length})}
     ${toastHTML(ui.mToast,'m')}`;
 }
 
@@ -512,11 +581,13 @@ function merchHTML(){
    ===================================================================== */
 function render(){
   const keep = {}; document.querySelectorAll('[data-scroll]').forEach(e => keep[e.dataset.scroll] = e.scrollTop);
-  const a = document.activeElement, typing = a && a.id === 'q' ? a.selectionStart : null;
+  const a = document.activeElement, fid = a && (a.id === 'q' || a.id === 'bname') ? a.id : (ui.focusQ ? 'q' : null), caret = a && a.id === fid ? a.selectionStart : null;
+  ui.focusQ = false;
   document.getElementById('custApp').innerHTML = custHTML();
   document.getElementById('merchApp').innerHTML = merchHTML();
   document.querySelectorAll('[data-scroll]').forEach(e => { if (keep[e.dataset.scroll] != null) e.scrollTop = keep[e.dataset.scroll]; });
-  if (typing != null){ const q = document.getElementById('q'); if (q){ q.focus(); q.setSelectionRange(typing, typing); } }
+  if (fid){ const el = document.getElementById(fid); if (el){ el.focus(); const c = caret != null ? caret : el.value.length; try { el.setSelectionRange(c, c); } catch(e){} } }
+  document.querySelectorAll('.cutoff-label').forEach(e => e.textContent = CUTOFF);
   document.body.dataset.view = ui.view;
   ['vCust','vMerch','vHow'].forEach((id,i) => document.getElementById(id).classList.toggle('on', ['customer','merchant','how'][i] === ui.view));
   const b = document.getElementById('bdg'); b.hidden = !S.unread; b.textContent = S.unread;
@@ -544,8 +615,31 @@ const A = {
   view(v){ ui.view = v; ui.demoOpen = false; if (v === 'merchant') S.unread = 0; },
   demo(){ ui.demoOpen = !ui.demoOpen; },
   ctab(v){ ui.cTab = v; ui.sheet = null; ui.confirmCancel = null; },
+  'go-search'(){ ui.cTab = 'shop'; ui.focusQ = true; },
+  'sub-only'(){ ui.subOnly = !ui.subOnly; },
+  'clear-filters'(){ ui.q = ''; ui.cCat = 'All'; ui.subOnly = false; },
+  'save-basket'(){
+    if (!S.cart.length) return;
+    const el = document.getElementById('bname'), name = ((el && el.value) || '').trim().slice(0, 30) || `My basket ${S.baskets.length + 1}`;
+    S.baskets.push({id:'b' + Date.now(), name, items:S.cart.map(c => ({...c}))}); ui.bname = null;
+    toastC(`Saved “${name}”. Find it under Orders, Saved baskets.`);
+  },
+  'basket-cart'(v){ const b = S.baskets.find(x => x.id === v); if (b) addItemsToCart(b.items); },
+  reorder(v){ const o = S.orders.find(x => String(x.id) === v); if (o) addItemsToCart(o.items); },
+  'del-basket'(v){ if (ui.confirmDel !== v){ ui.confirmDel = v; return; } S.baskets = S.baskets.filter(b => b.id !== v); ui.confirmDel = null; toastC('Basket deleted.'); },
+  'meal-interest'(v){
+    const p = window.MEAL_PLANS.plans.find(x => x.id === v); if (!p) return;
+    S.interest[v] = !S.interest[v];
+    if (S.interest[v]){ notify(`Ananya R. is interested in the ${p.name} concept`, 'new'); toastC('Thanks. This is a concept, so nothing is booked or charged.'); }
+  },
+  'skip-date'(v){
+    const [id, d] = v.split('|'), s = S.subs.find(x => x.id === id); if (!s || d <= TMR) return;
+    s.skips = [...new Set([...(s.skips || []), d])]; ui.sheet = null;
+    notify(`Ananya R. will skip ${P[s.prod].name} on ${fmtD(d)}`, 'skip');
+    toastC(`Skipped ${fmtD(d)}. Tomorrow arrives as planned.`);
+  },
   mtab(v){ ui.mTab = v; },
-  cat(v){ ui.cCat = v; ui.q = ''; },
+  cat(v){ ui.cCat = v; ui.q = ''; ui.cTab = 'shop'; },
   close(){ ui.sheet = null; },
   'vac-open'(){ ui.sheet = {type:'vac', len:7}; },
   's-freq'(v){ ui.sheet.freq = v; },
@@ -585,25 +679,28 @@ const A = {
     toastC(`Welcome back. Deliveries resume ${fmtD(from)}.`);
   },
   't-qty'(v){
-    if (S.phase !== 'open') return;
-    const [id, d] = v.split('|'), s = S.subs.find(x => x.id === id), o = S.ovr[id] = S.ovr[id] || {};
+    const [id, d] = v.split('|'), s = S.subs.find(x => x.id === id);
+    if (S.phase !== 'open'){ ui.sheet = {type:'cutoff', subId:id, prod:s.prod}; return; }
+    const o = S.ovr[id] = S.ovr[id] || {};
     o.qty = Math.max(1, Math.min(6, (o.qty || s.qty) + +d)); o.skip = false;
     notify(`Ananya R. changed ${P[s.prod].name} to ${o.qty} for tomorrow`, 'add', 'q'+id);
   },
   'x-qty'(v){
-    if (S.phase !== 'open') return;
     const [id, d] = v.split('|'), x = S.extras.find(e => String(e.id) === id);
+    if (S.phase !== 'open'){ ui.sheet = {type:'cutoff', prod:x.prod}; return; }
     x.qty = Math.max(1, Math.min(6, x.qty + +d));
     notify(`Ananya R. changed ${P[x.prod].name} to ${x.qty} for tomorrow`, 'add', 'x'+id);
   },
   't-skip'(v){
-    if (S.phase !== 'open') return;
-    const s = S.subs.find(x => x.id === v), o = S.ovr[v] = S.ovr[v] || {}; o.skip = !o.skip;
+    const s = S.subs.find(x => x.id === v);
+    if (S.phase !== 'open'){ ui.sheet = {type:'cutoff', subId:v, prod:s.prod}; return; }
+    const o = S.ovr[v] = S.ovr[v] || {}; o.skip = !o.skip;
     notify(o.skip ? `Ananya R. skipped ${P[s.prod].name} tomorrow` : `Ananya R. wants ${P[s.prod].name} tomorrow after all`, 'skip', 'k'+v);
   },
   'x-del'(v){
-    if (S.phase !== 'open') return;
-    const x = S.extras.find(e => String(e.id) === v); S.extras = S.extras.filter(e => e !== x);
+    const x = S.extras.find(e => String(e.id) === v);
+    if (S.phase !== 'open'){ ui.sheet = {type:'cutoff', prod:x.prod}; return; }
+    S.extras = S.extras.filter(e => e !== x);
     notify(`Ananya R. removed ${P[x.prod].name} from tomorrow`, 'skip');
   },
   'p-pause'(v){ const s = S.subs.find(x => x.id === v); s.pausedFrom = editFrom(); notify(`Ananya R. paused ${P[s.prod].name} from ${fmtD(s.pausedFrom)}`, 'pause'); toastC('Plan paused. Vaaradhi has been told.'); },
@@ -621,7 +718,7 @@ const A = {
     if (ex) ex.qty = Math.min(9, ex.qty + sh.qty); else S.cart.push({prod:sh.prod, qty:sh.qty});
     ui.sheet = null; toastC(`${P[sh.prod].name} added to cart.`);
   },
-  'cart-open'(){ ui.sheet = {type:'cart'}; },
+  'cart-open'(){ ui.sheet = {type:'cart'}; ui.bname = null; },
   'c-qty'(v){
     const [prod, d] = v.split('|'), c = S.cart.find(x => x.prod === prod); if (!c) return;
     c.qty = Math.min(9, c.qty + +d); if (c.qty < 1) S.cart = S.cart.filter(x => x !== c);
@@ -632,7 +729,7 @@ const A = {
     const items = S.cart.map(c => ({...c})), amt = orderAmt(items), id = S.oseq++, bal = balance();
     if (bal < amt) S.ledger.push({date:TDY, seq:S.seq++, text:'Added to wallet via UPI', amt:Math.ceil((amt - bal)/500)*500, kind:'in'});
     S.ledger.push({date:TDY, seq:S.seq++, text:`Order #${id} · ${itemsText(items)}`, amt:-amt, kind:'out'});
-    S.orders.push({id, cust:'me', items, amt, status:'placed', t:clock()});
+    S.orders.push({id, cust:'me', items, amt, status:'placed', t:clock(), date:TDY});
     S.cart = []; ui.sheet = null; ui.cTab = 'orders';
     notify(`New order #${id} from Ananya R. · ${itemsText(items)} · ${rs(amt)} · Manikonda`, 'order');
     toastC(`Order placed. ${rs(amt)} paid from your wallet.`);
@@ -667,15 +764,22 @@ const A = {
     stops().forEach(s => { S.done[s.cust] = true; });
     ui.demoOpen = false; finishRun();
   },
-  reset(){ seed(); Object.assign(ui, {cTab:'shop', cCat:'All', q:'', mTab:'orders', sheet:null, cToast:null, mToast:null, demoOpen:false, confirmCancel:null, prevPrep:null, prevKpi:null, flash:{}}); },
+  reset(){ seed(); Object.assign(ui, {cTab:'home', cCat:'All', q:'', subOnly:false, bname:null, confirmDel:null, mTab:'orders', sheet:null, cToast:null, mToast:null, demoOpen:false, confirmCancel:null, prevPrep:null, prevKpi:null, flash:{}}); },
 };
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-a]'); if (!el || el.disabled) return;
   const a = el.dataset.a;
   if (a !== 'p-cancel') ui.confirmCancel = null;
+  if (a !== 'del-basket') ui.confirmDel = null;
   if (A[a]) { A[a](el.dataset.v); render(); }
 });
-document.addEventListener('input', e => { if (e.target.id === 'q'){ ui.q = e.target.value; render(); } });
+document.addEventListener('input', e => { if (e.target.id === 'q'){ ui.q = e.target.value; render(); } else if (e.target.id === 'bname') ui.bname = e.target.value; });
+/* Merge items into the cart and open it (Order Again). Same-day ordering must be open. */
+function addItemsToCart(items){
+  if (!nowOpen()){ toastC('Same-day ordering is closed for tonight. Your basket stays saved.'); return; }
+  items.forEach(i => { if (!P[i.prod]) return; const c = S.cart.find(x => x.prod === i.prod); if (c) c.qty = Math.min(9, c.qty + i.qty); else S.cart.push({prod:i.prod, qty:Math.min(9, i.qty)}); });
+  ui.sheet = {type:'cart'}; ui.bname = null;
+}
 
 if (BRAND && CFG.brandAssets.logo){ const l = document.querySelector('.wm .logo'); l.classList.add('img'); l.innerHTML = `<img src="${CFG.brandAssets.logo}" alt="Vaaradhi Farms">`; }
 S = load() || seed();
