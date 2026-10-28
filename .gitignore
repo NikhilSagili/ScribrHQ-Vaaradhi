@@ -2,4 +2,6 @@ _*.png
 .DS_Store
 # Local-only meeting copy with Vaaradhi brand assets. Never commit.
 meeting-copy/
+# Brand assets belong only inside meeting-copy/. Guard against copying them into the repo by mistake.
+brand/
 __pycache__/

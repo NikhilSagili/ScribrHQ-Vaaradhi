@@ -43,7 +43,8 @@ Use **Demo → Reset demo** before each pitch. State is saved in the browser and
 | `tests/slides-check.html` | Automated checks of the presentation. |
 | `tools/capture_slides.py`, `tools/capture.html` | Capture the slide screenshots from the demo. |
 | `docs/discovery-questions.md` | Questions for the owner meeting, with space for answers. |
-| `archive/pitch-v1.html` | Earlier pitch page, archived. |
+| `archive/pitch-v1.html` | Earlier pitch page, archived. Not linked from the demo or slides, and not copied into the meeting copy. |
+| `img/`, `CREDITS.md` | Wikimedia Commons photos used only by the archived pitch, with their attribution. |
 
 ## Editing
 - **Products, prices, eligibility:** edit `CURATED`, `ELIGIBILITY` and `NOT_ELIGIBLE_ITEMS` in `tools/build_catalogue.py`, then run `python tools/build_catalogue.py`. Or edit `data/catalogue.js` directly.
@@ -72,7 +73,7 @@ Serve the folder (`python -m http.server 5600`) and open http://localhost:5600/t
 
 **Run it**
 1. Serve the folder: `python -m http.server 5600`.
-2. Open http://localhost:5600/slides.html. Opening the file directly also works.
+2. Open http://localhost:5600/slides.html. Opening the file directly also works, but offline caching then doesn't.
 3. Move with **← →** (or Space, Page Up/Down), the **Back / Next** buttons, or the numbered dots. **Home** and **End** jump to the first and last slide. **N** shows presenter notes, **F** goes full screen, and `slides.html#3` opens slide 3.
 
 **Meeting version (with Vaaradhi's logo and photos)**
@@ -95,12 +96,13 @@ These screenshots stay in the git-ignored `meeting-copy/assets/slides/`. **Never
 
 ## Running locally
 ```
-python -m http.server 8080
+python -m http.server 5600
 ```
-Then open http://localhost:8080. To reach it from a phone on the same Wi-Fi, use your PC's IP address instead of localhost.
+Then open http://localhost:5600 (demo) or http://localhost:5600/slides.html (presentation). If Windows refuses the port (error 10013), pick another, such as 5601. To reach it from a phone on the same Wi-Fi, use your PC's IP address instead of localhost.
 
 ## Hosting (GitHub Pages)
-1. Create an empty repo on GitHub, then add it as a remote and push: `git remote add origin <url>` and `git push -u origin main`.
-2. In the repo, go to **Settings → Pages**, set the source to **Deploy from a branch**, and choose `main` / `/ (root)`.
+The repo's remote is `origin` (`NikhilSagili/ScribrHQ-Vaaradhi`), and Pages serves `main` / `/ (root)`. Publishing is `git push origin main`; Pages redeploys within a few minutes. Every path is relative, so the demo works under the repo's sub-path.
 
-The page has `noindex` set, so search engines won't list it.
+After a deploy, open the site once online so the offline cache (`sw.js`) picks up the new version. Bump `CACHE` in `sw.js` whenever cached files change.
+
+`index.html`, `slides.html` and the archived pitch have `noindex` set, so search engines won't list them. Everything tracked in the repo is publicly reachable on Pages, including `tools/`, `tests/`, `data/source/` and `archive/`. `meeting-copy/` and `brand/` are git-ignored and never published.
