@@ -259,6 +259,33 @@ svg{flex:none}
 .ic-list .row{padding:8px 0}
 .chip.k2{background:#EEF0F2;color:#4B5359}
 
+.atts{display:flex;flex-direction:column;gap:8px;padding:0 14px}
+.att{display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:11px 13px;text-align:left;font-size:13px;font-weight:600;color:var(--ink-2)}
+.att svg{color:var(--brand-ink);flex:none}
+.att span{flex:1}
+.att i{font-style:normal;font-size:18px;color:var(--muted)}
+.att.new{background:#FFFDF3;box-shadow:inset 0 0 0 1.5px var(--yellow)}
+.att.new svg{color:#8A5A00}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 14px}
+.tile2{background:#fff;border-radius:14px;padding:11px;text-align:left;display:flex;flex-direction:column;gap:2px;min-height:78px}
+.tile2 span{font-size:11px;color:var(--muted);font-weight:700;line-height:1.25}
+.tile2 b{font-size:21px;font-weight:800;letter-spacing:-.02em;margin-top:auto}
+.tile2 small{font-size:10px;color:#7A5B00;font-weight:700}
+.box.ins .row b{font-size:14px;white-space:nowrap}
+.mfilters{display:flex;flex-direction:column;gap:6px;padding:12px 14px 0}
+.mfilters .chips{margin:0;padding:0}
+.frow{display:flex;align-items:center;gap:8px}
+.flabel{flex:none;width:44px;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.cchip.sm{padding:6px 10px;font-size:12px}
+.otype{display:inline-block;font-size:10px;font-weight:800;padding:1px 6px;border-radius:6px;margin-right:2px;vertical-align:1px}
+.otype.one{background:var(--blue-soft);color:var(--blue)}
+.otype.rec{background:var(--brand-soft);color:var(--brand-ink)}
+.addon{font-style:normal;font-size:10px;font-weight:800;color:var(--blue)}
+.bd{color:var(--ink-2);font-weight:600}
+.plrow{width:100%;text-align:left}
+.plrow .t small{display:block}
+.tbc-mini{text-transform:none;letter-spacing:0;font-weight:700;color:#7A5B00;margin-left:4px}
+
 /* bottom nav */
 .nav{display:flex;background:#fff;border-top:1px solid var(--line);padding:7px 6px calc(9px + var(--bpad))}
 .nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;color:#8A9196;position:relative}

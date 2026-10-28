@@ -16,6 +16,12 @@ A clickable pitch demo for Vaaradhi Farms (Manikonda, Hyderabad). It has two con
 5. **Healthy Meal Plans** (concept proposed by Scribr). Four plan ideas. Tap **Share my preferences**, pick preferred days and an indicative number of servings, and submit. The confirmation says plainly that it is **not an order**. On the Vaaradhi side, **Customers → Breakfast plan interest** shows responses per concept, with preferred-day bars and serving preferences. Sample responses are labelled "Sample". Interest never appears in Orders, Tomorrow, Run or Earnings.
 6. **Cutoff.** Use **Demo → Skip past 9 PM**, then try to skip tomorrow on Schedule. The app explains that tomorrow is being prepared and offers to skip the next eligible date instead.
 7. **Demo → Run morning deliveries.** Charges appear in the wallet (simulated).
+8. **Vaaradhi side.**
+   - **Overview:** what needs attention, today at a glance, and repeat-ordering figures labelled as demo data.
+   - **Orders:** filter by type (one-time or recurring), date and status. Recurring deliveries are tomorrow's stops from plans.
+   - **Tomorrow:** the prep sheet, split into plan and one-time quantities, plus every customer change for tomorrow.
+   - **Plans:** active, paused, changing and ended plans. Open one to see upcoming dates or to pause, resume or cancel it.
+   - **Customers → Breakfast plan interest.** The **Delivery run** opens from Tomorrow; **Earnings** (simulated) opens from Overview.
 
 Use **Demo → Reset demo** before each pitch. State is saved in the browser and resets on its own each new day.
 
@@ -52,6 +58,7 @@ Serve the folder (`python -m http.server 8080`) and open http://localhost:8080/t
 
 ## What is real and what is simulated
 - **Verified:** product names and displayed prices from the EkSecond ordering page, captured 28 Oct 2026. Not synchronised.
+- **Breakfast-interest samples:** the public demo starts with no interest responses. The local meeting copy adds 8 illustrative responses, labelled "Sample" and stored apart from customer submissions (`sampleInterest` in `data/config.js`).
 - **Proposed:** subscription eligibility per product, breakfast plan concepts. Customer interest in a concept is stored separately from orders and plans. It is one record per customer per concept, and it is never charged, scheduled or counted as revenue.
 - **Simulated:** customers, orders, wallet balances and top-ups, payments, earnings, settlements, delivery times, notifications. No real money moves and no external service is connected.
 

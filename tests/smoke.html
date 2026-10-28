@@ -179,8 +179,14 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     check(intro.includes('Scribr proposes exploring flexible healthy-breakfast plans') && intro.includes('Menu, pricing and availability would be defined with Vaaradhi Farms'), 'approved "proposed by Scribr" wording is intact');
     const FOOD = /\b(idli|dosa|pongal|upma|poha|oats|smoothie|paratha|sandwich|salad|juice|porridge|granola|millet|ragi|protein|calorie|vitamin|nutritious|healthy for)\b/i;
     const snapState = () => JSON.stringify({subs:ev('S.subs.length'), orders:ev('S.orders.length'), ledger:ev('S.ledger.length'), lines:ev('lines()'), prep:ev('prep()'), stops:ev('stops().length'), rev:ev('dayRevenue(TDY).amt'), cart:ev('S.cart.length'), extras:ev('S.extras.length'), bal:ev('balance()')});
-    const before = snapState(), sampleN = ev('S.mealInterest.filter(x => x.sample).length');
-    check(sampleN === 8 && ev("S.mealInterest.every(x => x.sample)"), '8 illustrative sample responses are seeded and marked as samples');
+    const SAMPLES = w.DEMO_CONFIG.sampleInterest ? 8 : 0;
+    const before = snapState(), sampleN = ev('S.mealSamples.length');
+    check(sampleN === SAMPLES && ev('S.mealInterest.length') === 0, BRAND ? 'meeting copy: 8 illustrative samples, stored apart from customer submissions' : 'public demo: breakfast interest starts empty (no samples)');
+    check(BRAND ? w.DEMO_CONFIG.sampleInterest === true : w.DEMO_CONFIG.sampleInterest === false, 'sample responses are on only in the meeting copy');
+    act('mtab', 'interest');
+    if (SAMPLES) check($$('#merchApp .ic-list .chip').filter(c => c.textContent === 'Sample').length === 8 && !/This demo/.test($('#merchApp .ic-list') ? $$('#merchApp .ic-list').map(x => x.textContent).join('') : ''), 'every sample is labelled "Sample" before anyone submits');
+    else check(/No responses yet/.test($('#merchApp').textContent) && $$('#merchApp .ic-list').length === 0, 'public merchant interest screen starts empty and says so');
+    act('mtab', 'home');
     for (const plan of w.MEAL_PLANS.plans){
       act('ctab', 'meals'); click(`#custApp [data-a="meal-open"][data-v="${plan.id}"]`);
       const sh = $('#custApp .sheet'), txt = sh.textContent;
@@ -218,20 +224,43 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     act('close');
     check(/Interest shared: Mon, Wed, Fri · 2 servings/.test(custText()), 'meal card shows the shared preferences');
 
+    section('Breakfast concepts: delivery or pickup preference');
+    act('meal-open', 'healthy-start');
+    const fBtns = $$('#custApp .sheet [data-a="meal-ful"]').map(b => b.textContent);
+    check(JSON.stringify(fBtns) === JSON.stringify(['Delivery','Pickup','Either / no preference']) && $$('#custApp .sheet [data-a="meal-ful"].on').length === 0, 'optional preference offers Delivery, Pickup, Either; nothing preselected');
+    check(/DELIVERY OR PICKUP \(OPTIONAL\)/.test($('#custApp .sheet').textContent) && /Vaaradhi Farms would confirm which options, if any, can be offered/.test($('#custApp .sheet').textContent), 'preference is marked optional and subject to Vaaradhi confirming');
+    click('#custApp .sheet [data-a="meal-ful"][data-v="pickup"]');
+    check(!$('#custApp [data-a="meal-submit"]').disabled, 'changing only the preference counts as an update');
+    click('#custApp [data-a="meal-submit"]');
+    check(ev("myInterest('healthy-start').fulfil") === 'pickup' && ev("S.mealInterest.filter(x => x.planId === 'healthy-start').length") === 1, 'preference saved on the same record (no duplicate)');
+    check(/Pickup \(a preference, to be confirmed by Vaaradhi\)/.test($('#custApp .sheet').textContent), 'confirmation shows the preference as to be confirmed');
+    act('close');
+    check(/Mon, Wed, Fri · 2 servings · Pickup/.test(custText()), 'meal card shows the preference');
+    act('mtab', 'interest');
+    const hsC = $('#merchApp .ic[data-plan="healthy-start"]').textContent;
+    check(/Pickup · /.test(hsC) && /Ananya Rao.*Pickup/.test(hsC) && /to be confirmed by Vaaradhi/.test(hsC), 'merchant sees the preference, marked as to be confirmed');
+    act('mtab', 'home'); act('ctab', 'meals');
+    act('meal-open', 'healthy-start'); click('#custApp .sheet [data-a="meal-ful"][data-v="pickup"]');
+    check(ev('ui.sheet.fulfil') === null, 'tapping the selected option clears it');
+    click('#custApp [data-a="meal-submit"]'); act('close');
+    check(ev("myInterest('healthy-start').fulfil") === null && /No delivery\/pickup preference/.test((act('mtab', 'interest'), $('#merchApp .ic[data-plan="healthy-start"]').textContent)), 'cleared preference shows as not given to the merchant');
+    act('mtab', 'home'); act('ctab', 'meals');
+
     section('Breakfast concepts: merchant view');
     act('mtab', 'cust');
-    check(new RegExp(`Breakfast plan interest · ${ev('S.mealInterest.length')} responses`).test($('#merchApp').textContent), 'Customers tab links to breakfast interest with the response count');
+    check(new RegExp(`Breakfast plan interest · ${ev('allInterest().length')} responses`).test($('#merchApp').textContent), 'Customers tab links to breakfast interest with the response count');
     click('#merchApp .intcard');
     const mtxt = $('#merchApp').textContent;
     check(ev('ui.mTab') === 'interest' && /Proposed demand, not confirmed orders/.test(mtxt) && /not counted in Orders, Tomorrow, Run or Earnings/.test(mtxt), 'interest screen states it is proposed demand, not orders');
     for (const plan of w.MEAL_PLANS.plans){
-      const card = $(`#merchApp .ic[data-plan="${plan.id}"]`), n = ev(`S.mealInterest.filter(x => x.planId === '${plan.id}').length`);
+      const card = $(`#merchApp .ic[data-plan="${plan.id}"]`), n = ev(`allInterest().filter(x => x.planId === '${plan.id}').length`);
       check(card && card.textContent.includes(`${n} interested`), `${plan.name}: ${n} responses shown`);
     }
     const hsCard = $('#merchApp .ic[data-plan="healthy-start"]');
     const monBar = +$$('.db', hsCard)[0].querySelector('em').textContent;
-    check(monBar === ev("S.mealInterest.filter(x => x.planId === 'healthy-start' && x.days.includes(1)).length"), 'preferred-day bars count the right responses (Monday)');
-    check(/2 servings · /.test(hsCard.textContent) && /This demo/.test(hsCard.textContent) && /Sample/.test(hsCard.textContent), 'serving preferences and Sample / This demo labels are shown');
+    check(monBar === ev("allInterest().filter(x => x.planId === 'healthy-start' && x.days.includes(1)).length"), 'preferred-day bars count the right responses (Monday)');
+    check(/2 servings · /.test(hsCard.textContent) && /This demo/.test(hsCard.textContent) && (!SAMPLES || /Sample/.test(hsCard.textContent)), 'serving preferences and Sample / This demo labels are shown');
+    check($$('#merchApp .ic-list .row').filter(r => /Ananya Rao/.test(r.textContent)).every(r => /This demo/.test(r.textContent)), 'customer submissions are labelled "This demo", never "Sample"');
     check(/Ananya Rao.*Mon, Wed, Fri · 2 servings/.test(hsCard.textContent), "the demo customer's submission appears with their days and servings");
     check(!/₹/.test(mtxt) && !FOOD.test(mtxt), 'merchant interest screen shows no prices or dishes');
     // Read the screens themselves; the live-update pop-up and the feed legitimately mention the interest.
@@ -246,9 +275,9 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     act('ctab', 'meals'); click('#custApp [data-a="meal-withdraw"][data-v="weekly-healthy-mix"]');
     check(/Tap again to withdraw/.test(custText()) && ev("!!S.mealInterest.find(x => x.cust === 'me' && x.planId === 'weekly-healthy-mix')"), 'withdraw asks for a second tap');
     click('#custApp [data-a="meal-withdraw"][data-v="weekly-healthy-mix"]');
-    check(!ev("S.mealInterest.find(x => x.cust === 'me' && x.planId === 'weekly-healthy-mix')") && ev('S.mealInterest.length') === sampleN + 3, 'withdrawing removes only that record');
+    check(!ev("S.mealInterest.find(x => x.cust === 'me' && x.planId === 'weekly-healthy-mix')") && ev('S.mealInterest.length') === 3 && ev('S.mealSamples.length') === SAMPLES, 'withdrawing removes only that record; samples untouched');
     act('mtab', 'interest');
-    check($('#merchApp .ic[data-plan="weekly-healthy-mix"]').textContent.includes(`${ev("S.mealInterest.filter(x => x.planId === 'weekly-healthy-mix').length")} interested`), 'merchant view updates after a withdrawal');
+    check($('#merchApp .ic[data-plan="weekly-healthy-mix"]').textContent.includes(`${ev("allInterest().filter(x => x.planId === 'weekly-healthy-mix').length")} interested`), 'merchant view updates after a withdrawal');
     act('mtab', 'orders');
     const miN = ev('S.mealInterest.length');
     for (let i = 0; i < 2; i++){ await load(); w = frame.contentWindow; d = w.document; hook(w); }
@@ -420,6 +449,88 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     check(meStop === meLines, "the customer's tomorrow basket matches their stop on the merchant's run");
     check(ev("Object.values(lines().reduce((m, l) => { if (l.subId) m[l.subId] = (m[l.subId] || 0) + 1; return m; }, {})).every(n => n === 1)"), 'each plan appears at most once in tomorrow\'s list');
 
+
+    section('Merchant overview');
+    act('mtab', 'home');
+    const mt = () => $('#merchApp .body').textContent;
+    const tiles = $$('#merchApp .tile2').map(t => [t.querySelector('span').textContent, +t.querySelector('b').textContent]);
+    const tv = l => (tiles.find(x => x[0] === l) || [])[1];
+    check(tv('One-time orders today') === ev("S.orders.filter(o => o.date === TDY && o.status !== 'cancelled').length"), 'overview: one-time orders today');
+    check(tv('Recurring deliveries tomorrow') === ev('stops().length') && tv('Items to prepare tomorrow') === ev('Object.values(prep()).reduce((a, b) => a + b, 0)'), 'overview: tomorrow deliveries and items match the prep sheet');
+    check(tv('Active plans') === ev("planRows().filter(r => r.group === 'active').length") && tv('Paused plans') === ev("planRows().filter(r => r.group === 'paused').length"), 'overview: active and paused plan counts');
+    check(tv('Breakfast interest') === ev('allInterest().length') && /proposed, not orders/.test(mt()), 'overview: breakfast interest shown as proposed, not orders');
+    check(/Repeat ordering\s*Demo/.test(mt()) && /Demo data: these figures come from the sample customers/.test(mt()), 'insights are labelled as demo data');
+    check(!/growth|retention|increase|forecast(?!\.)|uplift/i.test(mt().replace('or a forecast', '')), 'no growth, retention or forecast claims');
+    check($$('#merchApp .att').length >= 1, 'overview lists what needs attention');
+
+    section('Merchant orders: filters and types');
+    act('mtab', 'orders');
+    const ocards = () => $$('#merchApp .ord');
+    const todayOne = ev("S.orders.filter(o => o.date === TDY).length");
+    check(ocards().length === todayOne && ocards().every(c => c.dataset.kind === 'one'), `default: today's ${todayOne} one-time orders`);
+    act('of', 'date:tomorrow'); act('of', 'type:rec');
+    check(ocards().length === ev('stops().length') && ocards().every(c => c.dataset.kind === 'rec' && /Recurring/.test(c.textContent)), "tomorrow's recurring deliveries, one per customer stop, labelled Recurring");
+    act('of', 'type:one');
+    check(ocards().length === 0 && /No orders match/.test(mt()), 'no one-time orders exist for tomorrow');
+    act('of', 'date:earlier');
+    check(ocards().length === ev("S.orders.filter(o => o.date < TDY).length") && ocards().every(c => /One-time/.test(c.textContent)), 'earlier one-time orders');
+    act('of', 'type:rec');
+    check(ocards().length === 0 && /Past recurring deliveries aren't kept as order records/.test(mt()), 'recurring + earlier explains that past recurring deliveries are not stored');
+    act('of', 'type:all'); act('of', 'date:all');
+    check(ocards().length === ev('S.orders.length') + ev('stops().length'), 'all dates: every one-time order plus tomorrow\'s recurring deliveries');
+    act('of', 'status:done');
+    check(ocards().every(c => /Delivered/.test(c.querySelector('.ord-amt').textContent)), 'status filter: delivered');
+    act('of', 'status:open');
+    check(ocards().every(c => !/Delivered|Cancelled/.test(c.querySelector('.ord-amt').textContent)), 'status filter: open');
+    act('of', 'status:all'); act('of', 'date:today');
+
+    section('Merchant: tomorrow preparation');
+    act('mtab', 'today');
+    const prepRows = $$('#merchApp .box.prep .row[data-prod]');
+    check(prepRows.length === Object.keys(ev('prep()')).length, 'prep sheet has a row for every product due');
+    check(prepRows.every(r => { const id = r.dataset.prod, tot = +r.querySelector('.q').textContent.replace(/[^\d]/g, '').slice(-3); const m = r.querySelector('.bd').textContent.match(/(\d+) from plans(?: \+ (\d+) one-time)?/); return m && (+m[1] + +(m[2] || 0)) === ev(`prep()['${id}']`); }), 'each row splits into plan and one-time quantities that add up to the total');
+    const chN = ev('tomorrowChanges().length');
+    check($$('#merchApp .chg-row').length === chN, `customer changes for tomorrow listed (${chN})`);
+    check(ev("tomorrowChanges().filter(c => c.k === 'skip' || c.k === 'pause').length") === ev("lines().filter(l => l.status !== 'ok').length"), 'every skipped or paused delivery appears as a change');
+    check(/Breakfast-plan interest is not included/.test(mt()), 'prep sheet states breakfast interest is excluded');
+
+    section('Merchant: plans');
+    act('mtab', 'plans');
+    const prow = () => $$('#merchApp .plrow');
+    check(prow().length === ev('planRows().length') && ev("S.subs.filter(s => !s.replacedBy).length") === prow().length, 'Plans lists the current version of every plan (no duplicates)');
+    act('mplans', 'paused');
+    check(prow().length > 0 && prow().every(r => r.dataset.group === 'paused'), 'Paused filter');
+    act('mplans', 'changes');
+    check(prow().some(r => /From .*: \d+ → \d+/.test(r.textContent)) && prow().some(r => /Ends /.test(r.textContent)), 'Changes filter shows a pending quantity change with its date and a plan that ends soon');
+    const pendId = ev("planRows().find(r => pendingFrom(r.s)).s.id");
+    act('mplan', pendId);
+    const ms = $('#merchApp .sheet').textContent;
+    check(ms.includes("Customer's change starts " + ev('fmtD(DAT)')), 'plan sheet states when the change starts');
+    const ur = $$('#merchApp .sheet .row.up').map(r => r.textContent);
+    const ups5 = ev(`upcomingChain(S.subs.find(s => s.id === '${pendId}'), 6)`), pend5 = ev(`pendingFrom(S.subs.find(s => s.id === '${pendId}'))`);
+    const newQ = ev(`S.subs.find(s => s.id === '${pendId}').qty`), oldQ = ev(`S.subs.find(s => s.id === S.subs.find(x => x.id === '${pendId}').replaces).qty`);
+    check(ups5.length === ur.length && ups5.every((u, i) => u.qty === (u.date < pend5 ? oldQ : newQ) && ur[i].includes(ev(`fmtD('${u.date}')`)) && (u.status !== 'scheduled' || ur[i].includes(u.qty + ' × '))), `upcoming deliveries show ${oldQ} before ${pend5} and ${newQ} from then on`);
+    act('mclose');
+    act('mplans', 'all');
+    const target = ev("planRows().find(r => r.group === 'active' && r.s.cust !== 'me' && delivers(r.s, TMR)).s");
+    const prepT = ev(`prep()['${target.prod}'] || 0`), revY2 = ev('dayRevenue(plus(TDY, -1)).amt'), led2 = ev('S.ledger.length');
+    act('mplan', target.id); click('#merchApp [data-a="mp-pause"]');
+    check(ev(`S.subs.find(s => s.id === '${target.id}').pausedFrom`) === ev('TMR') && ev(`prep()['${target.prod}'] || 0`) === prepT - target.qty, 'merchant pause applies from tomorrow and updates the prep sheet');
+    check(ev('dayRevenue(plus(TDY, -1)).amt') === revY2 && ev('S.ledger.length') === led2, "pausing doesn't rewrite past deliveries or charges");
+    click('#merchApp [data-a="mp-resume"]');
+    check(ev(`prep()['${target.prod}'] || 0`) === prepT, 'merchant resume restores it');
+    click('#merchApp [data-a="mp-cancel"]');
+    check(/Tap again to cancel/.test($('#merchApp .sheet').textContent) && !ev(`S.subs.find(s => s.id === '${target.id}').cancelledFrom`), 'merchant cancel asks for a second tap');
+    click('#merchApp [data-a="mp-cancel"]');
+    check(ev(`planStatus(S.subs.find(s => s.id === '${target.id}'))[0]`) === 'ended' && ev(`prep()['${target.prod}'] || 0`) === prepT - target.qty, 'cancelled plan shows as Ended and leaves tomorrow\'s prep sheet');
+    act('mclose');
+    const myPot = ev("activeSubs('me').find(s => s.prod === 'potato-500-g' && !s.cancelledFrom)");
+    act('mplan', myPot.id); click('#merchApp [data-a="mp-pause"]');
+    act('ctab', 'sched');
+    check(new RegExp('Paused from ' + ev('fmtS(TMR)')).test(custText()), "a merchant pause shows in the customer's Schedule");
+    act('mplan', myPot.id); click('#merchApp [data-a="mp-resume"]'); act('mclose');
+    act('mtab', 'home');
+
     section('Subscriptions after the cutoff');
     act('lock'); check(ev('S.phase') === 'locked', 'cutoff passes (demo lock)');
     act('ctab', 'sched');
@@ -448,6 +559,26 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     check(/2 × Desi Eggs/.test(upRows[2]), 'upcoming list: deliveries after the change show the new regular quantity (2)');
     act('close');
     check(custText().includes('Change starts ' + ev('fmtS(DAT)')) && /Until .*: 1 × Daily/.test(custText()), 'Schedule row shows the change date and what applies until then');
+
+    section('Merchant after the cutoff: status transitions and the run');
+    act('mtab', 'orders'); act('of', 'date:all');
+    const oo = ev("S.orders.find(o => o.date === TDY && o.status === 'placed')");
+    if (oo){
+      const seen = [];
+      for (let i = 0; i < 4; i++){ const b = $(`#merchApp .ord[data-oid="${oo.id}"] [data-a="oadv"]`); if (!b) break; b.click(); seen.push(ev(`S.orders.find(o => o.id === ${oo.id}).status`)); }
+      check(JSON.stringify(seen) === JSON.stringify(['accepted','packed','out','delivered']) && !$(`#merchApp .ord[data-oid="${oo.id}"] [data-a="oadv"]`), 'one-time order moves placed → accepted → packed → out → delivered, then has no further action');
+    } else check(true, 'no new one-time order left to advance');
+    act('of', 'date:tomorrow'); act('of', 'type:rec');
+    check($$('#merchApp .ord').every(c => /Preparing/.test(c.textContent)), 'after the cutoff, recurring deliveries show as Preparing');
+    const firstStop = ev("stops().find(s => s.cust !== 'me').cust");
+    act('deliver', firstStop);
+    check(/Delivered/.test($(`#merchApp .ord[data-oid="r-${firstStop}"]`).textContent), 'marking a stop delivered on the run updates its recurring order');
+    check($$('#merchApp .ord').length === ev('stops().length'), 'Orders and the delivery run list the same stops');
+    act('of', 'type:all'); act('of', 'date:today');
+    act('mtab', 'today');
+    const lockedPrep = JSON.stringify(ev('prep()'));
+    const anyActive = ev("planRows().find(r => r.group === 'active' && delivers(r.s, TMR))");
+    if (anyActive){ act('mp-pause', anyActive.s.id); check(JSON.stringify(ev('prep()')) === lockedPrep && ev(`S.subs.find(s => s.id === '${anyActive.s.id}').pausedFrom`) === ev('DAT'), 'after the cutoff, a merchant pause starts the day after; the locked prep sheet is unchanged'); act('mp-resume', anyActive.s.id); }
     act('ctab', 'orders'); click('#custApp [data-a="reorder"]');
     check(ev('S.cart.length') === 0, 'after cutoff: reorder is disabled (same-day ordering closed)');
     act('morning'); check(ev('S.phase') === 'delivered' && ev('S.ledger.some(l => l.date === TMR)'), 'morning run completes and charges are recorded');
@@ -462,7 +593,7 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     act('mtab', 'earn'); check(/Demo/.test($('#merchApp .mcard').textContent), 'earnings shows a Demo label');
     let claimHit = '';
     for (const tab of ['home','shop','orders','sched','wallet','meals']){ act('ctab', tab); const m = custText().match(TIME_CLAIMS); if (m) claimHit += tab + ':' + m[0] + ' '; }
-    for (const tab of ['orders','today','run','cust','earn']){ act('mtab', tab); const m = $('#merchApp').textContent.match(TIME_CLAIMS); if (m) claimHit += 'merchant ' + tab + ':' + m[0] + ' '; }
+    for (const tab of ['home','orders','today','run','plans','cust','interest','earn']){ act('mtab', tab); const m = $('#merchApp').textContent.match(TIME_CLAIMS); if (m) claimHit += 'merchant ' + tab + ':' + m[0] + ' '; }
     check(!claimHit, 'no unverified delivery times anywhere' + (claimHit ? ' — found ' + claimHit : ''));
     act('mtab', 'orders');
 
@@ -495,6 +626,8 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     section('Layout: desktop and phone');
     const overflow = () => { const o = []; if (d.documentElement.scrollWidth > d.documentElement.clientWidth + 1) o.push('page'); $$('.app .body').forEach(b => { if (b.scrollWidth > b.clientWidth + 1) o.push(b.parentElement.id + ' body'); }); return o; };
     for (const tab of ['home','shop','orders','sched','meals']){ act('ctab', tab); const o = overflow(); check(!o.length, `desktop ${tab}: no horizontal overflow` + (o.length ? ' (' + o + ')' : '')); }
+    for (const tab of ['home','orders','today','run','plans','cust','interest','earn']){ act('mtab', tab); const o = overflow(); check(!o.length, `desktop merchant ${tab}: no horizontal overflow` + (o.length ? ' (' + o + ')' : '')); }
+    act('mtab', 'home');
     frame.style.width = '390px'; frame.style.height = '844px'; await wait(300);
     check(w.matchMedia('(max-width: 899px)').matches && w.getComputedStyle(d.getElementById('cust')).display !== 'none', 'phone width switches to the single-app layout');
     for (const tab of ['home','shop','orders','sched','meals','wallet']){ act('ctab', tab); const o = overflow(); check(!o.length, `phone ${tab}: no horizontal overflow` + (o.length ? ' (' + o + ')' : '')); }
@@ -509,7 +642,11 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     act('ctab', 'meals'); act('meal-open', 'family-breakfast-box');
     check(fits($('#custApp .sheet')) && $('#custApp .sh-foot').offsetTop + $('#custApp .sh-foot').offsetHeight <= $('#custApp .sheet').offsetHeight + 1, 'phone: breakfast preference sheet and its button fit the screen');
     act('close');
-    act('view', 'merchant'); act('mtab', 'interest');
+    act('view', 'merchant');
+    for (const tab of ['home','orders','today','plans','run','earn']){ act('mtab', tab); const o = overflow(); check(!o.length, `phone merchant ${tab}: no horizontal overflow` + (o.length ? ' (' + o + ')' : '')); }
+    act('mtab', 'plans'); act('mplan', ev("planRows()[0].s.id"));
+    { const ma = $('#merchApp'), msh = $('#merchApp .sheet'); check(msh.offsetLeft >= 0 && msh.offsetLeft + msh.offsetWidth <= ma.clientWidth + 1 && msh.offsetTop + msh.offsetHeight <= ma.clientHeight + 1, 'phone: merchant plan sheet fits the screen'); }
+    act('mclose'); act('mtab', 'interest');
     { const o = overflow(); check(!o.length && w.getComputedStyle(d.getElementById('merch')).display !== 'none', 'phone: merchant breakfast-interest screen has no horizontal overflow' + (o.length ? ' (' + o + ')' : '')); }
     act('view', 'customer'); act('mtab', 'orders');
     act('reset');

@@ -45,6 +45,7 @@ brand = {'logo': 'brand/logo.png' if logo_ok else None, 'productImageDir': 'bran
 with open(os.path.join(OUT, 'data/config.js'), 'a', encoding='utf-8', newline='\n') as f:
     f.write('\n/* LOCAL MEETING COPY ONLY. Uses Vaaradhi Farms brand assets. Do not publish. */\n'
             "window.DEMO_CONFIG.assetMode = 'brand';\n"
+            "window.DEMO_CONFIG.sampleInterest = true;   // illustrative breakfast-interest samples, meeting copy only\n"
             'window.DEMO_CONFIG.brandAssets = ' + json.dumps(brand, indent=1) + ';\n')
 print(f'meeting copy: {OUT}\nlogo: {"ok" if logo_ok else "MISSING"} | product photos: {len(images)} of {len(catalogue["products"])}'
       f' | neutral tile used for {len(missing)} products without a source photo')
