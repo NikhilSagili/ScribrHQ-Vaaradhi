@@ -1,17 +1,18 @@
 """Make a LOCAL meeting copy of the demo that uses Vaaradhi's own logo and product photos.
 
-    python tools/make_meeting_copy.py
+    python tools/make_meeting_copy.py              # also re-captures slide screenshots from the meeting copy
+    python tools/make_meeting_copy.py --no-slides  # skip the screenshots (faster)
 
 Output: meeting-copy/ (git-ignored). Open meeting-copy/index.html, or serve that folder.
 The public demo is unchanged and keeps neutral placeholders. Use this copy only for the
 meeting, and only as permitted by Vaaradhi Farms. Never commit or publish it.
 """
-import json, os, shutil, subprocess
+import json, os, shutil, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'meeting-copy')
 LOGO_URL = 'https://vaaradhifarms.com/cdn/shop/files/VF_logo_final-02_2c6e6ec2-4064-4bf2-aae3-f51b9efa841e.png?v=1756365579&width=300'
-SKIP = {'.git', 'meeting-copy', 'tools', 'data/source', 'img', 'CREDITS.md'}
+SKIP = {'.git', 'meeting-copy', 'tools', 'data/source', 'img', 'CREDITS.md', 'archive'}
 
 def fetch(url, dest):
     r = subprocess.run(['curl', '-sfL', '-m', '40', '-A', 'Mozilla/5.0', '-o', dest, url])
@@ -49,3 +50,8 @@ with open(os.path.join(OUT, 'data/config.js'), 'a', encoding='utf-8', newline='\
             'window.DEMO_CONFIG.brandAssets = ' + json.dumps(brand, indent=1) + ';\n')
 print(f'meeting copy: {OUT}\nlogo: {"ok" if logo_ok else "MISSING"} | product photos: {len(images)} of {len(catalogue["products"])}'
       f' | neutral tile used for {len(missing)} products without a source photo')
+
+# slides.html in the meeting copy uses screenshots of the meeting copy itself (with brand assets).
+# They stay inside the git-ignored meeting-copy folder.
+if '--no-slides' not in sys.argv:
+    subprocess.run([sys.executable, os.path.join(ROOT, 'tools', 'capture_slides.py'), '--meeting'])

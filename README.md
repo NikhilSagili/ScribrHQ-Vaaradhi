@@ -38,7 +38,12 @@ Use **Demo → Reset demo** before each pitch. State is saved in the browser and
 | `data/source/` | Raw captures: EkSecond (192 items) and the Shopify reference catalogue (78 products). |
 | `tools/build_catalogue.py` | Rebuilds `data/catalogue.js` from the EkSecond capture. Edit the curated list and eligibility there. |
 | `tools/make_meeting_copy.py` | Builds a **local-only** `meeting-copy/` with Vaaradhi's logo and product photos. Git-ignored; never publish it. |
-| `tests/smoke.html` | Automated checks of catalogue, cart, checkout, subscriptions, lock and reload. |
+| `tests/smoke.html` | Automated checks of the customer and merchant demo. |
+| `slides.html`, `assets/slides/` | Five-slide presentation and its screenshots of the public demo. |
+| `tests/slides-check.html` | Automated checks of the presentation. |
+| `tools/capture_slides.py`, `tools/capture.html` | Capture the slide screenshots from the demo. |
+| `docs/discovery-questions.md` | Questions for the owner meeting, with space for answers. |
+| `archive/pitch-v1.html` | Earlier pitch page, archived. |
 
 ## Editing
 - **Products, prices, eligibility:** edit `CURATED`, `ELIGIBILITY` and `NOT_ELIGIBLE_ITEMS` in `tools/build_catalogue.py`, then run `python tools/build_catalogue.py`. Or edit `data/catalogue.js` directly.
@@ -48,7 +53,7 @@ Use **Demo → Reset demo** before each pitch. State is saved in the browser and
 - **Brand assets:** the public demo uses neutral tiles. For the meeting, run `python tools/make_meeting_copy.py` and open `meeting-copy/index.html`.
 
 ## Tests
-Serve the folder (`python -m http.server 8080`) and open http://localhost:8080/tests/smoke.html. All checks should show PASS.
+Serve the folder (`python -m http.server 5600`) and open http://localhost:5600/tests/smoke.html and http://localhost:5600/tests/slides-check.html. All checks should show PASS.
 
 ## How recurring orders work in the demo
 - **Schedules:** one rule per plan (daily, alternate days, selected weekdays, weekly, every 2 weeks). Monthly is not offered.
@@ -61,6 +66,32 @@ Serve the folder (`python -m http.server 8080`) and open http://localhost:8080/t
 - **Breakfast-interest samples:** the public demo starts with no interest responses. The local meeting copy adds 8 illustrative responses, labelled "Sample" and stored apart from customer submissions (`sampleInterest` in `data/config.js`).
 - **Proposed:** subscription eligibility per product, breakfast plan concepts. Customer interest in a concept is stored separately from orders and plans. It is one record per customer per concept, and it is never charged, scheduled or counted as revenue.
 - **Simulated:** customers, orders, wallet balances and top-ups, payments, earnings, settlements, delivery times, notifications. No real money moves and no external service is connected.
+
+## Presentation (five slides)
+`slides.html` is the primary pitch: five slides that lead into the live demo.
+
+**Run it**
+1. Serve the folder: `python -m http.server 5600`.
+2. Open http://localhost:5600/slides.html. Opening the file directly also works.
+3. Move with **← →** (or Space, Page Up/Down), the **Back / Next** buttons, or the numbered dots. **Home** and **End** jump to the first and last slide. **N** shows presenter notes, **F** goes full screen, and `slides.html#3` opens slide 3.
+
+**Meeting version (with Vaaradhi's logo and photos)**
+1. Run `python tools/make_meeting_copy.py`. It rebuilds `meeting-copy/` and re-captures the slide screenshots from it, which takes about 2 minutes.
+2. Serve `meeting-copy/` (for example `python -m http.server 5601` inside it).
+3. Open http://localhost:5601/slides.html.
+
+These screenshots stay in the git-ignored `meeting-copy/assets/slides/`. **Never commit or publish them.**
+
+**Screenshots**
+- `assets/slides/` holds real screenshots of the public demo (neutral tiles), made by `python tools/capture_slides.py`.
+- Re-run that command after any UI change so the slides match the demo.
+- Slide 3's concept cards are read from `data/plans.js`.
+
+**Offline:** when served over http, the page caches itself, including the slides and screenshots, after the first visit. The Google font falls back to system fonts when offline.
+
+**Discovery questions:** `docs/discovery-questions.md`, with space to write in the owner's answers.
+
+**Archive:** `archive/pitch-v1.html` is the earlier single-page pitch. It's kept for reference only and superseded by the slides.
 
 ## Running locally
 ```

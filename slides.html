@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Scribr × Vaaradhi Farms · Discussion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --brand:#0F7A3D; --brand-2:#139A4E; --brand-soft:#E7F6EC; --brand-ink:#0B5A2D;
+  --ink:#16191C; --ink-2:#3C4247; --muted:#6B7378; --line:#E3E7EA; --bg:#F3F5F2; --card:#FFFFFF;
+  --yellow:#FFD23F; --yellow-soft:#FFF5D1; --amber:#7A5B00; --dark:#0F1A14; --grey-soft:#ECEEF0;
+  --ui:"Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:#DDE3DF;color:var(--ink);font-family:var(--ui);-webkit-font-smoothing:antialiased;overflow:hidden}
+button{font:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid var(--brand-2);outline-offset:2px}
+
+/* stage: designed at 1600 x 900 and scaled to fit the window */
+.viewport{position:fixed;inset:0 0 56px 0;overflow:hidden}
+/* centred from its midpoint, then scaled, so it fits windows smaller than the 1600x900 design */
+.stage{width:1600px;height:900px;position:absolute;left:50%;top:50%;transform-origin:center center}
+.slide{position:absolute;inset:0;background:var(--bg);border-radius:18px;overflow:hidden;padding:64px 80px 56px;display:none;flex-direction:column;box-shadow:0 30px 80px -40px rgba(10,30,20,.45)}
+.slide.on{display:flex}
+.slide h1,.slide h2{margin:0;letter-spacing:-.03em;line-height:1.04}
+.slide h1{font-size:76px;font-weight:800}
+.slide h2{font-size:52px;font-weight:800}
+.eyebrow{font-size:16px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--brand)}
+.lede{font-size:22px;line-height:1.5;color:var(--ink-2);margin:18px 0 0;max-width:60ch}
+.foot{margin-top:auto;padding-top:14px;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;font-size:13px;color:var(--muted)}
+.foot .src{max-width:90ch;line-height:1.45}
+.brandrow{display:flex;align-items:center;gap:14px;font-weight:800;font-size:15px;color:var(--ink-2)}
+.brandrow img{height:34px;width:auto}
+.brandrow .x{color:var(--muted);font-weight:600}
+
+/* labels that separate what is working, sample and proposed */
+.legend{display:flex;gap:8px;flex-wrap:wrap}
+.lab{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;padding:5px 10px;border-radius:999px;white-space:nowrap}
+.lab::before{content:"";width:8px;height:8px;border-radius:50%}
+.lab.work{background:var(--brand-soft);color:var(--brand-ink)} .lab.work::before{background:var(--brand)}
+.lab.sample{background:var(--grey-soft);color:#4B5359} .lab.sample::before{background:#8A9196}
+.lab.prop{background:var(--yellow-soft);color:var(--amber)} .lab.prop::before{background:var(--yellow)}
+
+/* phone screenshots */
+.phones{display:flex;gap:26px;align-items:flex-start}
+.ph{margin:0;display:flex;flex-direction:column;gap:12px;align-items:center}
+.ph .frame{background:#0E1110;border-radius:34px;padding:8px;box-shadow:0 24px 50px -28px rgba(10,20,14,.6)}
+.ph img{display:block;border-radius:27px;background:#fff}
+.ph figcaption{text-align:center;max-width:250px}
+.ph figcaption b{display:block;font-size:17px;font-weight:800}
+.ph figcaption span{font-size:14px;color:var(--ink-2);line-height:1.4}
+
+/* slide 1 */
+.s1{display:grid;grid-template-columns:1.15fr 1fr;gap:56px;margin-top:34px;flex:1;min-height:0}
+.has{background:var(--card);border-radius:22px;padding:26px 28px;display:flex;flex-direction:column;gap:14px}
+.has h3,.opp h3{margin:0;font-size:15px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.has ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+.has li{display:flex;gap:12px;font-size:18px;line-height:1.4}
+.has li i{flex:none;width:30px;height:30px;border-radius:9px;background:var(--brand-soft);color:var(--brand-ink);display:grid;place-items:center;font-style:normal;font-weight:800;font-size:14px}
+.has small{display:block;color:var(--muted);font-size:14px}
+.opp{background:var(--dark);color:#fff;border-radius:22px;padding:26px 28px;display:flex;flex-direction:column;gap:14px;margin-top:16px}
+.opp h3{color:#9DB3A5}
+.opp ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px;counter-reset:o}
+.opp li{counter-increment:o;display:flex;gap:12px;align-items:baseline;font-size:19px;font-weight:600}
+.opp li::before{content:counter(o);flex:none;width:28px;height:28px;border-radius:50%;background:var(--yellow);color:var(--ink);display:grid;place-items:center;font-weight:800;font-size:14px}
+.opp li .lab{margin-left:6px}
+
+/* slide 2 + 4 */
+.s2{display:grid;grid-template-columns:330px 1fr;gap:44px;margin-top:30px;flex:1;min-height:0}
+.points{display:flex;flex-direction:column;gap:18px}
+.pt b{display:block;font-size:20px;font-weight:800}
+.pt span{font-size:16.5px;color:var(--ink-2);line-height:1.45}
+.split{display:grid;grid-template-columns:1fr;gap:10px;margin-top:4px}
+.split div{border-radius:16px;padding:12px 16px;font-size:15px;line-height:1.4}
+.split b{display:block;font-size:16.5px;margin-bottom:4px}
+.split .conf{background:var(--brand-soft);color:var(--brand-ink)}
+.split .intr{background:var(--yellow-soft);color:var(--amber)}
+
+/* slide 3 */
+.s3{display:grid;grid-template-columns:1fr 580px;gap:40px;margin-top:28px;flex:1;min-height:0}
+.concepts{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cc{background:var(--card);border-radius:20px;padding:20px 22px;display:flex;flex-direction:column;gap:8px}
+.cc b{font-size:22px;font-weight:800;letter-spacing:-.01em}
+.cc p{margin:0;font-size:16px;color:var(--ink-2);line-height:1.4}
+.cc .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+.chip{font-size:12.5px;font-weight:800;padding:4px 9px;border-radius:999px;background:var(--brand-soft);color:var(--brand-ink)}
+.chip.b{background:#EAF1FF;color:#2563EB}
+.tbc{margin-top:16px;background:var(--yellow-soft);border-radius:18px;padding:16px 20px}
+.tbc > b{display:block;font-size:15px;color:var(--amber);font-weight:800;margin-bottom:8px}
+.tbc .chips{display:flex;gap:6px;flex-wrap:wrap}
+.tbc .chip{background:#fff;color:var(--amber)}
+.tbc p{margin:10px 0 0;font-size:15px;color:#5C4A12;line-height:1.45}
+
+/* slide 5 */
+.s5{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:28px}
+.pilot{background:var(--card);border-radius:22px;padding:24px 26px;display:flex;flex-direction:column;gap:16px}
+.size{display:flex;gap:12px;align-items:stretch}
+.size div{flex:1;background:var(--yellow-soft);border-radius:16px;padding:14px 16px}
+.size b{display:block;font-size:34px;font-weight:800;letter-spacing:-.02em;color:var(--ink)}
+.size span{font-size:14px;color:var(--amber);font-weight:700}
+.steps{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.steps li{background:var(--bg);border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.4}
+.steps li b{display:block;font-size:16px;margin-bottom:2px}
+.measure{background:var(--card);border-radius:22px;padding:24px 26px}
+.measure ul{margin:12px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:10px 18px}
+.measure li{font-size:17px;display:flex;gap:10px;align-items:baseline}
+.measure li::before{content:"";flex:none;width:9px;height:9px;border-radius:3px;background:var(--brand);transform:translateY(-2px)}
+.measure h3{margin:0;font-size:15px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.ask{margin-top:24px;background:var(--dark);color:#fff;border-radius:22px;padding:26px 30px;display:flex;justify-content:space-between;align-items:center;gap:30px}
+.ask p{margin:0;font-size:27px;font-weight:700;line-height:1.3;letter-spacing:-.01em;max-width:44ch}
+.ask .who{flex:none;text-align:right;font-size:15px;color:#B9C8BF;line-height:1.5}
+.ask .who b{display:block;color:#fff;font-size:18px}
+
+/* controls */
+.controls{position:fixed;left:0;right:0;bottom:0;height:56px;display:flex;align-items:center;justify-content:center;gap:12px;background:#0F1A14;color:#fff;padding:0 14px}
+.controls button{background:rgba(255,255,255,.1);color:#fff;border:0;border-radius:10px;padding:9px 14px;font-weight:700;font-size:14px}
+.controls button:disabled{opacity:.35;cursor:default}
+.dots{display:flex;gap:8px}
+.dots button{width:30px;height:30px;padding:0;border-radius:50%;font-size:13px}
+.dots button[aria-current="true"]{background:var(--yellow);color:var(--ink)}
+.count{font-size:13px;color:#B9C8BF;min-width:50px;text-align:center}
+.spacer{flex:1}
+.hint{font-size:12px;color:#8FA398}
+
+/* presenter notes */
+.notes{display:none}
+.notespanel{position:fixed;right:14px;bottom:70px;width:min(460px,calc(100vw - 28px));max-height:calc(100vh - 100px);overflow:auto;background:#fff;color:var(--ink);border-radius:16px;padding:18px 20px;box-shadow:0 24px 60px -20px rgba(0,0,0,.5);font-size:14.5px;line-height:1.5;z-index:10}
+.notespanel h4{margin:0 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.notespanel ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="viewport" id="viewport"><div class="stage" id="stage">
+
+<!-- ============ 1 ============ -->
+<section class="slide" data-title="The next opportunity for Vaaradhi Farms" aria-label="Slide 1">
+  <div class="brandrow" data-brand><span data-logo>Vaaradhi Farms</span><span class="x">×</span><span>Scribr</span></div>
+  <div class="s1">
+    <div>
+      <div class="eyebrow" style="margin-top:30px">The next opportunity for Vaaradhi Farms</div>
+      <h1 style="margin-top:18px">From everyday essentials to everyday habits.</h1>
+      <p class="lede">Vaaradhi already makes healthy, natural food easy to buy. The next step to explore: making the <b>repeat</b> purchase even easier, and turning regular buyers into an ongoing relationship.</p>
+      <div class="opp">
+        <h3>What we'd like to explore together</h3>
+        <ol>
+          <li>Make repeat purchases effortless: saved baskets and one-tap reorder</li>
+          <li>Flexible recurring orders for everyday essentials</li>
+          <li>A regular healthy-breakfast routine <span class="lab prop">Concept</span></li>
+        </ol>
+      </div>
+    </div>
+    <div class="has">
+      <h3>What Vaaradhi already has</h3>
+      <ul>
+        <li><i>1</i><div>A store in Manikonda, Hyderabad<small>Address listed on vaaradhifarms.com</small></div></li>
+        <li><i>2</i><div>Its own website for natural and organic essentials<small>vaaradhifarms.com</small></div></li>
+        <li><i>3</i><div>A local ordering page, alongside WhatsApp ordering<small>Click-to-order via EkSecond</small></div></li>
+        <li><i>4</i><div>Swiggy and Zomato, within their delivery areas</div></li>
+        <li><i>5</i><div>A wide range of everyday staples<small>Cold-pressed oils, millets, pulses, flours, spices, pickles, honey, ghee and more</small></div></li>
+      </ul>
+      <p style="margin:auto 0 0;font-size:15px;color:var(--ink-2);line-height:1.45">Scribr is proposed as a <b>complement</b> to these channels, not a replacement. Where it fits best is what we'd like to find out with you.</p>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Channels and product range from Vaaradhi's public website and ordering page (28 Oct 2026) and our conversations. Breakfast plans are a concept proposed by Scribr.</span><span>1 / 5</span></div>
+  <aside class="notes"><ul>
+    <li>Open by acknowledging what Vaaradhi has built: store, website, ordering page, WhatsApp, Swiggy and Zomato.</li>
+    <li>Position Scribr as an add-on for <b>repeat</b> buying. Don't criticise any existing channel.</li>
+    <li>Say the breakfast idea is ours, to be validated with them. Ask early: "Do customers ask for regular breakfast today?"</li>
+  </ul></aside>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="slide" data-title="Make repeat ordering effortless" aria-label="Slide 2">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px">
+    <div><div class="eyebrow">Customer experience</div><h2 style="margin-top:12px">Make repeat ordering effortless.</h2></div>
+    <div class="legend"><span class="lab work">Working in the demo</span><span class="lab sample">Sample data</span></div>
+  </div>
+  <div class="s2">
+    <div class="points">
+      <div class="pt"><b>Shop the real catalogue</b><span>50 Vaaradhi products with names and prices from its ordering page, plus search and categories.</span></div>
+      <div class="pt"><b>Save a basket, reorder in one tap</b><span>Customers save their usual basket or repeat a past order, and change quantities before checkout.</span></div>
+      <div class="pt"><b>Flexible recurring orders</b><span>Daily, alternate days, chosen weekdays, weekly or every 2 weeks, for eligible essentials.</span></div>
+      <div class="pt"><b>Customers stay in control</b><span>Skip a date, pause, change quantity or cancel. Changes close at a cutoff the evening before (9 PM, provisional).</span></div>
+    </div>
+    <div class="phones">
+      <figure class="ph"><div class="frame"><img src="assets/slides/c-home.png" width="230" height="498" alt="Customer home screen with Healthy Meal Plans, Shop Groceries and Order Again"></div><figcaption><b>Home</b><span>Shop, order again, or explore breakfast</span></figcaption></figure>
+      <figure class="ph"><div class="frame"><img src="assets/slides/c-baskets.png" width="230" height="498" alt="Saved baskets and previous orders with reorder buttons"></div><figcaption><b>Order again</b><span>Saved baskets and one-tap reorder</span></figcaption></figure>
+      <figure class="ph"><div class="frame"><img src="assets/slides/c-subscribe.png" width="230" height="498" alt="Subscribing to eggs on selected days"></div><figcaption><b>Subscribe</b><span>Pick the days, quantity and start date</span></figcaption></figure>
+      <figure class="ph"><div class="frame"><img src="assets/slides/c-manage.png" width="230" height="498" alt="Managing a plan: upcoming deliveries with skip, and plan changes"></div><figcaption><b>Manage</b><span>Skip a date, pause, change or cancel</span></figcaption></figure>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Screens from the working demo. Prices are Vaaradhi's displayed EkSecond prices (captured 28 Oct 2026, not synchronised). Customers, orders and wallet balances are sample data. No payments are processed.</span><span>2 / 5</span></div>
+  <aside class="notes"><ul>
+    <li>Switch to the live demo here: Shop → ADD → Save basket → Orders → Add all to cart.</li>
+    <li>Then subscribe to eggs on Mon, Wed, Fri and open Manage to skip one date.</li>
+    <li>Ask: "Which products do your customers reorder most?" and "Would they want a weekly basket?"</li>
+  </ul></aside>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="slide" data-title="Explore recurring healthy breakfast" aria-label="Slide 3">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px">
+    <div><div class="eyebrow">A concept proposed by Scribr</div><h2 style="margin-top:12px">What if healthy breakfast became a routine?</h2></div>
+    <div class="legend"><span class="lab prop">Proposed concepts</span><span class="lab work">Interest form works in the demo</span></div>
+  </div>
+  <div class="s3">
+    <div>
+      <div class="concepts" id="concepts"></div>
+      <div class="tbc"><b>To be confirmed with Vaaradhi Farms before anything is offered</b>
+        <div class="chips"><span class="chip">Menu</span><span class="chip">Price</span><span class="chip">Portion size</span><span class="chip">Ingredients and allergens</span><span class="chip">Delivery or pickup</span><span class="chip">Availability and kitchen capacity</span></div>
+        <p>In the demo, customers can share preferred days, servings and a delivery or pickup preference. It is an <b>expression of interest only</b>: no order, no payment and no commitment from Vaaradhi.</p></div>
+    </div>
+    <div class="phones" style="gap:20px">
+      <figure class="ph"><div class="frame"><img src="assets/slides/c-meals.png" width="250" height="541" alt="Healthy Meal Plans concept preview with four plans"></div><figcaption><b>Concept preview</b><span>Four plan ideas</span></figcaption></figure>
+      <figure class="ph"><div class="frame"><img src="assets/slides/c-meal-prefs.png" width="250" height="541" alt="Sharing preferred days and servings for Workday Breakfast"></div><figcaption><b>Share preferences</b><span>Days, servings, delivery or pickup</span></figcaption></figure>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Concepts and their default days and serving ranges come from the demo's plan configuration. No dishes, prices, nutrition claims or demand figures are shown, because none have been confirmed.</span><span>3 / 5</span></div>
+  <aside class="notes"><ul>
+    <li>Be explicit: these are our ideas. Ask what Vaaradhi's breakfast offering is today, if any.</li>
+    <li>Demo: Healthy Meal Plans → Share my preferences → submit, then show it on the Vaaradhi side.</li>
+    <li>Discovery: which items could be made consistently, daily serving limits, delivery or pickup, cutoff time.</li>
+  </ul></aside>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="slide" data-title="Make recurring orders manageable" aria-label="Slide 4">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px">
+    <div><div class="eyebrow">Merchant experience</div><h2 style="margin-top:12px">Make recurring orders manageable.</h2></div>
+    <div class="legend"><span class="lab work">Working in the demo</span><span class="lab sample">Sample data · simulated figures</span></div>
+  </div>
+  <div class="s2" style="grid-template-columns:350px 1fr">
+    <div class="points">
+      <div class="pt"><b>One view of orders</b><span>One-time orders and tomorrow's recurring deliveries, filtered by type, date and status.</span></div>
+      <div class="pt"><b>Tomorrow's preparation</b><span>Exact quantities per product, split into plan and one-time, with every customer skip, pause and change listed.</span></div>
+      <div class="pt"><b>Plans, with dates</b><span>Active, paused, changing and ended plans. Changes show when they start; past orders are never rewritten.</span></div>
+      <div class="split">
+        <div class="conf"><b>Confirmed orders</b>Paid one-time orders and recurring grocery deliveries. Counted in Orders, Tomorrow and the run.</div>
+        <div class="intr"><b>Breakfast interest</b>Proposed demand only. Shown separately and never counted as orders or revenue.</div>
+      </div>
+    </div>
+    <div class="phones" style="gap:20px">
+      <figure class="ph"><div class="frame"><img src="assets/slides/m-orders.png" width="212" height="459" alt="Merchant orders with one-time and recurring filters"></div><figcaption><b>Orders</b><span>One-time and recurring</span></figcaption></figure>
+      <figure class="ph"><div class="frame"><img src="assets/slides/m-tomorrow.png" width="212" height="459" alt="Tomorrow's prep sheet and customer changes"></div><figcaption><b>Tomorrow</b><span>Prep sheet and changes</span></figcaption></figure>
+      <figure class="ph"><div class="frame"><img src="assets/slides/m-plans.png" width="212" height="459" alt="Plans with upcoming changes and effective dates"></div><figcaption><b>Plans</b><span>Changes and their dates</span></figcaption></figure>
+      <figure class="ph"><div class="frame"><img src="assets/slides/m-interest.png" width="212" height="459" alt="Breakfast plan interest, labelled as proposed demand"></div><figcaption><b>Breakfast interest</b><span>Kept apart from orders</span></figcaption></figure>
+    </div>
+  </div>
+  <div class="foot"><span class="src">Customers, orders, plans and figures on these screens are sample data in the prototype, not Vaaradhi's business results. Earnings and settlements in the demo are simulated; no payment or messaging service is connected.</span><span>4 / 5</span></div>
+  <aside class="notes"><ul>
+    <li>Demo: Vaaradhi → Tomorrow (prep sheet), then Demo controls → Skip past 9 PM, then Open delivery run.</li>
+    <li>Point out the split: confirmed orders vs breakfast interest.</li>
+    <li>Ask: "How do you plan tomorrow's preparation today? What goes wrong most often?"</li>
+  </ul></aside>
+</section>
+
+<!-- ============ 5 ============ -->
+<section class="slide" data-title="Start small, learn, and expand" aria-label="Slide 5">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px">
+    <div><div class="eyebrow">A possible next step</div><h2 style="margin-top:12px">Start small, learn, and expand.</h2></div>
+    <div class="legend"><span class="lab prop">Proposal for discussion</span></div>
+  </div>
+  <div class="s5">
+    <div class="pilot">
+      <div class="size"><div><b>20–30</b><span>customers</span></div><div><b>2–4</b><span>weeks</span></div></div>
+      <p style="margin:-4px 0 0;font-size:14.5px;color:var(--amber);font-weight:700">Illustrative starting point: a proposal, not a forecast or a commitment. Subject to operational feasibility and commercial terms agreed with Vaaradhi.</p>
+      <ol class="steps">
+        <li><b>1 · Agree the scope</b>Products, cutoff time, delivery or pickup, and whether to test breakfast</li>
+        <li><b>2 · Set up</b>Catalogue, eligible plans and any confirmed breakfast details</li>
+        <li><b>3 · Run alongside</b>Existing channels continue unchanged</li>
+        <li><b>4 · Review together</b>Decide whether to continue, change or stop</li>
+      </ol>
+    </div>
+    <div class="measure">
+      <h3>What we'd measure together</h3>
+      <ul>
+        <li>Customer sign-ups</li><li>Paid and completed orders</li>
+        <li>Repeat participation</li><li>On-time fulfilment</li>
+        <li>Contribution margin</li><li>Food waste, where measurable</li>
+        <li>Customer feedback</li>
+      </ul>
+      <p style="margin:18px 0 0;font-size:15px;color:var(--ink-2);line-height:1.5">We'd agree the measures and a baseline from today's operations before the pilot starts, so the review is about evidence rather than opinion.</p>
+    </div>
+  </div>
+  <div class="ask"><p>Could we explore a small pilot to see whether recurring healthy-breakfast orders and easier repeat purchases are valuable for Vaaradhi?</p>
+    <div class="who"><b>Nikhil Reddy Sagili</b>Scribr</div></div>
+  <div class="foot"><span class="src">No results are promised. The pilot would show whether this is worthwhile, using numbers we agree on beforehand.</span><span>5 / 5</span></div>
+  <aside class="notes"><ul>
+    <li>Low-pressure ask: a follow-up discovery meeting, not a decision today.</li>
+    <li>Walk through docs/discovery-questions.md and note the answers.</li>
+    <li>Agree who to talk to about kitchen capacity, delivery and payments.</li>
+  </ul></aside>
+</section>
+
+</div></div>
+
+<div class="notespanel" id="notes" hidden><h4>Presenter notes</h4><div id="notesBody"></div></div>
+
+<nav class="controls" aria-label="Slide controls">
+  <span class="hint">← → to move · N notes · F full screen</span><span class="spacer"></span>
+  <button id="prev" aria-label="Previous slide">‹ Back</button>
+  <div class="dots" id="dots"></div>
+  <span class="count" id="count" aria-live="polite">1 / 5</span>
+  <button id="next" aria-label="Next slide">Next ›</button>
+  <span class="spacer"></span>
+  <button id="notesBtn" aria-pressed="false">Notes</button>
+  <button id="fsBtn">Full screen</button>
+</nav>
+
+<script src="data/config.js"></script>
+<script src="data/plans.js"></script>
+<script>
+(function(){
+  const slides = [...document.querySelectorAll('.slide')], N = slides.length;
+  const stage = document.getElementById('stage'), vp = document.getElementById('viewport');
+  const dots = document.getElementById('dots'), count = document.getElementById('count');
+  const notes = document.getElementById('notes'), notesBody = document.getElementById('notesBody'), notesBtn = document.getElementById('notesBtn');
+  let i = 0;
+
+  // Vaaradhi logo only when the local meeting copy enables brand assets.
+  const cfg = window.DEMO_CONFIG || {};
+  if (cfg.assetMode === 'brand' && cfg.brandAssets && cfg.brandAssets.logo){
+    document.querySelectorAll('[data-logo]').forEach(el => el.innerHTML = `<img src="${cfg.brandAssets.logo}" alt="Vaaradhi Farms">`);
+  }
+
+  // Slide 3 concepts come straight from data/plans.js.
+  const MP = window.MEAL_PLANS;
+  const sched = p => p.schedule === 'weekdays' ? 'Weekdays' : p.schedule === 'weekly' ? 'Once a week' : 'Customer chooses the days';
+  const serv = p => p.servingsOptions.length > 1 ? `${p.servingsOptions[0]}–${p.servingsOptions[p.servingsOptions.length - 1]} servings` : `${p.servingsOptions[0]} serving`;
+  document.getElementById('concepts').innerHTML = MP ? MP.plans.map(p => `<div class="cc"><b>${p.name}</b><p>${p.summary}</p><div class="chips"><span class="chip">${sched(p)}</span><span class="chip b">${serv(p)}</span></div></div>`).join('') : '';
+
+  dots.innerHTML = slides.map((s, k) => `<button data-k="${k}" aria-label="Slide ${k + 1}: ${s.dataset.title}">${k + 1}</button>`).join('');
+
+  function fit(){
+    const w = vp.clientWidth, h = vp.clientHeight, sc = Math.min((w - 24) / 1600, (h - 24) / 900);
+    stage.style.transform = `translate(-50%, -50%) scale(${Math.max(sc, 0.1)})`;
+  }
+  function go(k, push = true){
+    i = Math.max(0, Math.min(N - 1, k));
+    slides.forEach((s, n) => s.classList.toggle('on', n === i));
+    dots.querySelectorAll('button').forEach((b, n) => b.setAttribute('aria-current', String(n === i)));
+    count.textContent = `${i + 1} / ${N}`;
+    document.getElementById('prev').disabled = i === 0;
+    document.getElementById('next').disabled = i === N - 1;
+    notesBody.innerHTML = slides[i].querySelector('.notes').innerHTML;
+    document.title = `${i + 1}. ${slides[i].dataset.title} · Scribr × Vaaradhi Farms`;
+    if (push && location.hash !== '#' + (i + 1)) history.replaceState(null, '', '#' + (i + 1));
+  }
+  const toggleNotes = () => { notes.hidden = !notes.hidden; notesBtn.setAttribute('aria-pressed', String(!notes.hidden)); };
+  const fullscreen = () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(() => {}); else document.exitFullscreen(); };
+
+  document.getElementById('prev').onclick = () => go(i - 1);
+  document.getElementById('next').onclick = () => go(i + 1);
+  dots.onclick = e => { const b = e.target.closest('button'); if (b) go(+b.dataset.k); };
+  notesBtn.onclick = toggleNotes;
+  document.getElementById('fsBtn').onclick = fullscreen;
+  document.addEventListener('keydown', e => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (['ArrowRight','PageDown',' '].includes(e.key)){ e.preventDefault(); go(i + 1); }
+    else if (['ArrowLeft','PageUp'].includes(e.key)){ e.preventDefault(); go(i - 1); }
+    else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(N - 1);
+    else if (e.key === 'n' || e.key === 'N') toggleNotes();
+    else if (e.key === 'f' || e.key === 'F') fullscreen();
+  });
+  addEventListener('resize', fit);
+  if ('ResizeObserver' in window) new ResizeObserver(fit).observe(vp);   // also refits on full screen and window snapping
+  addEventListener('hashchange', () => go((parseInt(location.hash.slice(1), 10) || 1) - 1, false));
+  window.__slides = {go, get index(){ return i; }, count:N, fit};
+  fit(); go((parseInt(location.hash.slice(1), 10) || 1) - 1, false);
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>

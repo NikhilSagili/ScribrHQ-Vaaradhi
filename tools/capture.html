@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slide screenshot capture</title>
+<!-- Used by tools/capture_slides.py. Loads the demo in a phone-sized frame, sets up one screen, and lets
+     headless Chrome take the screenshot. Not part of the demo itself. -->
+<style>html,body{margin:0;background:#fff}iframe{border:0;width:390px;height:844px;display:block}</style>
+</head>
+<body>
+<iframe id="f" title="Demo"></iframe>
+<script>
+const q = new URLSearchParams(location.search), shot = q.get('shot'), app = q.get('app') || '../index.html';
+// Each shot: which app side, the actions to run (same data-a actions the UI uses), and an optional scroll.
+const SHOTS = {
+  'c-home':      {acts:[]},
+  'c-shop':      {acts:[['ctab','shop']]},
+  'c-baskets':   {acts:[['ctab','orders']], scroll:60},
+  'c-subscribe': {acts:[['ctab','shop'],['buy-open','desi-eggs-6-pcs|sub'],['s-freq','days'],['s-preset','2']]},
+  'c-manage':    {acts:[['ctab','sched'],['manage','s1']]},
+  'c-meals':     {acts:[['ctab','meals']]},
+  'c-meal-prefs':{acts:[['ctab','meals'],['meal-open','workday-breakfast']], sheetScroll:150},
+  'm-overview':  {acts:[['view','merchant'],['mtab','home']]},
+  'm-orders':    {acts:[['view','merchant'],['mtab','orders'],['of','date:all']]},
+  'm-tomorrow':  {acts:[['view','merchant'],['mtab','today']], mscroll:250},
+  'm-plans':     {acts:[['view','merchant'],['mplans','changes']]},
+  'm-interest':  {acts:[['ctab','meals'],['meal-open','healthy-start'],['meal-preset','2'],['meal-serv','2'],['meal-ful','pickup'],['meal-submit'],['close'],['view','merchant'],['mtab','interest']]},
+};
+const S_ = SHOTS[shot];
+f.onload = () => setTimeout(() => {
+  const w = f.contentWindow, d = w.document;
+  const st = d.createElement('style'); st.textContent = '.top{display:none!important}'; d.head.appendChild(st);   // hide the demo-controls bar
+  const act = (a, v) => { const b = d.createElement('button'); b.dataset.a = a; if (v != null) b.dataset.v = v; d.body.appendChild(b); b.click(); b.remove(); };
+  act('reset');
+  if (!S_) return;
+  S_.acts.forEach(([a, v]) => act(a, v));
+  setTimeout(() => {
+    if (S_.scroll){ const b = d.querySelector('#custApp .body'); if (b) b.scrollTop = S_.scroll; }
+    if (S_.mscroll){ const b = d.querySelector('#merchApp .body'); if (b) b.scrollTop = S_.mscroll; }
+    if (S_.sheetScroll){ const b = d.querySelector('#custApp .sheet-sc'); if (b) b.scrollTop = S_.sheetScroll; }
+  }, 4700);   // after any pop-up notice has cleared
+}, 400);
+f.src = app + (app.includes('?') ? '&' : '?') + 'capture=' + Date.now();
+</script>
+</body>
+</html>

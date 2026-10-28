@@ -1,0 +1,483 @@
+<title>ARCHIVED · Vaaradhi Every Morning (old pitch)</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+/* One deliberate light look, matching the Vaaradhi app demo. Every color is set explicitly. */
+:root{
+  --bg:#F6F7F3; --card:#FFFFFF; --ink:#111613; --ink-2:#39423D; --muted:#5F6863; --line:#E4E8E2;
+  --brand:#0F7A3D; --brand-2:#139A4E; --brand-soft:#E7F6EC; --brand-ink:#0B5A2D;
+  --yellow:#FFD23F; --yellow-soft:#FFF5D1; --red:#E23744; --red-soft:#FDE8EA; --dark:#0E1511; --blue:#2563EB; --blue-soft:#EAF1FF;
+  --ui:"Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px}
+h1,h2,h3{margin:0;letter-spacing:-.03em;line-height:1.05;text-wrap:balance}
+p{margin:0}
+img{display:block;max-width:100%}
+a{color:inherit}
+mark{background:linear-gradient(transparent 60%, var(--yellow) 60%);color:inherit;padding:0 .05em}
+.eyebrow{font-size:13px;font-weight:800;color:var(--brand);letter-spacing:.06em;text-transform:uppercase}
+.btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:800;font-size:15px;padding:14px 20px;border-radius:14px;white-space:nowrap}
+.btn.p{background:var(--brand);color:#fff;box-shadow:0 14px 28px -14px rgba(15,122,61,.8)}
+.btn.g{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid var(--brand-2);outline-offset:3px}
+
+/* nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:rgba(246,247,243,.9);backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px}
+.brand i{width:32px;height:32px;border-radius:9px;background:var(--brand);color:#fff;display:grid;place-items:center;font-style:normal;font-size:16px}
+.brand span{color:var(--muted);font-weight:600}
+.nav .btn{padding:10px 14px;font-size:13.5px}
+
+section{padding-block:96px}
+.head{max-width:760px;display:flex;flex-direction:column;gap:14px;margin-bottom:44px}
+.head h2{font-size:clamp(34px,5vw,56px);font-weight:800}
+.head p{font-size:18px;color:var(--muted);max-width:60ch}
+
+/* hero */
+.hero{padding-block:64px 40px;overflow:hidden}
+.hero-g{display:grid;grid-template-columns:1.05fr 1fr;gap:40px;align-items:center}
+.hero h1{font-size:clamp(42px,6.6vw,80px);font-weight:800;letter-spacing:-.04em;line-height:.98}
+.hero h1 em{font-style:normal;color:var(--brand)}
+.hero .lede{margin-top:22px;font-size:19px;color:var(--ink-2);max-width:44ch}
+.ctas{display:flex;gap:10px;flex-wrap:wrap;margin-top:30px}
+.proof{display:flex;gap:8px;flex-wrap:wrap;margin-top:26px}
+.proof span{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:700;background:#fff;padding:8px 12px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line)}
+.proof b{color:var(--brand)}
+.duo{position:relative;height:560px;display:flex;justify-content:center}
+.duo .phone{position:absolute}
+.duo .ph-a{left:4%;top:20px;z-index:2;transform:rotate(-4deg)}
+.duo .ph-b{right:2%;top:0;transform:rotate(4deg)}
+.menu{margin-top:40px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.menu small{font-size:13px;font-weight:700;color:var(--muted)}
+.menu .dots{display:flex}
+.menu .dots img{width:46px;height:46px;border-radius:50%;object-fit:cover;border:3px solid var(--bg);margin-left:-12px}
+.menu .dots img:first-child{margin-left:0}
+
+/* phone mock */
+.phone{width:258px;border-radius:40px;background:#0E1110;padding:8px;box-shadow:0 40px 70px -36px rgba(14,21,17,.55), inset 0 0 0 2px #2A2F2C;font-size:11px;line-height:1.35}
+.scr{position:relative;height:520px;border-radius:33px;overflow:hidden;background:#F3F5F7;display:flex;flex-direction:column;color:#16191C}
+.scr::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:72px;height:20px;border-radius:11px;background:#0E1110;z-index:9}
+.c-h{background:linear-gradient(180deg,#CFEFD9,#E8F7EC 70%,#F3F5F7);padding:36px 12px 8px}
+.c-h b{display:block;font-size:16px;font-weight:800;letter-spacing:-.02em}
+.c-h b em{font-style:normal;color:var(--brand)}
+.c-h small{font-size:9.5px;font-weight:600;color:#3C4247}
+.srch{margin-top:8px;background:#fff;border-radius:10px;padding:7px 9px;color:#9AA1A6;font-size:10px;font-weight:600;border:1px solid #DCE9E0}
+.bn{position:relative;margin:4px 10px 0;height:94px;border-radius:14px;overflow:hidden;color:#fff}
+.bn img{width:100%;height:100%;object-fit:cover}
+.bn::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,40,20,.88),rgba(6,40,20,.2))}
+.bn div{position:absolute;inset:0;z-index:1;padding:9px 10px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px}
+.bn i{align-self:flex-start;margin-bottom:auto;font-style:normal;background:var(--yellow);color:#16191C;font-size:8.5px;font-weight:800;padding:2px 6px;border-radius:99px}
+.bn b{font-size:12.5px;font-weight:800;max-width:15ch;line-height:1.15}
+.sh{display:flex;justify-content:space-between;padding:11px 12px 6px;font-weight:800;font-size:12px}
+.sh span{color:var(--brand);font-size:10px}
+.cards{display:flex;gap:7px;padding:0 10px}
+.pc{flex:1;background:#fff;border-radius:11px;padding:5px;display:flex;flex-direction:column;gap:2px}
+.pc img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;margin-bottom:3px}
+.pc b{font-size:10px;font-weight:700;line-height:1.2}
+.pc small{font-size:8.5px;color:#737A80}
+.pc .r{display:flex;justify-content:space-between;align-items:center;margin-top:2px;font-weight:800;font-size:10.5px}
+.add{border:1.2px solid var(--brand);color:var(--brand);background:#F4FBF6;font-size:9px;font-weight:800;padding:2px 8px;border-radius:6px}
+.qb{background:var(--brand);color:#fff;font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:6px;letter-spacing:.06em}
+.cart{position:absolute;left:8px;right:8px;bottom:46px;background:var(--brand);color:#fff;border-radius:11px;padding:7px 10px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:11px;box-shadow:0 10px 20px -10px rgba(15,122,61,.8)}
+.cart small{display:block;font-size:9px;opacity:.85;font-weight:600}
+.tabs{margin-top:auto;display:flex;justify-content:space-around;background:#fff;border-top:1px solid #ECEEF1;padding:7px 0 10px;font-size:8.5px;font-weight:700;color:#8A9196}
+.tabs .on{color:var(--brand)}
+.m-h{background:var(--dark);color:#fff;padding:34px 12px 10px;display:flex;align-items:center;gap:7px}
+.m-h i{width:26px;height:26px;border-radius:8px;background:var(--brand-2);display:grid;place-items:center;font-style:normal;font-weight:800;font-size:10px}
+.m-h div{flex:1}
+.m-h b{display:block;font-size:12px;font-weight:800}
+.m-h small{font-size:9px;opacity:.65}
+.m-h u{text-decoration:none;font-size:9px;font-weight:800;background:rgba(255,255,255,.1);padding:3px 7px;border-radius:99px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:9px 9px 0}
+.stats div{background:#fff;border-radius:10px;padding:7px}
+.stats span{display:block;font-size:8px;color:#737A80;font-weight:700}
+.stats b{font-size:14px;font-weight:800}
+.lbl{padding:10px 12px 5px;font-size:8.5px;font-weight:800;color:#737A80;letter-spacing:.08em}
+.oc{margin:0 9px 7px;background:#fff;border-radius:12px;padding:9px;display:flex;flex-direction:column;gap:7px}
+.oc.new{background:#FFFDF3;box-shadow:inset 0 0 0 1.5px var(--yellow)}
+.oc .t{display:flex;justify-content:space-between;align-items:flex-start}
+.oc .t b{display:block;font-size:11px;font-weight:800}
+.oc .t small{font-size:8.5px;color:#737A80}
+.oc .amt{text-align:right;font-weight:800;font-size:11.5px}
+.ch{display:inline-block;font-size:7.5px;font-weight:800;padding:2px 5px;border-radius:99px;margin-top:2px}
+.ch.y{background:var(--yellow-soft);color:#7A5B00}.ch.b{background:var(--blue-soft);color:var(--blue)}.ch.g{background:var(--brand-soft);color:var(--brand-ink)}
+.its{display:flex;gap:4px}
+.it{display:flex;align-items:center;gap:4px;background:#F3F5F7;border-radius:7px;padding:2px 6px 2px 2px;font-size:8.5px;font-weight:700}
+.it img{width:18px;height:18px;border-radius:5px;object-fit:cover}
+.acc{background:var(--brand);color:#fff;text-align:center;font-weight:800;font-size:10px;padding:7px;border-radius:8px}
+.acc.dk{background:#16191C}
+.toast{position:absolute;left:8px;right:8px;top:74px;z-index:8;background:#fff;border:1px solid #ECEEF1;border-radius:12px;padding:8px 9px;display:flex;gap:7px;align-items:center;box-shadow:0 14px 26px -12px rgba(0,0,0,.35);font-size:9.5px;font-weight:700;animation:drop .6s 1s both cubic-bezier(.2,.8,.2,1)}
+.toast i{width:22px;height:22px;border-radius:7px;background:var(--yellow);display:grid;place-items:center;font-style:normal;flex:none;font-size:11px}
+.toast small{display:block;font-size:7.5px;color:#737A80;letter-spacing:.07em;font-weight:800}
+@keyframes drop{from{transform:translateY(-10px);opacity:.0}to{transform:none;opacity:1}}
+.ct{padding:36px 12px 6px}
+.ct b{font-size:16px;font-weight:800;letter-spacing:-.02em}
+.tk{margin:4px 9px 0;background:#fff;border-radius:13px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.tk .t{display:flex;justify-content:space-between;align-items:flex-start}
+.tk .t small{display:block;font-size:8.5px;color:#737A80;font-weight:700}
+.tk .t b{font-size:12px;font-weight:800}
+.eta{background:var(--brand-soft);color:var(--brand-ink);font-size:9px;font-weight:800;padding:4px 6px;border-radius:7px}
+.bar5{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
+.bar5 i{height:4px;border-radius:2px;background:#ECEEF1}
+.bar5 i.on{background:var(--brand)}
+.tm{margin:4px 9px 0;background:#fff;border-radius:13px;overflow:hidden}
+.tm-h{background:#121A15;color:#fff;padding:9px 10px;display:flex;justify-content:space-between;align-items:center}
+.tm-h small{display:block;font-size:8px;opacity:.7}
+.tm-h b{font-size:12px;font-weight:800}
+.tm-h u{text-decoration:none;background:var(--yellow);color:#16191C;font-size:8px;font-weight:800;padding:3px 6px;border-radius:99px}
+.rw{display:flex;align-items:center;gap:7px;padding:7px 10px;border-bottom:1px solid #ECEEF1}
+.rw:last-child{border-bottom:0}
+.rw img{width:26px;height:26px;border-radius:7px;object-fit:cover}
+.rw div{flex:1}
+.rw b{display:block;font-size:10px;font-weight:700}
+.rw small{font-size:8.5px;color:#737A80}
+.rw.off b{color:#737A80;text-decoration:line-through}
+.rw .q{font-weight:800;font-size:13px}
+.vac{margin:7px 9px 0;background:var(--brand);color:#fff;border-radius:12px;padding:9px 10px;font-size:9px}
+.vac b{display:block;font-size:11px;font-weight:800}
+.mc{margin:9px 9px 0;border-radius:14px;padding:11px;color:#fff;background:radial-gradient(130% 150% at 100% 0%,#1F9E55 0%,#0F6B36 50%,#0A3F21 100%)}
+.mc small{font-size:8.5px;opacity:.8}
+.mc b.big{display:block;font-size:13px;font-weight:800;margin:1px 0 8px}
+.mc .s3{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.mc .s3 div{background:rgba(255,255,255,.13);border-radius:8px;padding:5px}
+.mc .s3 span{display:block;font-size:7.5px;opacity:.8}
+.mc .s3 b{font-size:12px;font-weight:800}
+.boxm{margin:0 9px;background:#fff;border-radius:12px}
+.saved{margin:7px 9px 0;background:var(--yellow-soft);color:#6B5A1F;border-radius:10px;padding:6px 8px;font-size:8.5px;font-weight:600}
+
+/* losses */
+.loss{background:var(--dark);color:#fff}
+.loss .eyebrow{color:var(--yellow)}
+.loss .head p{color:#A9B5AE}
+.lg{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.lc{background:#16201A;border-radius:22px;padding:28px;display:flex;flex-direction:column;gap:10px}
+.lc .n{font-size:13px;font-weight:800;color:var(--yellow);display:flex;align-items:center;gap:8px}
+.lc .n::before{content:"−";display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:rgba(255,210,63,.15);font-size:16px;line-height:1}
+.lc h3{font-size:24px;font-weight:800}
+.lc p{color:#A9B5AE;font-size:15.5px}
+.loss-close{margin-top:40px;font-size:clamp(22px,3vw,30px);font-weight:800;letter-spacing:-.02em;max-width:30ch}
+.loss-close em{font-style:normal;color:var(--yellow)}
+
+/* feature rows */
+.feat{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;padding-block:28px}
+.feat + .feat{border-top:1px solid var(--line)}
+.feat.rev .ftxt{order:2}
+.ftxt{display:flex;flex-direction:column;gap:14px}
+.ftxt .k{display:inline-flex;align-self:flex-start;font-size:12.5px;font-weight:800;padding:6px 11px;border-radius:999px;background:var(--brand-soft);color:var(--brand-ink)}
+.ftxt h3{font-size:clamp(28px,3.6vw,40px);font-weight:800}
+.ftxt p{font-size:17px;color:var(--muted);max-width:46ch}
+.ftxt ul{margin:4px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.ftxt li{display:flex;gap:10px;font-size:15.5px;font-weight:600;color:var(--ink-2)}
+.ftxt li::before{content:"";flex:none;width:20px;height:20px;border-radius:6px;margin-top:2px;background:var(--brand) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/13px no-repeat}
+.fvis{display:flex;justify-content:center;padding:28px;border-radius:28px;background:linear-gradient(160deg,#E7F6EC,#F6F7F3 70%)}
+
+/* worth */
+.worth{display:grid;grid-template-columns:1fr 1.1fr;gap:16px;align-items:stretch}
+.inputs{background:#fff;border-radius:24px;padding:26px;display:flex;flex-direction:column;gap:22px;box-shadow:inset 0 0 0 1px var(--line)}
+.inp label{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:15px;margin-bottom:8px}
+.inp output{font-size:20px;font-weight:800;color:var(--brand)}
+.inp small{display:block;font-size:12.5px;color:var(--muted);margin-top:4px;font-weight:500}
+input[type=range]{width:100%;accent-color:var(--brand)}
+.rates{display:flex;gap:6px;flex-wrap:wrap}
+.rates button{font:inherit;font-weight:800;font-size:13.5px;padding:8px 13px;border-radius:10px;border:0;background:var(--bg);color:var(--ink);cursor:pointer}
+.rates button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.outs{display:flex;flex-direction:column;gap:12px}
+.big{flex:1;background:var(--brand);color:#fff;border-radius:24px;padding:30px;display:flex;flex-direction:column;justify-content:center;gap:6px;
+  background:radial-gradient(120% 140% at 100% 0%,#22B862 0%,#0F7A3D 45%,#0A4F28 100%)}
+.big span{font-size:15px;opacity:.9;font-weight:600}
+.big b{font-size:clamp(44px,6vw,68px);font-weight:800;letter-spacing:-.03em;line-height:1}
+.big small{font-size:14px;opacity:.85;font-weight:600}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mini{background:#fff;border-radius:20px;padding:20px;box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:4px}
+.mini span{font-size:13.5px;color:var(--muted);font-weight:600}
+.mini b{font-size:28px;font-weight:800;letter-spacing:-.02em}
+.mini.r b{color:var(--red)}
+.fine{font-size:13px;color:var(--muted);margin-top:14px;max-width:80ch}
+
+/* day */
+.day{display:grid;grid-template-columns:repeat(5,1fr);gap:0;background:#fff;border-radius:24px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
+.day div{padding:24px 20px;display:flex;flex-direction:column;gap:8px;border-right:1px solid var(--line)}
+.day div:last-child{border-right:0;background:var(--brand-soft)}
+.day time{font-size:13px;font-weight:800;color:var(--brand)}
+.day b{font-size:18px;font-weight:800;letter-spacing:-.01em}
+.day p{font-size:14px;color:var(--muted)}
+
+/* vs */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.vs > div{border-radius:24px;padding:28px}
+.vs .old{background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+.vs .new{background:var(--dark);color:#fff}
+.vs h3{font-size:22px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.vs h3 span{font-size:12px;font-weight:800;padding:4px 9px;border-radius:99px}
+.vs .old h3 span{background:var(--red-soft);color:var(--red)}
+.vs .new h3 span{background:var(--yellow);color:var(--ink)}
+.vs ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:13px}
+.vs li{display:flex;gap:10px;font-size:15.5px;font-weight:600}
+.vs .old li{color:var(--muted)}
+.vs .old li::before{content:"×";flex:none;color:var(--red);font-weight:800;width:16px}
+.vs .new li::before{content:"✓";flex:none;color:var(--yellow);font-weight:800;width:16px}
+
+/* pilot */
+.pilot{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.pw{background:#fff;border-radius:22px;padding:22px;display:flex;flex-direction:column;gap:8px;box-shadow:inset 0 0 0 1px var(--line)}
+.pw time{font-size:13px;font-weight:800;color:var(--brand)}
+.pw b{font-size:19px;font-weight:800;letter-spacing:-.01em}
+.pw p{font-size:14.5px;color:var(--muted)}
+.pw.end{background:var(--brand);color:#fff;box-shadow:none}
+.pw.end time{color:var(--yellow)}
+.pw.end p{color:#D5F0DE}
+.promise{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+.promise span{font-size:14px;font-weight:700;background:var(--yellow-soft);color:#5C4600;padding:9px 14px;border-radius:12px}
+
+/* close */
+.close{padding-block:40px 96px}
+.ask{position:relative;overflow:hidden;border-radius:32px;background:var(--dark);color:#fff;padding:64px 56px;display:grid;grid-template-columns:1.4fr 1fr;gap:40px;align-items:center}
+.ask::after{content:"";position:absolute;right:-120px;top:-120px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(31,158,85,.55),rgba(31,158,85,0) 70%)}
+.ask > *{position:relative;z-index:1}
+.ask .eyebrow{color:var(--yellow)}
+.ask h2{font-size:clamp(34px,4.8vw,56px);font-weight:800;margin-top:12px}
+.ask p{margin-top:16px;color:#A9B5AE;font-size:17px;max-width:46ch}
+.ask .sig{background:#16201A;border-radius:22px;padding:24px;display:flex;flex-direction:column;gap:6px}
+.ask .sig b{font-size:22px;font-weight:800}
+.ask .sig span{color:#A9B5AE;font-weight:600}
+.ask .sig .btn{margin-top:12px;justify-content:center}
+.foot{margin-top:28px;font-size:12.5px;color:var(--muted);max-width:90ch}
+
+@media (max-width:900px){
+  section{padding-block:68px}
+  .hero-g,.feat,.worth,.vs,.ask{grid-template-columns:1fr}
+  .feat.rev .ftxt{order:0}
+  .duo{height:520px}
+  .lg{grid-template-columns:1fr}
+  .day{grid-template-columns:1fr}
+  .day div{border-right:0;border-bottom:1px solid var(--line)}
+  .pilot{grid-template-columns:1fr 1fr}
+  .ask{padding:40px 24px}
+}
+@media (max-width:560px){
+  .duo{height:480px}
+  .duo .ph-a{left:-6px;transform:rotate(-4deg) scale(.86);transform-origin:top left}
+  .duo .ph-b{right:-6px;transform:rotate(4deg) scale(.86);transform-origin:top right}
+  .pilot,.two{grid-template-columns:1fr}
+  .fvis{padding:20px 10px}
+  .nav .btn{display:none}
+}
+@media (prefers-reduced-motion: reduce){ *{animation:none!important} }
+</style>
+
+<div style="position:sticky;top:0;z-index:999;background:#FFF5D1;color:#5C4600;font:600 14px/1.4 system-ui,sans-serif;padding:10px 16px;border-bottom:1px solid #E9D48A">
+ARCHIVED (October 2026). An earlier pitch page, kept for reference only. It is superseded by <a href="../slides.html" style="color:#0B5A2D">slides.html</a>.
+It contains positioning that is no longer used (for example implying that existing ordering channels are losing sales, unverified claims about competitors, and placeholder photos). Do not present it.</div>
+<nav class="nav"><div class="wrap">
+  <div class="brand"><i>V</i>Vaaradhi Farms <span>× Scribr</span></div>
+  <a class="btn p" href="#start">Start the pilot</a>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="hero-g">
+    <div>
+      <div class="eyebrow">A proposal for Vaaradhi Farms, Manikonda</div>
+      <h1 style="margin-top:16px">Your regulars, ordering from <em>your own app.</em> Every single day.</h1>
+      <p class="lede">An app with Vaaradhi's name on it. Customers order anytime for same-day delivery, or subscribe once and wake up to Vaaradhi at their door. You know tomorrow's orders by 9 PM, and every rupee goes straight to your account.</p>
+      <div class="ctas"><a class="btn p" href="#start">Start a 30-day pilot</a><a class="btn g" href="#app">See how it works</a></div>
+      <div class="proof"><span><b>₹0</b> aggregator commission</span><span><b>9 PM</b> tomorrow's list is final</span><span><b>Your</b> customers, your data</span></div>
+    </div>
+    <div class="duo" aria-label="The Vaaradhi customer app and owner app">
+      <div class="phone ph-b"><div class="scr">
+        <div class="m-h"><i>VF</i><div><b>Vaaradhi Farms</b><small>Manikonda · 7:42 PM</small></div><u>● Open</u></div>
+        <div class="toast"><i>🛍</i><div><small>NEW ORDER · PAID</small>#1043 · Ananya R. · ₹329 · Manikonda</div></div>
+        <div class="stats"><div><span>Orders today</span><b>6</b></div><div><span>In progress</span><b>4</b></div><div><span>Paid</span><b>₹1,714</b></div></div>
+        <div class="lbl">LIVE ORDERS</div>
+        <div class="oc new"><div class="t"><div><b>Ananya Rao</b><small>#1043 · Manikonda · now</small></div><div class="amt">₹329<br><span class="ch y">NEW · PAID</span></div></div>
+          <div class="its"><span class="it"><img src="../img/pongal.jpg" alt="">Pongal × 2</span><span class="it"><img src="../img/juice.jpg" alt="">Juice × 1</span></div>
+          <div class="acc">Accept order</div></div>
+        <div class="oc"><div class="t"><div><b>Karthik Nair</b><small>#1041 · Madhapur</small></div><div class="amt">₹200<br><span class="ch b">Packed</span></div></div>
+          <div class="acc dk">Send out</div></div>
+        <div class="tabs"><span class="on">Orders</span><span>Tomorrow</span><span>Run</span><span>Customers</span></div>
+      </div></div>
+      <div class="phone ph-a"><div class="scr">
+        <div class="c-h"><b>Delivery in <em>45 min</em></b><small>Home · Manikonda, Hyderabad</small><div class="srch">Search pongal, milk, fruit…</div></div>
+        <div class="bn"><img src="../img/banner.jpg" alt=""><div><i>Plan tomorrow · 1h 18m left</i><b>Fresh breakfast at your door by 6:30 AM</b></div></div>
+        <div class="sh">Breakfast <span>See all ›</span></div>
+        <div class="cards">
+          <div class="pc"><img src="../img/pongal.jpg" alt=""><b>Millet Pongal Box</b><small>1 box</small><div class="r">₹120<span class="qb">− 2 +</span></div></div>
+          <div class="pc"><img src="../img/juice.jpg" alt=""><b>ABC Juice</b><small>300 ml</small><div class="r">₹89<span class="qb">− 1 +</span></div></div>
+        </div>
+        <div class="cart"><div>View cart<small>3 items · ₹329</small></div>›</div>
+        <div class="tabs"><span class="on">Home</span><span>Orders</span><span>Plans</span><span>Wallet</span></div>
+      </div></div>
+    </div>
+  </div>
+  <div class="menu"><div class="dots"><img src="../img/pongal.jpg" alt=""><img src="../img/fruitbox.jpg" alt=""><img src="../img/juice.jpg" alt=""><img src="../img/greens.jpg" alt=""><img src="../img/eggs.jpg" alt=""><img src="../img/bowl.jpg" alt=""></div><small>Your whole menu, on your customers' home screens</small></div>
+</div></header>
+
+<section class="loss" id="losing"><div class="wrap">
+  <div class="head"><div class="eyebrow">What slips away today</div><h2>Every day without your own app, Vaaradhi leaves sales on the table.</h2>
+    <p>You've built the food, the trust and same-day delivery across Hyderabad. These are the four places where that demand quietly leaks away.</p></div>
+  <div class="lg">
+    <div class="lc"><span class="n">The forgotten order</span><h3>The regular who meant to order, and didn't.</h3><p>Every repeat sale depends on a customer remembering to send a WhatsApp message. Busy mornings, a long day at work, and the order never comes.</p></div>
+    <div class="lc"><span class="n">The borrowed customer</span><h3>The customer who belongs to Swiggy.</h3><p>Every delivery-app order takes a commission. The customer's number, history and next order stay with the platform, not with you.</p></div>
+    <div class="lc"><span class="n">The guessed morning</span><h3>The breakfast made for nobody.</h3><p>Without tomorrow's orders in hand, you cook and stock on a guess. Too much is waste. Too little is a customer turned away.</p></div>
+    <div class="lc"><span class="n">The booked morning</span><h3>Mornings already taken by someone else.</h3><p>Milk and breakfast subscription apps are already on Hyderabad phones. A morning habit goes to whoever asks first. Once it's set, it rarely moves.</p></div>
+  </div>
+  <p class="loss-close">Your customers already love Vaaradhi. <em>The only thing missing is a way for them to say yes every morning.</em></p>
+</div></section>
+
+<section id="app"><div class="wrap">
+  <div class="head"><div class="eyebrow">The app</div><h2>One app with your name on it. <mark>Two ways to buy.</mark> One place to run it all.</h2>
+    <p>Your customers get the Vaaradhi app on their phone. You get the Vaaradhi owner app. Scribr builds and runs both.</p></div>
+
+  <div class="feat">
+    <div class="ftxt"><span class="k">For your customers · Order now</span><h3>Want it now? It's at their door the same day.</h3>
+      <p>The WhatsApp order, without the WhatsApp. Customers browse your menu with photos, tap ADD and pay in the app.</p>
+      <ul><li>Same-day delivery with your own team</li><li>Paid before you accept, so there's no cash to collect</li><li>Customers follow the order live, so nobody calls to ask "where is it?"</li></ul></div>
+    <div class="fvis"><div class="phone"><div class="scr">
+      <div class="ct"><b>Your orders</b></div>
+      <div class="tk"><div class="t"><div><small>Order #1043 · 7:46 PM</small><b>On the way to you</b></div><span class="eta">~20 min</span></div>
+        <div class="bar5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+        <div class="its"><span class="it"><img src="../img/pongal.jpg" alt="">Pongal Box × 2</span><span class="it"><img src="../img/juice.jpg" alt="">Juice × 1</span></div>
+        <div style="font-size:9px;font-weight:700;color:#3C4247;border-top:1px dashed #ECEEF1;padding-top:6px">₹329 · paid from Vaaradhi wallet</div></div>
+      <div class="lbl">EARLIER</div>
+      <div class="boxm"><div class="rw"><img src="../img/fruitbox.jpg" alt=""><div><b>#1038 · 2 items</b><small>11:20 AM · Delivered</small></div><b>₹250</b></div>
+        <div class="rw"><img src="../img/vegbasket.jpg" alt=""><div><b>#1031 · 3 items</b><small>Yesterday · Delivered</small></div><b>₹230</b></div></div>
+      <div class="tabs"><span>Home</span><span class="on">Orders</span><span>Plans</span><span>Wallet</span></div>
+    </div></div></div>
+  </div>
+
+  <div class="feat rev">
+    <div class="ftxt"><span class="k">For your customers · Every morning</span><h3>Subscribe once. Vaaradhi every morning.</h3>
+      <p>Breakfast, milk, fruit or vegetables on a daily, weekday or weekend plan. Customers skip a day or pause for a trip themselves, before 9 PM the night before.</p>
+      <ul><li>Daily orders that don't depend on anyone remembering</li><li>Vacation mode pauses everything, and you're told instantly</li><li>Customers pay only for what was delivered, from a prepaid balance with Vaaradhi</li></ul></div>
+    <div class="fvis"><div class="phone"><div class="scr">
+      <div class="ct"><b>Plans &amp; tomorrow</b></div>
+      <div class="tm"><div class="tm-h"><div><small>Tomorrow · 6:30 – 8:00 AM</small><b>3 items</b></div><u>1h 18m to edit</u></div>
+        <div class="rw"><img src="../img/milk.jpg" alt="" style="object-position:22% center"><div><b>A2 Cow Milk</b><small>Daily · ₹55</small></div><span class="qb">− 1 +</span></div>
+        <div class="rw"><img src="../img/pongal.jpg" alt=""><div><b>Millet Pongal Box</b><small>Daily · ₹120</small></div><span class="qb">− 1 +</span></div>
+        <div class="rw off"><img src="../img/greens.jpg" alt=""><div><b>Leafy Greens</b><small>Alternate days</small></div><span class="ch y">Skipped · ₹0</span></div></div>
+      <div class="vac"><b>Going out of town?</b>Pause everything for a few days. Pay nothing while away.</div>
+      <div class="tabs"><span>Home</span><span>Orders</span><span class="on">Plans</span><span>Wallet</span></div>
+    </div></div></div>
+  </div>
+
+  <div class="feat">
+    <div class="ftxt"><span class="k">For you · The owner app</span><h3>Know tomorrow tonight. Run the day from one screen.</h3>
+      <p>At 9 PM, tomorrow's list is final. You get an exact prep sheet, a delivery run grouped by area, and live alerts for every order and every change.</p>
+      <ul><li>Make exactly what was ordered, and nothing that won't be paid for</li><li>All of today's orders in one list, not scattered across chats</li><li>Every payment settles straight to your own account</li></ul></div>
+    <div class="fvis"><div class="phone"><div class="scr">
+      <div class="m-h"><i>VF</i><div><b>Vaaradhi Farms</b><small>Manikonda · 9:01 PM</small></div><u>● Locked</u></div>
+      <div class="mc"><small>Tomorrow · prep by 6:00 AM</small><b class="big">Locked at 9:00 PM</b>
+        <div class="s3"><div><span>Deliveries</span><b>38</b></div><div><span>Items</span><b>71</b></div><div><span>Revenue</span><b>₹7,940</b></div></div></div>
+      <div class="saved"><b>9 items not packed</b> because customers paused. No waste.</div>
+      <div class="lbl">PREP SHEET</div>
+      <div class="boxm">
+        <div class="rw"><img src="../img/milk.jpg" alt="" style="object-position:22% center"><div><b>A2 Cow Milk</b><small>500 ml</small></div><span class="q">× 24</span></div>
+        <div class="rw"><img src="../img/pongal.jpg" alt=""><div><b>Millet Pongal Box</b><small>1 box</small></div><span class="q">× 17</span></div>
+        <div class="rw"><img src="../img/fruitbox.jpg" alt=""><div><b>Seasonal Fruit Box</b><small>1 kg</small></div><span class="q">× 11</span></div></div>
+      <div class="tabs"><span>Orders</span><span class="on">Tomorrow</span><span>Run</span><span>Earnings</span></div>
+    </div></div></div>
+  </div>
+</div></section>
+
+<section id="worth" style="padding-top:40px"><div class="wrap">
+  <div class="head"><div class="eyebrow">What it's worth</div><h2>Put in your own numbers.</h2><p>Slide to what feels right for Vaaradhi. Nothing here is our estimate of your business.</p></div>
+  <div class="worth">
+    <div class="inputs">
+      <div class="inp"><label for="subs">Morning subscribers <output id="oSubs"></output></label><input type="range" id="subs" min="10" max="400" step="10" value="50"><small>Start with your WhatsApp regulars</small></div>
+      <div class="inp"><label for="basket">Average morning order <output id="oBasket"></output></label><input type="range" id="basket" min="50" max="500" step="10" value="150"><small>Breakfast box plus milk, for example</small></div>
+      <div class="inp"><label for="inst">Same-day orders a day <output id="oInst"></output></label><input type="range" id="inst" min="0" max="150" step="5" value="20"><small>What comes in on WhatsApp today</small></div>
+      <div class="inp"><label for="instv">Average same-day order <output id="oInstv"></output></label><input type="range" id="instv" min="100" max="1500" step="10" value="350"></div>
+      <div class="inp"><label>Your delivery-app commission</label><div class="rates" id="rates"></div><small>Pick the rate you actually pay</small></div>
+    </div>
+    <div class="outs">
+      <div class="big"><span>Through your own app, every month</span><b id="rMonth"></b><small id="rSplit"></small></div>
+      <div class="two">
+        <div class="mini r"><span>Commission the same orders would cost on a delivery app</span><b id="rComm"></b></div>
+        <div class="mini"><span>Orders a month nobody has to type on WhatsApp</span><b id="rOrders"></b></div>
+      </div>
+    </div>
+  </div>
+  <p class="fine">Subscriptions = subscribers × average order × 26 mornings. Same-day = orders a day × average order × 30. Standard payment gateway fees apply either way.</p>
+</div></section>
+
+<section style="padding-top:40px"><div class="wrap">
+  <div class="head"><div class="eyebrow">A day with your app</div><h2>Orders all day. A finished list by 9 PM. Paid by breakfast.</h2></div>
+  <div class="day">
+    <div><time>7 AM – 9 PM</time><b>Order now</b><p>Same-day orders come in paid. Accept, pack, send.</p></div>
+    <div><time>Until 9 PM</time><b>Plan tomorrow</b><p>Customers subscribe, add extras, skip or pause.</p></div>
+    <div><time>9:00 PM</time><b>List locks</b><p>Your prep sheet for tomorrow is final.</p></div>
+    <div><time>6:30 AM</time><b>Deliver</b><p>Run list by area. Paused customers left off.</p></div>
+    <div><time>After delivery</time><b>Paid</b><p>Straight into your own payment account.</p></div>
+  </div>
+</div></section>
+
+<section style="padding-top:40px"><div class="wrap">
+  <div class="head"><div class="eyebrow">The difference</div><h2>WhatsApp got you here. <mark>Your own app</mark> takes you further.</h2></div>
+  <div class="vs">
+    <div class="old"><h3>Today <span>WhatsApp &amp; delivery apps</span></h3><ul>
+      <li>Every order typed, confirmed and tracked by hand</li>
+      <li>Repeat sales depend on customers remembering</li>
+      <li>Tomorrow's demand is a guess</li>
+      <li>Payments chased one chat at a time</li>
+      <li>Commission on every delivery-app order</li></ul></div>
+    <div class="new"><h3>With your app <span>Vaaradhi Farms</span></h3><ul>
+      <li>Orders arrive paid, with every detail filled in</li>
+      <li>Subscribers order every morning on their own</li>
+      <li>Tomorrow's exact list by 9 PM</li>
+      <li>Money settles straight to your account</li>
+      <li>No aggregator commission. The customer is yours.</li></ul></div>
+  </div>
+</div></section>
+
+<section id="pilot" style="padding-top:40px"><div class="wrap">
+  <div class="head"><div class="eyebrow">The 30-day pilot</div><h2>30 days. Your best 30 regulars. Nothing changes until you're sure.</h2>
+    <p>The app runs alongside WhatsApp, not instead of it. We do the setup and the onboarding. You decide at the end.</p></div>
+  <div class="pilot">
+    <div class="pw"><time>Week 1</time><b>We set it up</b><p>Your menu, photos, prices, delivery areas and the 9 PM rule.</p></div>
+    <div class="pw"><time>Week 2</time><b>Regulars join</b><p>We invite your top WhatsApp customers and help them set up plans.</p></div>
+    <div class="pw"><time>Weeks 3 – 4</time><b>You run it daily</b><p>Orders, prep sheet and delivery run from the app. We watch every order.</p></div>
+    <div class="pw end"><time>Day 30</time><b>You decide</b><p>Orders, repeat customers, waste saved. Keep it, or walk away.</p></div>
+  </div>
+  <div class="promise"><span>WhatsApp keeps working throughout</span><span>Your customers and data stay yours</span><span>No change to your delivery team</span></div>
+</div></section>
+
+<section class="close" id="start"><div class="wrap">
+  <div class="ask">
+    <div><div class="eyebrow">We're starting with one farm in Hyderabad</div><h2>We'd like it to be Vaaradhi.</h2>
+      <p>Give us 20 minutes. We'll place a live order, pause a subscription and show you what your side looks like on a real phone. Then we pick a start date for your first 30 regulars.</p></div>
+    <div class="sig"><span>Your contact</span><b>Nikhil Reddy Sagili</b><span>Scribr</span><span>Reply on WhatsApp to pick a time</span></div>
+  </div>
+  <p class="foot">Concept screens with sample products, customers and prices. Placeholder food photos from Wikimedia Commons, used under their licenses. Pilot terms are agreed together in our meeting. Payments settle to Vaaradhi's own payment-provider account; standard gateway fees apply.</p>
+</div></section>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const rs = n => '₹' + Math.round(n).toLocaleString('en-IN');
+  let rate = 20;
+  const rates = $('rates');
+  [15, 20, 25, 30].forEach(r => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = r + '%'; b.dataset.r = r;
+    b.addEventListener('click', () => { rate = r; calc(); });
+    rates.appendChild(b);
+  });
+  function calc(){
+    const s = +$('subs').value, b = +$('basket').value, n = +$('inst').value, v = +$('instv').value;
+    $('oSubs').textContent = s; $('oBasket').textContent = rs(b); $('oInst').textContent = n; $('oInstv').textContent = rs(v);
+    const sub = s*b*26, one = n*v*30, m = sub + one;
+    $('rMonth').textContent = rs(m);
+    $('rSplit').textContent = rs(sub) + ' from morning plans · ' + rs(one) + ' from same-day orders';
+    $('rComm').textContent = rs(m*rate/100);
+    $('rOrders').textContent = (s*26 + n*30).toLocaleString('en-IN');
+    rates.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(+x.dataset.r === rate)));
+  }
+  ['subs','basket','inst','instv'].forEach(id => $(id).addEventListener('input', calc));
+  calc();
+})();
+</script>

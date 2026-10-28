@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slides checks</title>
+<style>body{font:14px/1.5 ui-monospace,Consolas,monospace;margin:16px}#out .FAIL{color:#b00020;font-weight:700}#out .PASS{color:#0a6b2f}iframe{width:1440px;height:900px;border:1px solid #ccc}</style>
+</head>
+<body>
+<h1>Slides checks</h1>
+<p>Open with a local server (/tests/slides-check.html) or headless Chrome with <code>--allow-file-access-from-files</code>. Works in the public demo and the local meeting copy.</p>
+<div id="summary">running…</div>
+<ol id="out"></ol>
+<iframe id="f" title="Slides under test"></iframe>
+<script>
+const results = [], out = document.getElementById('out'), frame = document.getElementById('f');
+function check(ok, msg){ results.push(!!ok); const li = document.createElement('li'); li.className = ok ? 'PASS' : 'FAIL'; li.textContent = (ok ? 'PASS ' : 'FAIL ') + msg; out.appendChild(li); }
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const load = hash => new Promise(res => { frame.onload = () => res(); frame.src = '../slides.html?t=' + Date.now() + (hash || ''); });
+const TITLES = ['The next opportunity for Vaaradhi Farms', 'Make repeat ordering effortless', 'Explore recurring healthy breakfast', 'Make recurring orders manageable', 'Start small, learn, and expand'];
+
+(async () => {
+  const errors = [];
+  await load(); await wait(400);
+  let w = frame.contentWindow, d = w.document;
+  w.addEventListener('error', e => errors.push(e.message));
+  const ce = w.console.error; w.console.error = (...a) => { errors.push(a.join(' ')); ce.apply(w.console, a); };
+  const $ = s => d.querySelector(s), $$ = s => [...d.querySelectorAll(s)];
+  const key = k => d.dispatchEvent(new w.KeyboardEvent('keydown', {key:k, bubbles:true}));
+  const cur = () => w.__slides.index;
+  const BRAND = (w.DEMO_CONFIG || {}).assetMode === 'brand';
+  try {
+    const slides = $$('.slide');
+    check(slides.length === 5, `exactly five slides (got ${slides.length})`);
+    check(JSON.stringify(slides.map(s => s.dataset.title)) === JSON.stringify(TITLES), 'slide titles in the agreed order');
+    check(cur() === 0 && $$('.slide.on').length === 1 && slides[0].classList.contains('on'), 'opens on slide 1, one slide visible');
+    check($('#prev').disabled && !$('#next').disabled, 'Back disabled on the first slide');
+    $('#next').click(); check(cur() === 1 && $('#count').textContent === '2 / 5', 'Next button → slide 2, counter updates');
+    key('ArrowRight'); check(cur() === 2, 'right arrow → slide 3');
+    key('ArrowLeft'); check(cur() === 1, 'left arrow → slide 2');
+    key('End'); check(cur() === 4 && $('#next').disabled, 'End → slide 5, Next disabled');
+    key('ArrowRight'); check(cur() === 4, 'cannot go past the last slide');
+    key('Home'); check(cur() === 0, 'Home → slide 1');
+    $$('#dots button')[3].click(); check(cur() === 3 && $$('#dots button')[3].getAttribute('aria-current') === 'true', 'dot 4 → slide 4');
+    key('n'); check(!$('#notes').hidden && $('#notesBody').textContent.length > 40, 'N shows presenter notes for the current slide');
+    key('n'); check($('#notes').hidden, 'N hides the notes again');
+    check(slides.every(s => s.querySelector('.notes li')), 'every slide has presenter notes');
+
+    // content rules
+    const txt = k => slides[k].textContent;
+    check(!/lack|slow|losing|outdated|problem|frustrat|instead of whatsapp|instead of ekSecond/i.test(txt(0)) && /complement/.test(txt(0)) && /not a replacement/.test(txt(0)), 'slide 1 acknowledges existing channels and positions Scribr as a complement');
+    const MP = w.MEAL_PLANS;
+    const names = $$('#concepts .cc b').map(b => b.textContent);
+    check(MP && JSON.stringify(names) === JSON.stringify(MP.plans.map(p => p.name)), 'slide 3 concepts come from data/plans.js (' + names.join(', ') + ')');
+    check(/proposed by Scribr/i.test(txt(2)) && ['Menu','Price','Portion size','Ingredients and allergens','Delivery or pickup','Availability'].every(x => txt(2).includes(x)), 'slide 3: concepts proposed by Scribr, with every item to be confirmed');
+    check(!/₹/.test(txt(2)) && !/₹/.test(txt(4)), 'no prices on slides 3 and 5');
+    check(/expression of interest only/.test(txt(2)) && /Confirmed orders/.test(txt(3)) && /never counted as orders or revenue/.test(txt(3)), 'confirmed orders and breakfast interest are clearly separated');
+    check(/sample data/i.test(txt(1)) && /sample data/i.test(txt(3)) && /simulated/i.test(txt(3)), 'sample data and simulated figures are labelled');
+    check(/20–30/.test(txt(4)) && /2–4/.test(txt(4)) && /not a forecast or a commitment/.test(txt(4)) && /operational feasibility and commercial terms/.test(txt(4)), 'pilot size labelled as a proposal subject to feasibility and terms');
+    check(/Could we explore a small pilot to see whether recurring healthy-breakfast orders and easier repeat purchases are valuable for Vaaradhi\?/.test(txt(4)), 'slide 5 ends with the agreed question');
+    check(['Customer sign-ups','Paid and completed orders','Repeat participation','On-time fulfilment','Contribution margin','Food waste','Customer feedback'].every(m => txt(4).includes(m)), 'slide 5 lists all seven measures');
+    check([1,2,3,4].every(k => slides[k].querySelector('.legend .lab')), 'slides 2–5 label what is working, sample or proposed');
+    check(!/UPI AutoPay|WhatsApp notification|SMS|live inventory|real-time sync/i.test(slides.map(s => s.textContent).join(' ')), 'no unsupported integration claims');
+    check(/provisional/.test(txt(1)), 'cutoff described as provisional');
+
+    // images
+    await wait(500);
+    const imgs = $$('.slide img');
+    const shots = imgs.filter(i => i.getAttribute('src').startsWith('assets/slides/'));
+    check(shots.length === 10, `10 demo screenshots placed (got ${shots.length})`);
+    const broken = imgs.filter(i => !i.complete || i.naturalWidth === 0).map(i => i.getAttribute('src'));
+    check(broken.length === 0, `every image loads (${imgs.length})` + (broken.length ? ': ' + broken.join(', ') : ''));
+    check(imgs.every(i => /^assets\/slides\/[a-z-]+\.png$/.test(i.getAttribute('src')) || (BRAND && i.getAttribute('src') === w.DEMO_CONFIG.brandAssets.logo)), 'images only come from assets/slides (plus the logo in the meeting copy)');
+    check(BRAND ? !!$('[data-logo] img') : !$('[data-logo] img') && /Vaaradhi Farms/.test($('[data-logo]').textContent), BRAND ? 'meeting copy shows the Vaaradhi logo' : 'public deck shows no Vaaradhi logo (text only)');
+    check(shots.every(i => i.naturalWidth === 780 && i.naturalHeight === 1688), 'screenshots are full phone captures (780×1688)');
+    check(imgs.every(i => i.alt && i.alt.length > 8), 'every screenshot has alt text');
+
+    // layout: every slide's content fits the 1600×900 design
+    const fitBad = [];
+    for (let k = 0; k < 5; k++){ w.__slides.go(k); await wait(60); const s = slides[k]; if (s.scrollHeight > s.clientHeight + 1 || s.scrollWidth > s.clientWidth + 1) fitBad.push(k + 1); }
+    check(!fitBad.length, 'content fits on every slide' + (fitBad.length ? ' (overflow on ' + fitBad + ')' : ''));
+    for (const [vw, vh] of [[1280,720],[1366,768],[1440,900],[1920,1080]]){
+      frame.style.width = vw + 'px'; frame.style.height = vh + 'px'; await wait(100);
+      frame.contentWindow.dispatchEvent(new Event('resize')); await wait(100);   // headless Chrome doesn't deliver resize to frames on its own
+      const r = $('#stage').getBoundingClientRect(), ctl = $('.controls').getBoundingClientRect();
+      const btnR = Math.max(...$$('.controls button').map(b => b.getBoundingClientRect().right)), iw = frame.contentWindow.innerWidth, ih = frame.contentWindow.innerHeight;
+      check(r.left >= 0 && r.right <= iw + 1 && r.top >= 0 && r.bottom <= ctl.top + 1 && btnR <= iw + 1, `${vw}×${vh}: slide and controls fit the window` + ` [slide ${Math.round(r.left)}–${Math.round(r.right)} × ${Math.round(r.top)}–${Math.round(r.bottom)}, controls top ${Math.round(ctl.top)}, last button ${Math.round(btnR)}, inner ${iw}×${ih}]`);
+    }
+    frame.style.width = ''; frame.style.height = '';
+
+    // direct links
+    await load('#3'); await wait(300); w = frame.contentWindow;
+    check(w.__slides.index === 2, 'opening slides.html#3 starts on slide 3');
+  } catch (e) { check(false, 'exception: ' + e.message); }
+  check(errors.length === 0, 'no uncaught errors or console errors' + (errors.length ? ': ' + errors.join(' | ') : ''));
+  const fails = results.filter(r => !r).length;
+  document.getElementById('summary').textContent = `${results.length - fails} passed, ${fails} failed`;
+})();
+</script>
+</body>
+</html>
