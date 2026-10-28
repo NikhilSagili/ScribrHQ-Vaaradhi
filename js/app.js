@@ -68,7 +68,7 @@ const initials = id => C[id].name.split(' ').map(w => w[0]).join('').slice(0,2);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ---------- state ---------- */
-const KEY = 'vaaradhi-demo-v6';
+const KEY = 'vaaradhi-demo-v7';
 let S;
 const ui = {view:'customer', cTab:'home', cCat:'All', q:'', subOnly:false, bname:null, confirmDel:null, mTab:'orders', sheet:null, cToast:null, mToast:null, demoOpen:false,
             confirmCancel:null, prevPrep:null, prevKpi:null, flash:{}, shownToast:{}};
@@ -94,7 +94,7 @@ function seed(){
 
   const st = {day:TDY, phase:'open', subs, vac:{c2:{from:TDY, to:iso(addD(3))}, c6:{from:TMR, to:iso(addD(7))}},
     ovr:{}, extras:[{id:1, cust:'c3', prod:'desi-eggs-6-pcs', qty:1}, {id:2, cust:'c12', prod:'apple-500-g', qty:1}],
-    done:{}, meSettled:false, orders:[], cart:[], baskets:[], interest:{}, oseq:1043, snapshot:null, ledger:[], seq:0, feed:[], unread:0, simStart:Date.now(), lockedAt:null};
+    done:{}, meSettled:false, orders:[], cart:[], baskets:[], mealInterest:[], oseq:1043, snapshot:null, ledger:[], seq:0, feed:[], unread:0, simStart:Date.now(), lockedAt:null};
   S = st;
   const led = (date, text, amt, kind) => st.ledger.push({date, text, amt, kind, seq:st.seq++});
   led(iso(addD(-6)), 'Added to wallet via UPI', 5000, 'in');
@@ -114,6 +114,11 @@ function seed(){
   mk(1017,'me',[{prod:'white-sesame-oil-500-ml',qty:1},{prod:'jowar-flakes-150-g',qty:1},{prod:'dates-250-g',qty:1}], 'delivered', '6:40 PM', iso(addD(-9)));
   mk(1024,'me',[{prod:'desi-eggs-6-pcs',qty:2},{prod:'onion-1-kg',qty:1},{prod:'ragi-idli-rava-500-g',qty:1}], 'delivered', '10:15 AM', iso(addD(-3)));
   st.orders.filter(o => o.cust === 'me').forEach(o => led(o.date, `Order #${o.id} · ${itemsText(o.items)}`, -o.amt, 'out'));
+  // Illustrative breakfast-concept interest from sample customers (labelled 'Sample' in the merchant view).
+  [['healthy-start','c4',[1,3,5],1], ['healthy-start','c8',[1,2,3,4,5,6],2], ['healthy-start','c17',[6,0],1],
+   ['workday-breakfast','c10',[1,2,3,4,5],1], ['workday-breakfast','c22',[1,3,5],2],
+   ['family-breakfast-box','c20',[0],4], ['family-breakfast-box','c13',[6,0],3], ['weekly-healthy-mix','c14',[1],2]]
+    .forEach(([planId, cust, days, servings], i) => st.mealInterest.push({id:'mi-s' + i, planId, cust, days, servings, at:TDY, sample:true}));
   st.baskets.push({id:'b1', name:'Monthly staples', items:[{prod:'sunflower-oil-1-litre',qty:1},{prod:'sona-masuri-rice-1-kg',qty:2},{prod:'minapappu-500-g',qty:1},{prod:'wheat-flour-1-kg',qty:2}]});
   mk(1038,'c8', [{prod:'mango-pickle-300-g',qty:1},{prod:'white-poha-500-g',qty:1}], 'delivered', '11:20 AM');
   mk(1039,'c11',[{prod:'sunflower-oil-1-litre',qty:1},{prod:'wheat-flour-1-kg',qty:1}], 'delivered', '1:05 PM');
@@ -168,6 +173,11 @@ function upcomingChain(s, n = 6){
 const nextChain = s => (upcomingChain(s, 10).find(u => u.status === 'scheduled') || {}).date || null;
 /* A saved change that hasn't started yet: the plan replaces an older version and starts after tomorrow. */
 const pendingFrom = s => s.replaces && s.start > TMR ? s.start : null;
+/* Stable plan order: next delivery first; ended or undated plans last; then product name; then id. */
+const planOrder = (a, b) => { const na = nextChain(a) || '9999', nb = nextChain(b) || '9999'; return na < nb ? -1 : na > nb ? 1 : P[a.prod].name.localeCompare(P[b.prod].name) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0); };
+/* Breakfast-concept interest: separate from plans, orders and revenue. One record per customer per concept. */
+const myInterest = planId => S.mealInterest.find(x => x.cust === 'me' && x.planId === planId) || null;
+const servText = n => n + ' serving' + (n > 1 ? 's' : '');
 const activeSubs = cust => S.subs.filter(s => s.cust === cust && !s.replacedBy);
 function pausedOn(s, d){
   if (s.pausedFrom && d >= s.pausedFrom) return true;
@@ -262,7 +272,7 @@ const I = {
   back:'<path d="M15 5l-7 7 7 7"/>',
 };
 const icon = (k, sz = 0) => `<svg ${sz ? `width="${sz}" height="${sz}"` : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
-const FEED_IC = {order:'bag', new:'repeat', add:'plus', pause:'plane', skip:'x', cancel:'x', lock:'lock', resume:'check'};
+const FEED_IC = {order:'bag', new:'repeat', add:'plus', pause:'plane', skip:'x', cancel:'x', lock:'lock', resume:'check', interest:'bowl'};
 const nav = (tabs, cur, act, badges = {}) => `<nav class="nav">${tabs.map(([k,label,ic]) => `<button class="${cur===k?'on':''}" data-a="${act}" data-v="${k}">${icon(ic)}${label}${badges[k] ? `<i class="nb">${badges[k]}</i>` : ''}</button>`).join('')}</nav>`;
 /* Product visual: Vaaradhi's photo in the local meeting copy (assetMode 'brand'), otherwise a neutral tile. */
 function brandSrc(p){ const m = BRAND && CFG.brandAssets && CFG.brandAssets.productImages; return m && m[p.id] ? CFG.brandAssets.productImageDir + m[p.id] : null; }
@@ -385,7 +395,7 @@ function tomorrowBody(){
   const vac = v
     ? `<div class="vac on"><span class="vi">${icon('plane', 20)}</span><div><b>Vacation mode is on · all plans paused</b><small>${vacRangeText(v)}. Vaaradhi has been told and you won't be charged for these days.</small><button class="vb" data-a="vac-end">I'm back, resume</button></div></div>`
     : `<button class="vac" data-a="vac-open"><span class="vi">${icon('plane', 20)}</span><div><b>Going out of town?</b><small>Vacation mode pauses <b>all ${activeSubs('me').filter(s => !s.cancelledFrom).length} of your plans</b> for a few days. To pause just one plan, use Manage.</small></div></button>`;
-  const plans = activeSubs('me').map(s => {
+  const plans = activeSubs('me').slice().sort(planOrder).map(s => {
     const p = P[s.prod];
     let st = ['Active','g'];
     if (s.cancelledFrom) st = ['Cancelled from ' + fmtS(s.cancelledFrom), 'r'];
@@ -432,12 +442,14 @@ function mealsBody(){
   const sched = p => p.schedule === 'weekdays' ? 'Weekdays' : p.schedule === 'weekly' ? 'Once a week' : 'You choose the days';
   const serv = p => p.servingsOptions.length > 1 ? `${p.servingsOptions[0]}–${p.servingsOptions[p.servingsOptions.length - 1]} servings` : `${p.servingsOptions[0]} serving`;
   return `<div class="mp-intro"><span class="etag">Concept preview</span><p><b>Healthy breakfast, made a regular habit.</b> Scribr proposes exploring flexible healthy-breakfast plans that could make it easier for Vaaradhi customers to enjoy their favourites regularly. Menu, pricing and availability would be defined with Vaaradhi Farms.</p></div>
-    ${MP.plans.map(p => { const on = S.interest[p.id]; return `<div class="mp">
+    ${MP.plans.map(p => { const mine = myInterest(p.id); return `<div class="mp ${mine ? 'done' : ''}">
       <div class="mp-top"><span class="ei">${icon('bowl', 20)}</span><div><b>${p.name}</b><small>${p.summary}</small></div></div>
       <div class="mp-chips"><span class="chip g">${sched(p)}</span><span class="chip b">${serv(p)}</span></div>
       <div class="mp-tbc">${icon('clock', 14)}${MP.unconfirmedLabel}</div>
-      <button class="btn2 ${on ? 'on' : ''}" data-a="meal-interest" data-v="${p.id}" aria-pressed="${!!on}">${on ? icon('check', 15) + 'Interested' : 'I\'m interested'}</button></div>`; }).join('')}
-    <p class="fine">This is a concept for discussion. Meal plans can't be ordered or paid for in this demo.</p>
+      ${mine ? `<div class="mp-mine">${icon('check', 15)}<span>Interest shared: <b>${daysText(mine.days)} · ${servText(mine.servings)}</b></span></div>
+        <div class="two-btn"><button class="btn2" data-a="meal-open" data-v="${p.id}">Edit preferences</button><button class="btn2 danger" data-a="meal-withdraw" data-v="${p.id}">${ui.confirmWd === p.id ? 'Tap again to withdraw' : 'Withdraw'}</button></div>`
+        : `<button class="btn2 pri" data-a="meal-open" data-v="${p.id}">Share my preferences</button>`}</div>`; }).join('')}
+    <p class="fine">Sharing preferences is an expression of interest only. It is not an order or a subscription, nothing is charged, and Vaaradhi Farms has not confirmed any of these plans.</p>
     <div class="spacer"></div>`;
 }
 function sheetHTML(){
@@ -506,6 +518,31 @@ function sheetHTML(){
       <div class="two-btn" style="padding:0 14px">${s.pausedFrom ? `<button class="btn2" data-a="p-resume" data-v="${s.id}">Resume plan</button>` : `<button class="btn2" data-a="p-pause" data-v="${s.id}">Pause plan</button>`}
         <button class="btn2 danger" data-a="p-cancel" data-v="${s.id}">${ui.confirmCancel === s.id ? 'Tap again to cancel' : 'Cancel plan'}</button></div>
       <p class="fine" style="margin-top:0">Skip, pause or change before ${CUTOFF} the day before. Pausing or cancelling takes effect from ${fmtD(editFrom())}.</p></div>`;
+  } else if (sh.type === 'meal'){
+    const MP = window.MEAL_PLANS, p = MP.plans.find(x => x.id === sh.planId), mine = myInterest(p.id), weekly = p.schedule === 'weekly';
+    const tbc = ['Menu', 'Price', 'Portion size', 'Ingredients and allergens', 'Delivery or pickup, and availability'];
+    if (sh.done){
+      inner = `<div class="sh-pad"><div class="mg-head"><span class="ok-ic">${icon('check', 22)}</span><div><div class="sh-title" style="padding:0">Interest recorded</div><small>${p.name} · concept preview</small></div></div>
+        <div class="box" style="padding:14px"><div class="row" style="padding:0 0 8px"><div class="t"><b>Preferred days</b><small>${daysText(mine.days)}</small></div></div>
+          <div class="row" style="padding:8px 0 0"><div class="t"><b>Servings</b><small>${servText(mine.servings)} (indicative)</small></div></div></div>
+        <div class="info">${icon('bell', 16)}<span><b>This is not an order.</b> Nothing is charged, no delivery is scheduled, and Vaaradhi Farms has not confirmed this plan. Your preferences help decide whether to offer it.</span></div></div>`;
+      foot = `<div class="two-btn"><button class="btn2" data-a="meal-edit">Edit preferences</button><button class="btn2 pri" data-a="close">Done</button></div>`;
+    } else {
+      const same = mine && mine.servings === sh.servings && daysText(mine.days) === daysText(sh.days);
+      const ok = sh.days.length > 0;
+      inner = `<div class="sh-pad"><div class="mg-head"><span class="ok-ic meal">${icon('bowl', 22)}</span><div><div class="sh-title" style="padding:0">${p.name}</div><small>${p.summary}</small></div>
+          <button class="x sm" data-a="close" aria-label="Close">×</button></div>
+        <div class="box tbc"><div class="ic-sub" style="padding:12px 0 4px">To be confirmed with Vaaradhi Farms</div>${tbc.map(t => `<div class="row"><div class="t"><b>${t}</b></div><span class="chip y">To be confirmed</span></div>`).join('')}</div>
+        <div class="sh" style="padding:4px 16px 0">Your preferences</div>
+        <div class="box" style="padding:14px;display:flex;flex-direction:column;gap:12px">
+          ${weekly ? `<div class="fld"><label>WHICH DAY OF THE WEEK</label><div class="opts days">${DOW_ORDER.map(d => `<button class="${sh.days.includes(d) ? 'on' : ''}" data-a="meal-day" data-v="${d}" aria-pressed="${sh.days.includes(d)}">${DOW[d]}</button>`).join('')}</div></div>`
+                   : dayPicker(sh.days, 'meal-day', 'meal-preset')}
+          <div class="fld"><label>SERVINGS (INDICATIVE)</label><div class="opts">${p.servingsOptions.map(n => `<button class="${sh.servings === n ? 'on' : ''}" data-a="meal-serv" data-v="${n}" aria-pressed="${sh.servings === n}">${servText(n)}</button>`).join('')}</div></div>
+          ${ok ? `<div class="info" style="margin:0">${icon('sun', 16)}<span>${daysText(sh.days)} · ${servText(sh.servings)}</span></div>` : `<div class="info warn" style="margin:0">${icon('x', 16)}Choose at least one day.</div>`}
+        </div>
+        <div class="info">${icon('bell', 16)}<span>This shares your interest with Vaaradhi Farms. <b>It is not an order or a subscription</b>, and nothing is charged.</span></div></div>`;
+      foot = `<button class="cta c" data-a="meal-submit" ${ok && !same ? '' : 'disabled'}>${same ? 'Preferences already shared' : mine ? 'Update my interest' : 'Share my interest'}</button>`;
+    }
   } else if (sh.type === 'cutoff'){
     const s = sh.subId ? S.subs.find(x => x.id === sh.subId) : null, next = s ? nextEligible(s) : null, p = P[sh.prod];
     inner = `<div class="sh-pad"><div class="sh-title">Tomorrow's delivery is being prepared</div>
@@ -613,7 +650,7 @@ function mRun(){
 }
 function mCustomers(){
   const list = CUSTOMERS.map(c => {
-    const subs = S.subs.filter(s => s.cust === c.id && !s.cancelledFrom);
+    const subs = S.subs.filter(s => s.cust === c.id && !s.cancelledFrom).sort(planOrder);
     const v = S.vac[c.id], vOn = v && (!v.to || v.to >= TMR);
     const allPaused = subs.length && subs.every(s => s.pausedFrom);
     const isNew = subs.some(s => s.isNew);
@@ -622,6 +659,7 @@ function mCustomers(){
   });
   const active = list.filter(x => x.st[1] !== 'y').length;
   return `<div class="stats"><div class="stat"><span>Subscribers</span><b>${list.length}</b></div><div class="stat"><span>Active</span><b>${active}</b></div><div class="stat"><span>Paused</span><b>${list.length - active}</b></div></div>
+    <button class="intcard" data-a="mtab" data-v="interest"><span class="ei">${icon('bowl', 20)}</span><span class="t"><b>Breakfast plan interest · ${S.mealInterest.length} responses</b><small>Proposed demand, not orders</small></span><span class="cb-go">›</span></button>
     <div class="sh">All customers</div>
     <div class="box">${list.map(({c, subs, st}) => `<div class="row">${avatar(c.id)}<div class="t"><b>${c.name}${c.id === 'me' ? '<span class="you">demo</span>' : ''}</b>
       <small>${c.area} · ${subs.map(s => P[s.prod].name.split(' ').slice(-2).join(' ') + ' × ' + s.qty).join(', ') || 'No active plans'}</small></div><span class="chip ${st[1]}">${st[0]}</span></div>`).join('')}</div>
@@ -648,15 +686,35 @@ function mEarnings(){
     <p class="fine">All figures on this screen are simulated sample data. No payment integration is connected. In the proposed setup, payments would settle to Vaaradhi's own payment-provider account, and Scribr would keep the records without holding funds.</p>
     <div class="spacer"></div>`;
 }
+function mInterest(){
+  const MP = window.MEAL_PLANS, all = S.mealInterest, demo = all.filter(x => !x.sample).length;
+  return `<div class="ctb mback"><button class="back" data-a="mtab" data-v="cust" aria-label="Back to customers">${icon('back', 20)}</button><div><b>Breakfast plan interest</b><small>Scribr's proposed concepts · expressions of interest</small></div></div>
+    <div class="intwarn">${icon('bell', 16)}<span><b>Proposed demand, not confirmed orders.</b> Nobody has paid, and no delivery or preparation is scheduled. These responses are not counted in Orders, Tomorrow, Run or Earnings.</span></div>
+    <div class="stats"><div class="stat"><span>Responses</span><b>${all.length}</b></div><div class="stat"><span>From this demo</span><b>${demo}</b></div><div class="stat"><span>Sample</span><b>${all.length - demo}</b></div></div>
+    ${MP.plans.map(p => {
+      const rs_ = all.filter(x => x.planId === p.id);
+      const dc = DOW_ORDER.map(d => [d, rs_.filter(x => x.days.includes(d)).length]), max = Math.max(1, ...dc.map(x => x[1]));
+      const sv = {}; rs_.forEach(x => sv[x.servings] = (sv[x.servings] || 0) + 1);
+      return `<div class="ic" data-plan="${p.id}"><div class="ic-top"><b>${p.name}</b><span class="chip y">${rs_.length} interested</span></div>
+        <div class="ic-sub">Preferred days</div>
+        <div class="dbars" role="img" aria-label="Preferred days for ${p.name}: ${dc.map(([d, n]) => DOW[d] + ' ' + n).join(', ')}">${dc.map(([d, n]) => `<div class="db"><em>${n}</em><i style="height:${Math.round(n / max * 100)}%"></i><span>${DOW[d]}</span></div>`).join('')}</div>
+        <div class="ic-sub">Indicative servings</div>
+        <div class="mp-chips">${Object.keys(sv).sort((a, b) => a - b).map(k => `<span class="chip b">${servText(+k)} · ${sv[k]}</span>`).join('') || '<small class="punit">No responses yet</small>'}</div>
+        ${rs_.length ? `<div class="ic-list">${rs_.map(x => `<div class="row">${avatar(x.cust)}<div class="t"><b>${C[x.cust].name}</b><small>${daysText(x.days)} · ${servText(x.servings)}</small></div><span class="chip ${x.sample ? 'k2' : 'g'}">${x.sample ? 'Sample' : 'This demo'}</span></div>`).join('')}</div>` : ''}
+        <div class="mp-tbc" style="margin-top:8px">${icon('clock', 13)}${MP.unconfirmedLabel}</div></div>`;
+    }).join('')}
+    <p class="fine">"Sample" responses are illustrative data created for this demo, not real Vaaradhi customers. "This demo" responses were submitted in the customer app during this session.</p>
+    <div class="spacer"></div>`;
+}
 function merchHTML(){
   const st = stops(), pr = prep();
   trackChanges(pr, {stops:st.length, items:Object.values(pr).reduce((a,b) => a+b, 0), rev:st.reduce((a,s) => a+s.amt, 0)});
   const pill = S.phase === 'open' ? ['Open',''] : S.phase === 'locked' ? ['Locked','lk'] : ['Run done','dn'];
   const t = ui.mTab;
-  const body = t === 'orders' ? mOrders() : t === 'today' ? mToday() : t === 'run' ? mRun() : t === 'cust' ? mCustomers() : mEarnings();
+  const body = t === 'orders' ? mOrders() : t === 'today' ? mToday() : t === 'run' ? mRun() : t === 'cust' ? mCustomers() : t === 'interest' ? mInterest() : mEarnings();
   return `<div class="mh">${BRAND && CFG.brandAssets.logo ? `<span class="lg2 img"><img src="${CFG.brandAssets.logo}" alt="Vaaradhi Farms"></span>` : '<span class="lg2">VF</span>'}<div class="nm"><b>Vaaradhi Farms</b><small>Manikonda store · ${clock()}</small></div><span class="st-pill ${pill[1]}"><i></i>${pill[0]}</span></div>
     <div class="body mbody" data-scroll="m-${t}">${body}</div>
-    ${nav([['orders','Orders','bag'],['today','Tomorrow','list'],['run','Run','truck'],['cust','Customers','people'],['earn','Earnings','chart']], t, 'mtab', {orders:S.orders.filter(o => o.date === TDY && o.status === 'placed').length})}
+    ${nav([['orders','Orders','bag'],['today','Tomorrow','list'],['run','Run','truck'],['cust','Customers','people'],['earn','Earnings','chart']], t === 'interest' ? 'cust' : t, 'mtab', {orders:S.orders.filter(o => o.date === TDY && o.status === 'placed').length})}
     ${toastHTML(ui.mToast,'m')}`;
 }
 
@@ -711,10 +769,35 @@ const A = {
   'basket-cart'(v){ const b = S.baskets.find(x => x.id === v); if (b) addItemsToCart(b.items); },
   reorder(v){ const o = S.orders.find(x => String(x.id) === v); if (o) addItemsToCart(o.items); },
   'del-basket'(v){ if (ui.confirmDel !== v){ ui.confirmDel = v; return; } S.baskets = S.baskets.filter(b => b.id !== v); ui.confirmDel = null; toastC('Basket deleted.'); },
-  'meal-interest'(v){
+  'meal-open'(v){
     const p = window.MEAL_PLANS.plans.find(x => x.id === v); if (!p) return;
-    S.interest[v] = !S.interest[v];
-    if (S.interest[v]){ notify(`Ananya R. is interested in the ${p.name} concept`, 'new'); toastC('Thanks. This is a concept, so nothing is booked or charged.'); }
+    const mine = myInterest(v);
+    ui.sheet = {type:'meal', planId:v, done:false, days: mine ? mine.days.slice() : (p.schedule === 'weekly' ? [p.days[0]] : p.days.slice()), servings: mine ? mine.servings : p.servingsOptions[0]};
+  },
+  'meal-day'(v){
+    const p = window.MEAL_PLANS.plans.find(x => x.id === ui.sheet.planId), d = +v;
+    if (p.schedule === 'weekly'){ ui.sheet.days = [d]; return; }
+    const ds = new Set(ui.sheet.days); ds.has(d) ? ds.delete(d) : ds.add(d); ui.sheet.days = [...ds];
+  },
+  'meal-preset'(v){ ui.sheet.days = DAY_PRESETS[+v][1].slice(); },
+  'meal-serv'(v){ const p = window.MEAL_PLANS.plans.find(x => x.id === ui.sheet.planId); if (p.servingsOptions.includes(+v)) ui.sheet.servings = +v; },
+  'meal-edit'(){ ui.sheet.done = false; },
+  'meal-submit'(){
+    const sh = ui.sheet; if (!sh || sh.type !== 'meal' || sh.done) return;
+    const p = window.MEAL_PLANS.plans.find(x => x.id === sh.planId); if (!p || !sh.days.length || !p.servingsOptions.includes(sh.servings)) return;
+    const days = DOW_ORDER.filter(d => sh.days.includes(d)), mine = myInterest(p.id);
+    if (mine && mine.servings === sh.servings && daysText(mine.days) === daysText(days)){ sh.done = true; return; }   // nothing new: no duplicate
+    if (mine) Object.assign(mine, {days, servings:sh.servings, at:TDY});
+    else S.mealInterest.push({id:'mi' + Date.now(), planId:p.id, cust:'me', days, servings:sh.servings, at:TDY, sample:false});
+    notify(`Ananya R. ${mine ? 'updated' : 'shared'} interest in ${p.name}: ${daysText(days)}, ${servText(sh.servings)} (not an order)`, 'interest', 'mi' + p.id);
+    sh.done = true;
+  },
+  'meal-withdraw'(v){
+    if (ui.confirmWd !== v){ ui.confirmWd = v; return; }
+    const mine = myInterest(v), p = window.MEAL_PLANS.plans.find(x => x.id === v); ui.confirmWd = null; if (!mine) return;
+    S.mealInterest = S.mealInterest.filter(x => x !== mine);
+    notify(`Ananya R. withdrew interest in ${p.name}`, 'interest');
+    toastC('Interest withdrawn.');
   },
   'skip-date'(v){
     const [id, d] = v.split('|'), s = S.subs.find(x => x.id === id); if (!s || d <= TMR) return;
@@ -884,6 +967,7 @@ document.addEventListener('click', e => {
   const a = el.dataset.a;
   if (a !== 'p-cancel') ui.confirmCancel = null;
   if (a !== 'del-basket') ui.confirmDel = null;
+  if (a !== 'meal-withdraw') ui.confirmWd = null;
   if (A[a]) { A[a](el.dataset.v); render(); }
 });
 document.addEventListener('input', e => { if (e.target.id === 'q'){ ui.q = e.target.value; render(); } else if (e.target.id === 'bname') ui.bname = e.target.value; });
@@ -902,7 +986,7 @@ function draftSub(sh){
 function countIn(s, days){ let n = 0; for (let i = 0; i < days; i++){ if (delivers(s, plus(s.start, i))) n++; } return n; }
 function dayPicker(days, act, presetAct){
   return `<div class="fld"><label>WHICH DAYS</label><div class="opts days">${DOW_ORDER.map(d => `<button class="${(days || []).includes(d) ? 'on' : ''}" data-a="${act}" data-v="${d}" aria-pressed="${(days || []).includes(d)}">${DOW[d]}</button>`).join('')}</div>
-    <div class="opts presets">${DAY_PRESETS.map(([l], i) => `<button data-a="${presetAct}" data-v="${i}">${l}</button>`).join('')}</div></div>`;
+    ${presetAct ? `<div class="opts presets">${DAY_PRESETS.map(([l], i) => `<button data-a="${presetAct}" data-v="${i}">${l}</button>`).join('')}</div>` : ''}</div>`;
 }
 /* First date a change can apply to: the cutoff rule, but never before the plan itself starts. */
 const effFrom = s => s.start > editFrom() ? s.start : editFrom();

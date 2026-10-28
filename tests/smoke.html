@@ -173,9 +173,87 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     check(mps.length === 4 && mps.every(m => /Menu and pricing to be confirmed/.test(m.textContent)), 'all 4 plans say "Menu and pricing to be confirmed"');
     check(mps.every(m => !/₹/.test(m.textContent)), 'no prices on plan cards');
     check(/Concept preview/.test(custText()), 'screen is labelled as a concept preview');
-    click('#custApp [data-a="meal-interest"][data-v="healthy-start"]');
-    check(ev("S.interest['healthy-start']") === true && $('#custApp [data-v="healthy-start"]').getAttribute('aria-pressed') === 'true', 'registering interest works');
-    check(ev("S.feed[0].text").includes('Healthy Start concept'), 'merchant feed records the interest');
+
+    section('Breakfast concepts: customer interest');
+    const intro = $('#custApp .mp-intro').textContent;
+    check(intro.includes('Scribr proposes exploring flexible healthy-breakfast plans') && intro.includes('Menu, pricing and availability would be defined with Vaaradhi Farms'), 'approved "proposed by Scribr" wording is intact');
+    const FOOD = /\b(idli|dosa|pongal|upma|poha|oats|smoothie|paratha|sandwich|salad|juice|porridge|granola|millet|ragi|protein|calorie|vitamin|nutritious|healthy for)\b/i;
+    const snapState = () => JSON.stringify({subs:ev('S.subs.length'), orders:ev('S.orders.length'), ledger:ev('S.ledger.length'), lines:ev('lines()'), prep:ev('prep()'), stops:ev('stops().length'), rev:ev('dayRevenue(TDY).amt'), cart:ev('S.cart.length'), extras:ev('S.extras.length'), bal:ev('balance()')});
+    const before = snapState(), sampleN = ev('S.mealInterest.filter(x => x.sample).length');
+    check(sampleN === 8 && ev("S.mealInterest.every(x => x.sample)"), '8 illustrative sample responses are seeded and marked as samples');
+    for (const plan of w.MEAL_PLANS.plans){
+      act('ctab', 'meals'); click(`#custApp [data-a="meal-open"][data-v="${plan.id}"]`);
+      const sh = $('#custApp .sheet'), txt = sh.textContent;
+      const sel = $$('#custApp .sheet [data-a="meal-day"]').filter(b => b.classList.contains('on')).map(b => +b.dataset.v).sort().join();
+      const want = (plan.schedule === 'weekly' ? [plan.days[0]] : plan.days).slice().sort().join();
+      check(sel === want, `${plan.name}: preferred days start from the concept's defaults (${sel})`);
+      check(JSON.stringify($$('#custApp .sheet [data-a="meal-serv"]').map(b => +b.dataset.v)) === JSON.stringify(plan.servingsOptions), `${plan.name}: serving options come from data/plans.js`);
+      check($$('#custApp .sheet .box.tbc .chip').length === 5 && /To be confirmed with Vaaradhi Farms/.test(txt), `${plan.name}: menu, price, portion, ingredients and availability shown as to be confirmed`);
+      check(!/₹/.test(txt) && !FOOD.test(txt), `${plan.name}: no prices, dishes or health claims`);
+      check(/not an order or a subscription/.test(txt), `${plan.name}: says it is not an order or subscription`);
+      if (plan.schedule === 'weekly'){
+        click('#custApp .sheet [data-a="meal-day"][data-v="3"]'); click('#custApp .sheet [data-a="meal-day"][data-v="5"]');
+        check(JSON.stringify(ev('ui.sheet.days')) === '[5]', 'Weekly Healthy Mix: choosing a day replaces the previous one (one day a week)');
+      }
+      click('#custApp [data-a="meal-submit"]');
+      check(ev('ui.sheet.done') === true && /Interest recorded/.test($('#custApp .sheet').textContent) && /This is not an order/.test($('#custApp .sheet').textContent), `${plan.name}: confirmation shown and says it is not an order`);
+      act('close');
+    }
+    check(ev("S.mealInterest.filter(x => x.cust === 'me').length") === 4, 'one interest record per concept for the demo customer');
+    check(snapState() === before, 'interest creates no plans, orders, charges, deliveries, prep items, revenue or cart items');
+    check(ev("S.feed[0].kind") === 'interest' && /not an order/.test(ev("S.feed[0].text")), "merchant feed notes the interest as not an order");
+
+    act('meal-open', 'healthy-start');
+    [1,2,3,4,5,6].forEach(dd => { if (ev('ui.sheet.days').includes(dd)) click(`#custApp .sheet [data-a="meal-day"][data-v="${dd}"]`); });
+    check(ev('ui.sheet.days.length') === 0 && $('#custApp [data-a="meal-submit"]').disabled && !!$('#custApp .sheet .info.warn'), 'with no day chosen, submitting is disabled and explained');
+    click('#custApp .sheet [data-a="meal-preset"][data-v="2"]'); click('#custApp .sheet [data-a="meal-serv"][data-v="2"]');
+    const nBefore = ev('S.mealInterest.length');
+    click('#custApp [data-a="meal-submit"]');
+    act('meal-submit'); act('meal-submit');
+    check(ev('S.mealInterest.length') === nBefore, 'editing updates the existing record; repeated submits add nothing');
+    const hs = ev("S.mealInterest.find(x => x.cust === 'me' && x.planId === 'healthy-start')");
+    check(JSON.stringify(hs.days) === '[1,3,5]' && hs.servings === 2, 'Healthy Start updated to Mon, Wed, Fri · 2 servings');
+    act('close'); act('meal-open', 'healthy-start');
+    check($('#custApp [data-a="meal-submit"]').disabled && /already shared/.test($('#custApp .sh-foot').textContent), 'reopening with unchanged preferences blocks a duplicate submit');
+    act('close');
+    check(/Interest shared: Mon, Wed, Fri · 2 servings/.test(custText()), 'meal card shows the shared preferences');
+
+    section('Breakfast concepts: merchant view');
+    act('mtab', 'cust');
+    check(new RegExp(`Breakfast plan interest · ${ev('S.mealInterest.length')} responses`).test($('#merchApp').textContent), 'Customers tab links to breakfast interest with the response count');
+    click('#merchApp .intcard');
+    const mtxt = $('#merchApp').textContent;
+    check(ev('ui.mTab') === 'interest' && /Proposed demand, not confirmed orders/.test(mtxt) && /not counted in Orders, Tomorrow, Run or Earnings/.test(mtxt), 'interest screen states it is proposed demand, not orders');
+    for (const plan of w.MEAL_PLANS.plans){
+      const card = $(`#merchApp .ic[data-plan="${plan.id}"]`), n = ev(`S.mealInterest.filter(x => x.planId === '${plan.id}').length`);
+      check(card && card.textContent.includes(`${n} interested`), `${plan.name}: ${n} responses shown`);
+    }
+    const hsCard = $('#merchApp .ic[data-plan="healthy-start"]');
+    const monBar = +$$('.db', hsCard)[0].querySelector('em').textContent;
+    check(monBar === ev("S.mealInterest.filter(x => x.planId === 'healthy-start' && x.days.includes(1)).length"), 'preferred-day bars count the right responses (Monday)');
+    check(/2 servings · /.test(hsCard.textContent) && /This demo/.test(hsCard.textContent) && /Sample/.test(hsCard.textContent), 'serving preferences and Sample / This demo labels are shown');
+    check(/Ananya Rao.*Mon, Wed, Fri · 2 servings/.test(hsCard.textContent), "the demo customer's submission appears with their days and servings");
+    check(!/₹/.test(mtxt) && !FOOD.test(mtxt), 'merchant interest screen shows no prices or dishes');
+    // Read the screens themselves; the live-update pop-up and the feed legitimately mention the interest.
+    act('mtab', 'orders'); const ordTxt = $('#merchApp .body').textContent;
+    act('mtab', 'today'); const tdTxt = $('#merchApp .body').textContent;
+    act('mtab', 'run'); const runTxt = $('#merchApp .body').textContent;
+    act('mtab', 'earn'); const earnTxt = $('#merchApp .body').textContent;
+    check(!/Healthy Start|Workday Breakfast|Family Breakfast|Weekly Healthy/.test(ordTxt + tdTxt.replace(/Live updates[\s\S]*/, '') + runTxt + earnTxt), 'concepts never appear in merchant Orders, prep sheet, Run or Earnings');
+    act('mtab', 'orders');
+
+    section('Breakfast concepts: withdraw and refresh');
+    act('ctab', 'meals'); click('#custApp [data-a="meal-withdraw"][data-v="weekly-healthy-mix"]');
+    check(/Tap again to withdraw/.test(custText()) && ev("!!S.mealInterest.find(x => x.cust === 'me' && x.planId === 'weekly-healthy-mix')"), 'withdraw asks for a second tap');
+    click('#custApp [data-a="meal-withdraw"][data-v="weekly-healthy-mix"]');
+    check(!ev("S.mealInterest.find(x => x.cust === 'me' && x.planId === 'weekly-healthy-mix')") && ev('S.mealInterest.length') === sampleN + 3, 'withdrawing removes only that record');
+    act('mtab', 'interest');
+    check($('#merchApp .ic[data-plan="weekly-healthy-mix"]').textContent.includes(`${ev("S.mealInterest.filter(x => x.planId === 'weekly-healthy-mix').length")} interested`), 'merchant view updates after a withdrawal');
+    act('mtab', 'orders');
+    const miN = ev('S.mealInterest.length');
+    for (let i = 0; i < 2; i++){ await load(); w = frame.contentWindow; d = w.document; hook(w); }
+    check(w.eval('S.mealInterest.length') === miN && w.eval("S.mealInterest.filter(x => x.cust === 'me').length") === 3, 'interest survives reloads without duplicates');
+    act('ctab', 'meals');
 
     section('Subscriptions before the cutoff');
     act('ctab', 'sched');
@@ -325,6 +403,15 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     check(!ev(`S.subs.filter(s => s.cust === 'me' && !s.cancelledFrom).some(s => s.prod === 'onion-1-kg')`), "cancelled plan is gone from the merchant's customer list");
     act('mtab', 'orders');
 
+    section('Plan order');
+    act('ctab', 'sched');
+    const domOrder = $$('#custApp .box .row .t > b').map(b => b.textContent).filter(t => ev(`PRODUCTS.some(p => p.name === ${JSON.stringify(t)})`));
+    const planNames = ev("activeSubs('me').slice().sort(planOrder).map(s => P[s.prod].name)");
+    check(JSON.stringify(domOrder.slice(-planNames.length)) === JSON.stringify(planNames), 'Recurring orders are listed in plan order');
+    const nexts = ev("activeSubs('me').slice().sort(planOrder).map(s => nextChain(s) || '9999')");
+    check(nexts.every((d, i) => i === 0 || nexts[i-1] <= d), 'plan order is by next delivery date, ended plans last');
+    check(JSON.stringify(ev("activeSubs('me').slice().reverse().sort(planOrder).map(s => s.id)")) === JSON.stringify(ev("activeSubs('me').slice().sort(planOrder).map(s => s.id)")), 'plan order is stable whatever the starting order');
+
     section('Customer and merchant stay consistent');
     const okQty = ev("okLines().reduce((a, l) => a + l.qty, 0)"), prepQty = ev("Object.values(prep()).reduce((a, b) => a + b, 0)");
     check(okQty === prepQty, `prep sheet total equals all deliveries due tomorrow (${prepQty})`);
@@ -418,7 +505,14 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     act('close'); act('cq', 'potato-500-g|1'); act('cart-open');
     const sh2 = $('#custApp .sheet'), foot = $('#custApp .sh-foot');
     check(fits(sh2) && foot.offsetTop + foot.offsetHeight <= sh2.offsetHeight + 1, 'phone: cart sheet and Place order button fit the screen');
-    act('close'); act('reset');
+    act('close');
+    act('ctab', 'meals'); act('meal-open', 'family-breakfast-box');
+    check(fits($('#custApp .sheet')) && $('#custApp .sh-foot').offsetTop + $('#custApp .sh-foot').offsetHeight <= $('#custApp .sheet').offsetHeight + 1, 'phone: breakfast preference sheet and its button fit the screen');
+    act('close');
+    act('view', 'merchant'); act('mtab', 'interest');
+    { const o = overflow(); check(!o.length && w.getComputedStyle(d.getElementById('merch')).display !== 'none', 'phone: merchant breakfast-interest screen has no horizontal overflow' + (o.length ? ' (' + o + ')' : '')); }
+    act('view', 'customer'); act('mtab', 'orders');
+    act('reset');
     frame.style.width = ''; frame.style.height = '';
   } catch (e) { check(false, 'exception: ' + e.message); }
   check(errors.length === 0, 'no uncaught errors or console errors' + (errors.length ? ': ' + errors.join(' | ') : ''));

@@ -13,7 +13,7 @@ A clickable pitch demo for Vaaradhi Farms (Manikonda, Hyderabad). It has two con
 2. **Shop Groceries.** Search ("oil"), tap a category chip, or use "Can subscribe". Tap a photo for product details. Tap ADD on a few items, then **View cart → Place order**. On the Vaaradhi side, **Accept → Mark packed → Send out → Mark delivered** while the customer's tracker follows along.
 3. **Save and reorder.** In the cart, **Save** the basket. Then **Orders → Saved baskets → Add all to cart**, or **Reorder** a previous order.
 4. **Subscriptions.** Tap **Subscribe** on any eligible product: daily, alternate days, selected weekdays, weekly or every 2 weeks. On **Schedule**, each plan shows its next delivery. Tap **Manage** to skip any upcoming date, change quantity or schedule, pause, resume or cancel. Vaaradhi's Tomorrow tab updates live.
-5. **Healthy Meal Plans** (concept). Four plan ideas, all marked "Menu and pricing to be confirmed". Tap "I'm interested" and Vaaradhi's feed records it.
+5. **Healthy Meal Plans** (concept proposed by Scribr). Four plan ideas. Tap **Share my preferences**, pick preferred days and an indicative number of servings, and submit. The confirmation says plainly that it is **not an order**. On the Vaaradhi side, **Customers → Breakfast plan interest** shows responses per concept, with preferred-day bars and serving preferences. Sample responses are labelled "Sample". Interest never appears in Orders, Tomorrow, Run or Earnings.
 6. **Cutoff.** Use **Demo → Skip past 9 PM**, then try to skip tomorrow on Schedule. The app explains that tomorrow is being prepared and offers to skip the next eligible date instead.
 7. **Demo → Run morning deliveries.** Charges appear in the wallet (simulated).
 
@@ -52,7 +52,7 @@ Serve the folder (`python -m http.server 8080`) and open http://localhost:8080/t
 
 ## What is real and what is simulated
 - **Verified:** product names and displayed prices from the EkSecond ordering page, captured 28 Oct 2026. Not synchronised.
-- **Proposed:** subscription eligibility per product, breakfast plan concepts.
+- **Proposed:** subscription eligibility per product, breakfast plan concepts. Customer interest in a concept is stored separately from orders and plans. It is one record per customer per concept, and it is never charged, scheduled or counted as revenue.
 - **Simulated:** customers, orders, wallet balances and top-ups, payments, earnings, settlements, delivery times, notifications. No real money moves and no external service is connected.
 
 ## Running locally
