@@ -45,14 +45,14 @@ Not included in the curated set: personal-care and household items (lip balms, s
 
 | Category | Proposed frequencies | Status |
 |---|---|---|
-| Eggs | daily, alternate days, Mon–Fri, Sat & Sun, weekly | proposed |
-| Vegetables, Fruit | alternate days, Mon–Fri, Sat & Sun, weekly | proposed |
+| Eggs | daily, alternate days, selected weekdays, weekly | proposed |
+| Vegetables, Fruit | alternate days, selected weekdays, weekly | proposed |
 | Oils, Flours & Rava, Millets, Rice, Pulses & Dals, Grocery Staples, Sweeteners | weekly, every 2 weeks, monthly | proposed |
 | Spices, Pickles & Podis, Seeds, Dry Fruits, Snacks, Sweets, plus Tamarind and Rock Salt | not eligible (one-time purchase) | proposed |
 
 Eligible in the data: **33 of 50**. Change these in `ELIGIBILITY` and `NOT_ELIGIBLE_ITEMS` in the build script, or edit `data/catalogue.js` directly.
 
-The current schedule engine supports daily, alternate days, Mon–Fri and Sat & Sun. So today only eggs, vegetables and fruit show a **Subscribe** option in the demo. Weekly, every-2-weeks and monthly are stored in the data and will appear once the grocery-subscription phase adds them to the engine.
+The schedule engine supports daily, alternate days, selected weekdays, weekly and every 2 weeks, so all 33 eligible products can be subscribed in the demo. **Monthly** is kept in the data as a proposed option but is not offered, because it does not fit the demo's simple day-based schedule rule (months vary in length).
 
 ## Unresolved
 

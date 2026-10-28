@@ -12,7 +12,7 @@ A clickable pitch demo for Vaaradhi Farms (Manikonda, Hyderabad). It has two con
 1. **Home.** "Healthy habits, made easier." with three entry points: Healthy Meal Plans, Shop Groceries and Order Again.
 2. **Shop Groceries.** Search ("oil"), tap a category chip, or use "Can subscribe". Tap a photo for product details. Tap ADD on a few items, then **View cart → Place order**. On the Vaaradhi side, **Accept → Mark packed → Send out → Mark delivered** while the customer's tracker follows along.
 3. **Save and reorder.** In the cart, **Save** the basket. Then **Orders → Saved baskets → Add all to cart**, or **Reorder** a previous order.
-4. **Subscriptions.** Tap **Subscribe** on eggs, a vegetable or fruit. On **Schedule**, skip tomorrow, change a quantity, or go on vacation. Vaaradhi's Tomorrow tab updates live.
+4. **Subscriptions.** Tap **Subscribe** on any eligible product: daily, alternate days, selected weekdays, weekly or every 2 weeks. On **Schedule**, each plan shows its next delivery. Tap **Manage** to skip any upcoming date, change quantity or schedule, pause, resume or cancel. Vaaradhi's Tomorrow tab updates live.
 5. **Healthy Meal Plans** (concept). Four plan ideas, all marked "Menu and pricing to be confirmed". Tap "I'm interested" and Vaaradhi's feed records it.
 6. **Cutoff.** Use **Demo → Skip past 9 PM**, then try to skip tomorrow on Schedule. The app explains that tomorrow is being prepared and offers to skip the next eligible date instead.
 7. **Demo → Run morning deliveries.** Charges appear in the wallet (simulated).
@@ -43,6 +43,12 @@ Use **Demo → Reset demo** before each pitch. State is saved in the browser and
 
 ## Tests
 Serve the folder (`python -m http.server 8080`) and open http://localhost:8080/tests/smoke.html. All checks should show PASS.
+
+## How recurring orders work in the demo
+- **Schedules:** one rule per plan (daily, alternate days, selected weekdays, weekly, every 2 weeks). Monthly is not offered.
+- **No stored delivery records:** tomorrow's list is calculated from active plans, so refreshing or navigating cannot create duplicate deliveries. At the cutoff the list is frozen once (a "snapshot"), and the morning run charges each delivery once.
+- **Changes never rewrite history:** a quantity or schedule change ends the current version of the plan and starts a new one from the next editable date.
+- **Dates use Asia/Kolkata.** The provisional cutoff is `subscriptionCutoff` in `data/config.js`. Before it, tomorrow can be changed; at or after it, changes apply from the day after tomorrow.
 
 ## What is real and what is simulated
 - **Verified:** product names and displayed prices from the EkSecond ordering page, captured 28 Oct 2026. Not synchronised.

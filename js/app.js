@@ -19,10 +19,20 @@ const CUSTOMERS = [
   ['c24','Naveen Chandra','Narsingi'],
 ].map(([id,name,area])=>({id,name,area}));
 const AREAS = ['Manikonda','Puppalaguda','Narsingi','Kokapet','Financial District','Gachibowli','Kondapur','Madhapur','Tolichowki','Jubilee Hills'];
-const FREQ = {daily:'Daily', alternate:'Alternate days', weekdays:'Mon – Fri', weekends:'Sat & Sun', weekly:'Weekly', fortnightly:'Every 2 weeks', monthly:'Monthly'};
-const PERMONTH = {daily:30, alternate:15, weekdays:22, weekends:8, weekly:4, fortnightly:2, monthly:1};
-/* The schedule engine currently handles these. Weekly, fortnightly and monthly are modelled in the catalogue and arrive with the grocery-subscription work. */
-const ENGINE_FREQS = ['daily','alternate','weekdays','weekends'];
+const FREQ = {daily:'Daily', alternate:'Alternate days', days:'Selected days', weekly:'Weekly', fortnightly:'Every 2 weeks', monthly:'Monthly'};
+/* Frequencies the schedule engine supports. 'monthly' stays in the catalogue as a proposed option but is not offered. */
+const ENGINE_FREQS = ['daily','alternate','days','weekly','fortnightly'];
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], DOW_ORDER = [1,2,3,4,5,6,0];
+const DAY_PRESETS = [['Weekdays',[1,2,3,4,5]], ['Weekends',[0,6]], ['Mon, Wed, Fri',[1,3,5]]];
+function daysText(days){
+  const k = [...days].sort().join(',');
+  if (k === '1,2,3,4,5') return 'Mon – Fri'; if (k === '0,6') return 'Sat & Sun'; if (days.length === 7) return 'Every day';
+  return DOW_ORDER.filter(d => days.includes(d)).map(d => DOW[d]).join(', ');
+}
+function freqLabel(s){
+  const wd = DOW[parse(s.anchor || s.start).getDay()];
+  return s.freq === 'days' ? daysText(s.days || []) : s.freq === 'weekly' ? 'Weekly on ' + wd : s.freq === 'fortnightly' ? 'Every 2 weeks on ' + wd : FREQ[s.freq] || s.freq;
+}
 const subFreqs = p => p && p.subscription && p.subscription.eligible ? p.subscription.frequencies.filter(f => ENGINE_FREQS.includes(f)) : [];
 /* PROVISIONAL cutoff from data/config.js (local time, Asia/Kolkata assumed). */
 const CUT_MIN = (() => { const [h, m] = String(CFG.subscriptionCutoff || '21:00').split(':').map(Number); return h*60 + (m || 0); })();
@@ -32,14 +42,20 @@ const AV_COLORS = ['#E7F6EC|#0B5A2D','#EAF1FF|#2563EB','#FFF5D1|#7A5B00','#FDE8E
 
 /* ---------- dates ---------- */
 const DAY = 86400000;
-const atMidnight = d => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
-const TODAY = atMidnight(new Date());
-const addD = n => new Date(TODAY.getTime() + n*DAY + 3*3600000);
+/* Calendar dates follow Asia/Kolkata, whatever the device's own timezone. */
+const TZ = 'Asia/Kolkata';
+const istISO = (when = new Date()) => new Intl.DateTimeFormat('en-CA', {timeZone:TZ, year:'numeric', month:'2-digit', day:'2-digit'}).format(when);
+const istMinutes = (when = new Date()) => { const [h, m] = new Intl.DateTimeFormat('en-GB', {timeZone:TZ, hour:'2-digit', minute:'2-digit', hourCycle:'h23'}).format(when).split(':').map(Number); return h*60 + m; };
+/* Cutoff rule at a given minute of the day: before the cutoff, tomorrow is editable; at or after it, the earliest editable date is the day after tomorrow. */
+const cutoffOpenAt = minutes => minutes < CUT_MIN;
 const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const parse = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d, 12); };
 const plus = (s,n) => iso(new Date(parse(s).getTime() + n*DAY));
 const diffDays = (a,b) => Math.round((parse(b) - parse(a)) / DAY);
-const TDY = iso(addD(0)), TMR = iso(addD(1)), DAT = iso(addD(2));
+const TDY = istISO();
+const TODAY = parse(TDY);
+const addD = n => parse(plus(TDY, n));
+const TMR = plus(TDY, 1), DAT = plus(TDY, 2);
 const fmtD = s => parse(s).toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'});
 const fmtS = s => parse(s).toLocaleDateString('en-IN', {day:'numeric', month:'short'});
 
@@ -52,7 +68,7 @@ const initials = id => C[id].name.split(' ').map(w => w[0]).join('').slice(0,2);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ---------- state ---------- */
-const KEY = 'vaaradhi-demo-v5';
+const KEY = 'vaaradhi-demo-v6';
 let S;
 const ui = {view:'customer', cTab:'home', cCat:'All', q:'', subOnly:false, bname:null, confirmDel:null, mTab:'orders', sheet:null, cToast:null, mToast:null, demoOpen:false,
             confirmCancel:null, prevPrep:null, prevKpi:null, flash:{}, shownToast:{}};
@@ -60,16 +76,18 @@ const ui = {view:'customer', cTab:'home', cCat:'All', q:'', subOnly:false, bname
 function seed(){
   let s = 7; const r = () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
   const subs = []; let n = 1;
-  const add = (cust, prod, freq, qty, startOff) => {
-    const sub = {id:'s'+(n++), cust, prod, freq, qty, start:iso(addD(startOff)), pausedFrom:null, cancelledFrom:null, isNew:false};
+  const add = (cust, prod, freq, qty, startOff, days) => {
+    const start = iso(addD(startOff));
+    const sub = {id:'s'+(n++), cust, prod, freq, days: freq === 'days' ? days || [1,2,3,4,5] : undefined, qty, start, anchor:start, skips:[], pausedFrom:null, cancelledFrom:null, isNew:false};
     subs.push(sub); return sub;
   };
   add('me','desi-eggs-6-pcs','daily',1,-21); add('me','potato-500-g','alternate',1,-11); add('me','onion-1-kg','alternate',1,-11);
+  add('me','sona-masuri-rice-1-kg','weekly',1,-4);
   const SEEDABLE = PRODUCTS.filter(p => subFreqs(p).length);
   CUSTOMERS.slice(1).forEach(c => {
     const k = 1 + Math.floor(r()*3), picks = new Set();
     while (picks.size < k) picks.add(SEEDABLE[Math.floor(r()*SEEDABLE.length)].id);
-    picks.forEach(pid => { const fs = subFreqs(P[pid]); add(c.id, pid, fs[Math.floor(r()*fs.length)], (pid==='desi-eggs-6-pcs' && r() > .4) ? 2 : 1, -2 - Math.floor(r()*20)); });
+    picks.forEach(pid => { const fs = subFreqs(P[pid]); add(c.id, pid, fs[Math.floor(r()*fs.length)], (pid==='desi-eggs-6-pcs' && r() > .4) ? 2 : 1, -2 - Math.floor(r()*20), DAY_PRESETS[Math.floor(r()*DAY_PRESETS.length)][1]); });
   });
   const rahul = add('c1','desi-eggs-6-pcs','daily',2,1); rahul.isNew = true;
   const harshaSub = subs.find(x => x.cust === 'c18'); harshaSub.pausedFrom = iso(addD(-2));
@@ -110,15 +128,33 @@ function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){
 function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.day === TDY) return s; } catch(e){} return null; }
 
 /* ---------- subscription rules ---------- */
-function freqOk(f, start, d){
-  const dow = parse(d).getDay();
+/* One rule for every frequency. `anchor` fixes the rhythm of alternate, weekly and fortnightly plans;
+   `start` and `cancelledFrom` bound the dates a version of a plan is valid for. */
+function freqOk(f, anchor, d, days){
+  const dow = parse(d).getDay(), gap = diffDays(anchor, d);
   if (f === 'daily') return true;
-  if (f === 'weekdays') return dow >= 1 && dow <= 5;
+  if (f === 'alternate') return gap % 2 === 0;
+  if (f === 'days') return (days || []).includes(dow);
+  if (f === 'weekly') return gap % 7 === 0;
+  if (f === 'fortnightly') return gap % 14 === 0;
+  if (f === 'weekdays') return dow >= 1 && dow <= 5;      // older saved plans
   if (f === 'weekends') return dow === 0 || dow === 6;
-  if (f === 'alternate') return diffDays(start, d) % 2 === 0;
   return false;
 }
-function delivers(s, d){ if (d < s.start) return false; if (s.cancelledFrom && d >= s.cancelledFrom) return false; return freqOk(s.freq, s.start, d); }
+function delivers(s, d){ if (d < s.start) return false; if (s.cancelledFrom && d >= s.cancelledFrom) return false; return freqOk(s.freq, s.anchor || s.start, d, s.days); }
+/* Upcoming delivery dates from tomorrow, with their status. Tomorrow uses the locked list after the cutoff. */
+function upcomingFor(s, n = 6){
+  const out = [];
+  for (let i = 1; i <= 120 && out.length < n; i++){
+    const d = plus(TDY, i); if (!delivers(s, d)) continue;
+    let status = pausedOn(s, d) ? 'paused' : (s.skips || []).includes(d) ? 'skipped' : 'scheduled';
+    if (d === TMR && S.phase !== 'open'){ const l = lines().find(x => x.subId === s.id); status = l ? (l.status === 'ok' ? 'scheduled' : l.status) : status; }
+    out.push({date:d, status, locked: d === TMR && S.phase !== 'open'});
+  }
+  return out;
+}
+const nextDelivery = s => (upcomingFor(s, 10).find(u => u.status === 'scheduled') || {}).date || null;
+const activeSubs = cust => S.subs.filter(s => s.cust === cust && !s.replacedBy);
 function pausedOn(s, d){
   if (s.pausedFrom && d >= s.pausedFrom) return true;
   const v = S.vac[s.cust];
@@ -133,7 +169,7 @@ function computeLines(){
     if (!delivers(s, TMR)) continue;
     const o = S.ovr[s.id] || {}, qty = o.qty || s.qty;
     const status = pausedOn(s, TMR) ? 'paused' : (o.skip || (s.skips || []).includes(TMR)) ? 'skipped' : 'ok';
-    out.push({cust:s.cust, prod:s.prod, qty, subId:s.id, amt:qty*P[s.prod].price, status, kind:'plan', freq:s.freq});
+    out.push({cust:s.cust, prod:s.prod, qty, subId:s.id, amt:qty*P[s.prod].price, status, kind:'plan', freq:s.freq, freqText:freqLabel(s)});
   }
   S.extras.forEach(x => out.push({cust:x.cust, prod:x.prod, qty:x.qty, xid:x.id, amt:x.qty*P[x.prod].price, status:'ok', kind:'extra'}));
   return out;
@@ -235,14 +271,14 @@ function toastHTML(t, which){
    CUSTOMER APP
    ===================================================================== */
 const ESSENTIALS = (CFG.homeEssentials || []).filter(id => P[id]);
-const mySubs = () => { const m = {}; S.subs.forEach(s => { if (s.cust === 'me' && !s.cancelledFrom) m[s.prod] = s; }); return m; };
+const mySubs = () => { const m = {}; activeSubs('me').forEach(s => { if (!s.cancelledFrom) m[s.prod] = s; }); return m; };
 const dayLabel = d => d === TDY ? 'Today' : d === iso(addD(-1)) ? 'Yesterday' : fmtD(d);
 function card(p, mine){
   const q = cartQty(p.id);
   const add = !nowOpen() ? `<button class="addbtn" disabled title="Same-day ordering is closed for tonight">ADD</button>`
     : q ? qbtn('cq', p.id, q) : `<button class="addbtn" data-a="cq" data-v="${p.id}|1" aria-label="Add ${esc(p.name)} to cart">ADD</button>`;
   return `<div class="pc">
-    <button class="pc-img" data-a="buy-open" data-v="${p.id}|now" aria-label="${esc(p.name)}, details">${visual(p)}${mine ? `<span class="pc-tag">${FREQ[mine.freq]} plan</span>` : ''}</button>
+    <button class="pc-img" data-a="buy-open" data-v="${p.id}|now" aria-label="${esc(p.name)}, details">${visual(p)}${mine ? `<span class="pc-tag">${freqLabel(mine)}</span>` : ''}</button>
     <div class="pc-name">${p.name}</div><div class="pc-unit">${p.unit}</div>
     <div class="pc-row"><b>${rs(p.price)}</b>${add}</div>
     ${subFreqs(p).length ? `<button class="pc-sub" data-a="buy-open" data-v="${p.id}|sub">${icon('repeat', 12)}Subscribe</button>` : '<span class="pc-sub off">One-time purchase</span>'}</div>`;
@@ -319,7 +355,7 @@ function tomorrowBody(){
   const open = S.phase === 'open', delivered = S.phase === 'delivered', my = lines().filter(l => l.cust === 'me');
   const rows = my.map(l => {
     const p = P[l.prod], off = l.status !== 'ok';
-    const sub = l.kind === 'extra' ? '<span class="chip b">Just tomorrow</span>' : FREQ[l.freq];
+    const sub = l.kind === 'extra' ? '<span class="chip b">Just tomorrow</span>' : (l.freqText || FREQ[l.freq]);
     let right;
     if (off) right = `<div class="rt"><span class="chip y">${l.status === 'paused' ? 'Paused' : 'Skipped'} · ₹0</span>${open && l.status === 'skipped' ? `<button class="lnk" data-a="t-skip" data-v="${l.subId}">Undo</button>` : ''}</div>`;
     else if (!delivered) right = `<div class="rt">${qbtn(l.kind === 'extra' ? 'x-qty' : 't-qty', l.kind === 'extra' ? l.xid : l.subId, l.qty, true)}${l.kind === 'extra' ? `<button class="lnk red" data-a="x-del" data-v="${l.xid}">Remove</button>` : `<button class="lnk" data-a="t-skip" data-v="${l.subId}">Skip</button>`}</div>`;
@@ -333,18 +369,19 @@ function tomorrowBody(){
   const vac = v
     ? `<div class="vac on"><span class="vi">${icon('plane', 20)}</span><div><b>Vacation mode is on</b><small>${vacRangeText(v)}. Vaaradhi has been told and you won't be charged for these days.</small><button class="vb" data-a="vac-end">I'm back, resume</button></div></div>`
     : `<button class="vac" data-a="vac-open"><span class="vi">${icon('plane', 20)}</span><div><b>Going out of town?</b><small>Pause all deliveries for a few days. You pay nothing while you're away.</small></div></button>`;
-  const plans = S.subs.filter(s => s.cust === 'me').map(s => {
+  const plans = activeSubs('me').map(s => {
     const p = P[s.prod];
     let st = ['Active','g'];
     if (s.cancelledFrom) st = ['Cancelled from ' + fmtS(s.cancelledFrom), 'r'];
     else if (s.pausedFrom) st = ['Paused from ' + fmtS(s.pausedFrom), 'y'];
     else if (v && (!v.to || v.to >= TMR)) st = ['Paused for vacation', 'y'];
     else if (s.start > TDY && s.isNew) st = ['Starts ' + fmtS(firstDelivery(s)), 'b'];
-    const skips = (s.skips || []).filter(d => d > TMR && !s.cancelledFrom).map(d => `<span class="chip y" style="margin-top:4px">Skipping ${fmtS(d)}</span>`).join(' ');
-    const btns = s.cancelledFrom ? '' :
-      `${s.pausedFrom ? `<button class="lnk" data-a="p-resume" data-v="${s.id}">Resume</button>` : `<button class="lnk" data-a="p-pause" data-v="${s.id}">Pause</button>`}
-       <button class="lnk red" data-a="p-cancel" data-v="${s.id}">${ui.confirmCancel === s.id ? 'Tap to confirm' : 'Cancel'}</button>`;
-    return `<div class="row">${thumb(p)}<div class="t"><b>${p.name} × ${s.qty}</b><small>${FREQ[s.freq]} · ${rs(s.qty*p.price)} a delivery</small><span class="chip ${st[1]}" style="margin-top:4px">${st[0]}</span> ${skips}</div><div class="rt">${btns}</div></div>`;
+    const skips = (s.skips || []).filter(d => d > TMR && !s.cancelledFrom).length;
+    const nx = s.cancelledFrom ? null : nextDelivery(s);
+    return `<div class="row">${thumb(p)}<div class="t"><b>${p.name} × ${s.qty}</b><small>${freqLabel(s)} · ${rs(s.qty*p.price)} a delivery</small>
+      <small class="nx">${nx ? 'Next: ' + fmtD(nx) : s.cancelledFrom ? 'No more deliveries' : 'No delivery scheduled'}</small>
+      <span class="chip ${st[1]}" style="margin-top:4px">${st[0]}</span>${skips ? ` <span class="chip y" style="margin-top:4px">${skips} skipped</span>` : ''}</div>
+      <div class="rt">${s.cancelledFrom ? '' : `<button class="sbtn2" data-a="manage" data-v="${s.id}">Manage</button>`}</div></div>`;
   }).join('');
   return `<div class="tm"><div class="tm-top"><div><small>Tomorrow · ${fmtD(TMR)}</small><b>Your next delivery</b></div>${cd}</div>
       <div class="tm-body">${rows}</div>
@@ -376,7 +413,7 @@ function mealsBody(){
   const MP = window.MEAL_PLANS;
   const sched = p => p.schedule === 'weekdays' ? 'Weekdays' : p.schedule === 'weekly' ? 'Once a week' : 'You choose the days';
   const serv = p => p.servingsOptions.length > 1 ? `${p.servingsOptions[0]}–${p.servingsOptions[p.servingsOptions.length - 1]} servings` : `${p.servingsOptions[0]} serving`;
-  return `<div class="mp-intro"><span class="etag">Concept preview</span><p>A regular healthy-breakfast option is being explored with Vaaradhi Farms. Tell us which idea would suit you. ${MP.unconfirmedLabel}.</p></div>
+  return `<div class="mp-intro"><span class="etag">Concept preview</span><p><b>Healthy breakfast, made a regular habit.</b> Scribr proposes exploring flexible healthy-breakfast plans that could make it easier for Vaaradhi customers to enjoy their favourites regularly. Menu, pricing and availability would be defined with Vaaradhi Farms.</p></div>
     ${MP.plans.map(p => { const on = S.interest[p.id]; return `<div class="mp">
       <div class="mp-top"><span class="ei">${icon('bowl', 20)}</span><div><b>${p.name}</b><small>${p.summary}</small></div></div>
       <div class="mp-chips"><span class="chip g">${sched(p)}</span><span class="chip b">${serv(p)}</span></div>
@@ -401,13 +438,16 @@ function sheetHTML(){
         <div class="info">${icon('sun', 16)}${S.phase === 'open' ? `Added to your delivery on ${fmtD(TMR)}, with your regular basket` : `Changes for ${fmtD(TMR)} closed at ${CUTOFF}. ${subFreqs(p).length ? `Choose Subscribe to start from ${fmtD(DAT)}.` : 'Order it for same-day delivery tomorrow instead.'}`}</div>`;
       foot = `<button class="cta" data-a="add-go" ${S.phase !== 'open' ? 'disabled' : ''}><span>${rs(p.price*q)}<small>FOR TOMORROW</small></span><span>Add to tomorrow ›</span></button>`;
     } else {
-      const starts = S.phase === 'open' ? [[TMR,'Tomorrow'],[DAT,fmtD(DAT)]] : [[DAT,fmtD(DAT)],[iso(addD(3)),fmtD(iso(addD(3)))]];
-      body = `<div class="fld"><label>HOW OFTEN</label><div class="opts">${subFreqs(p).map(f => `<button class="${sh.freq === f ? 'on' : ''}" data-a="s-freq" data-v="${f}">${FREQ[f]}</button>`).join('')}</div></div>
+      const draft = draftSub(sh), dates = draft ? upcomingFor(draft, 4).map(u => fmtS(u.date)) : [];
+      const month = draft ? countIn(draft, 30) : 0;
+      body = `<div class="fld"><label>HOW OFTEN</label><div class="opts">${subFreqs(p).map(f => `<button class="${sh.freq === f ? 'on' : ''}" data-a="s-freq" data-v="${f}" aria-pressed="${sh.freq === f}">${FREQ[f]}</button>`).join('')}</div></div>
+        ${sh.freq === 'days' ? dayPicker(sh.days, 's-day', 's-preset') : ''}
         <div class="fld r"><label>QUANTITY</label>${qbtn('s-qty','q',q)}</div>
-        <div class="fld"><label>START</label><div class="opts">${starts.map(([d,l]) => `<button class="${sh.start === d ? 'on' : ''}" data-a="s-start" data-v="${d}">${l}</button>`).join('')}</div></div>
-        <div class="sumg"><div><span>Each delivery</span><b>${rs(p.price*q)}</b></div><div><span>About a month</span><b>${rs(p.price*q*PERMONTH[sh.freq])}</b></div></div>
+        <div class="fld"><label>${sh.freq === 'weekly' || sh.freq === 'fortnightly' ? 'FIRST DELIVERY (SETS THE DAY)' : 'START'}</label><div class="opts">${startOptions().map(d => `<button class="${sh.start === d ? 'on' : ''}" data-a="s-start" data-v="${d}">${d === TMR ? 'Tomorrow' : fmtD(d)}</button>`).join('')}</div></div>
+        ${draft ? `<div class="info">${icon('sun', 16)}<span>Next deliveries: <b>${dates.join(', ')}</b></span></div>` : `<div class="info warn">${icon('x', 16)}Choose at least one day.</div>`}
+        <div class="sumg"><div><span>Each delivery</span><b>${rs(p.price*q)}</b></div><div><span>Next 30 days</span><b>${month} × ${rs(p.price*q)}</b></div></div>
         <div class="info">${icon('repeat', 16)}Skip or pause before ${CUTOFF} the day before. Pay only for days delivered.</div>`;
-      foot = `<button class="cta c" data-a="sub-go">Start subscription</button>`;
+      foot = `<button class="cta c" data-a="sub-go" ${draft ? '' : 'disabled'}>Start subscription</button>`;
     }
     inner = `<div class="ps-img">${visual(p)}<button class="x" data-a="close" aria-label="Close">×</button></div>
       <div class="ps-b"><div><div class="ps-cat">${p.cat}</div><div class="ps-name">${p.name}</div><div class="ps-meta"><span>${p.unit}${subFreqs(p).length ? '' : ' · one-time purchase'}</span><b>${rs(p.price)}</b></div></div>
@@ -424,6 +464,27 @@ function sheetHTML(){
       <div class="info">${icon('wallet', 16)}Paying from Vaaradhi wallet · balance ${rs(bal)}${bal < total ? ' · simulated UPI top-up' : ''} ${demoTag()}</div>
       <p class="fine" style="margin-top:0">You can cancel until Vaaradhi accepts your order.</p></div>`;
     foot = `<button class="cta" data-a="place" ${nowOpen() && S.cart.length ? '' : 'disabled'}><span>${rs(total)}<small>TOTAL</small></span><span>Place order ›</span></button>`;
+  } else if (sh.type === 'manage'){
+    const s = S.subs.find(x => x.id === sh.subId), p = P[s.prod], ups = upcomingFor(s, 6);
+    const draft = {...s, freq:sh.freq, days:sh.days, qty:sh.qty};
+    const changed = sh.freq !== s.freq || sh.qty !== s.qty || (sh.freq === 'days' && daysText(sh.days || []) !== daysText(s.days || []));
+    const valid = sh.freq !== 'days' || (sh.days && sh.days.length);
+    inner = `<div class="sh-pad"><div class="mg-head">${thumb(p,'lg')}<div><div class="sh-title" style="padding:0">${p.name}</div><small>${freqLabel(s)} · ${s.qty} × ${rs(p.price)}${s.pausedFrom ? ' · paused' : ''}</small></div>
+        <button class="x sm" data-a="close" aria-label="Close">×</button></div>
+      <div class="sh" style="padding:4px 16px 0">Upcoming deliveries</div>
+      <div class="box">${ups.map(u => `<div class="row up"><div class="t"><b>${fmtD(u.date)}</b><small>${u.status === 'scheduled' ? `${(u.date === TMR && S.ovr[s.id] && S.ovr[s.id].qty) || s.qty} × ${p.name}` : u.status === 'paused' ? 'Paused' : 'Skipped · not charged'}</small></div>
+        <div class="rt">${u.locked ? `<span class="chip k">${icon('lock', 11)} Being prepared</span>` : u.status === 'paused' ? '<span class="chip y">Paused</span>'
+          : `<button class="sbtn2 ${u.status === 'skipped' ? 'on' : ''}" data-a="skip-on" data-v="${s.id}|${u.date}">${u.status === 'skipped' ? 'Undo skip' : 'Skip'}</button>`}</div></div>`).join('') || '<div class="row"><div class="t"><small>No upcoming deliveries.</small></div></div>'}</div>
+      <div class="sh" style="padding:4px 16px 0">Change this plan</div>
+      <div class="box" style="padding:14px;display:flex;flex-direction:column;gap:12px">
+        <div class="fld"><label>HOW OFTEN</label><div class="opts">${subFreqs(p).map(f => `<button class="${sh.freq === f ? 'on' : ''}" data-a="m-freq" data-v="${f}" aria-pressed="${sh.freq === f}">${FREQ[f]}</button>`).join('')}</div></div>
+        ${sh.freq === 'days' ? dayPicker(sh.days, 'm-day', 'm-preset') : ''}
+        <div class="fld r"><label>QUANTITY EACH TIME</label>${qbtn('m-qty','q',sh.qty)}</div>
+        <small class="eff">${changed ? `Changes apply from ${fmtD(effFrom(s))}${valid ? ` · ${freqLabel(draft)}` : ''}.` : `Changes apply from ${fmtD(effFrom(s))}.`}</small>
+        <button class="btn2 pri" data-a="m-save" ${changed && valid ? '' : 'disabled'}>Save changes</button></div>
+      <div class="two-btn" style="padding:0 14px">${s.pausedFrom ? `<button class="btn2" data-a="p-resume" data-v="${s.id}">Resume plan</button>` : `<button class="btn2" data-a="p-pause" data-v="${s.id}">Pause plan</button>`}
+        <button class="btn2 danger" data-a="p-cancel" data-v="${s.id}">${ui.confirmCancel === s.id ? 'Tap again to cancel' : 'Cancel plan'}</button></div>
+      <p class="fine" style="margin-top:0">Skip, pause or change before ${CUTOFF} the day before. Pausing or cancelling takes effect from ${fmtD(editFrom())}.</p></div>`;
   } else if (sh.type === 'cutoff'){
     const s = sh.subId ? S.subs.find(x => x.id === sh.subId) : null, next = s ? nextEligible(s) : null, p = P[sh.prod];
     inner = `<div class="sh-pad"><div class="sh-title">Tomorrow's delivery is being prepared</div>
@@ -645,6 +706,30 @@ const A = {
   's-freq'(v){ ui.sheet.freq = v; },
   's-start'(v){ ui.sheet.start = v; },
   's-qty'(v){ ui.sheet.qty = Math.max(1, Math.min(6, ui.sheet.qty + +v.split('|')[1])); },
+  's-day'(v){ const d = +v, ds = new Set(ui.sheet.days || []); ds.has(d) ? ds.delete(d) : ds.add(d); ui.sheet.days = [...ds]; },
+  's-preset'(v){ ui.sheet.days = DAY_PRESETS[+v][1].slice(); },
+  manage(v){ const s = S.subs.find(x => x.id === v); if (!s) return; ui.sheet = {type:'manage', subId:v, freq:s.freq, days:(s.days || [1,2,3,4,5]).slice(), qty:s.qty}; },
+  'm-freq'(v){ ui.sheet.freq = v; },
+  'm-day'(v){ const d = +v, ds = new Set(ui.sheet.days || []); ds.has(d) ? ds.delete(d) : ds.add(d); ui.sheet.days = [...ds]; },
+  'm-preset'(v){ ui.sheet.days = DAY_PRESETS[+v][1].slice(); },
+  'm-qty'(v){ ui.sheet.qty = Math.max(1, Math.min(6, ui.sheet.qty + +v.split('|')[1])); },
+  'm-save'(){
+    const sh = ui.sheet, s = S.subs.find(x => x.id === sh.subId); if (!s) return;
+    if (!subFreqs(P[s.prod]).includes(sh.freq)){ toastC('That schedule isn\'t available for this product.'); return; }
+    if (sh.freq === 'days' && !(sh.days && sh.days.length)){ toastC('Choose at least one day.'); return; }
+    const n = amendSub(s, {freq:sh.freq, days: sh.freq === 'days' ? sh.days.slice().sort() : undefined, qty:sh.qty});
+    ui.sheet = {type:'manage', subId:n.id, freq:n.freq, days:(n.days || [1,2,3,4,5]).slice(), qty:n.qty};
+    notify(`Ananya R. changed ${P[n.prod].name} to ${n.qty} × ${freqLabel(n)} from ${fmtD(n.start)}`, 'add');
+    toastC(`Saved. Applies from ${fmtD(n.start)}.`);
+  },
+  'skip-on'(v){
+    const [id, d] = v.split('|'), s = S.subs.find(x => x.id === id); if (!s || d < TMR) return;
+    if (d === TMR && S.phase !== 'open'){ ui.sheet = {type:'cutoff', subId:id, prod:s.prod}; return; }
+    if (!delivers(s, d)){ toastC('There is no delivery on that date.'); return; }
+    const on = (s.skips || []).includes(d);
+    s.skips = on ? s.skips.filter(x => x !== d) : [...(s.skips || []), d];
+    notify(on ? `Ananya R. wants ${P[s.prod].name} on ${fmtD(d)} after all` : `Ananya R. will skip ${P[s.prod].name} on ${fmtD(d)}`, 'skip', 'k' + id + d);
+  },
   'vac-len'(v){ ui.sheet.len = +v; },
   cq(v){
     if (!nowOpen()) return;
@@ -654,10 +739,13 @@ const A = {
   },
   'sub-go'(){
     const sh = ui.sheet, p = P[sh.prod];
-    const s = {id:'n'+Date.now(), cust:'me', prod:sh.prod, freq:sh.freq, qty:sh.qty, start:sh.start, pausedFrom:null, cancelledFrom:null, isNew:true};
+    if (!subFreqs(p).includes(sh.freq)){ toastC(`${p.name} can't be subscribed on that schedule.`); return; }
+    const draft = draftSub(sh); if (!draft){ toastC('Choose at least one day.'); return; }
+    if (sh.start < editFrom()){ toastC(`The earliest start is ${fmtD(editFrom())}.`); return; }
+    const s = {...draft, id:'n'+Date.now(), isNew:true};
     S.subs.push(s); ui.sheet = null;
     const fd = firstDelivery(s);
-    notify(`Ananya R. subscribed to ${p.name} × ${s.qty} · ${FREQ[s.freq]} · starts ${fmtD(fd)}`, 'new');
+    notify(`Ananya R. subscribed to ${p.name} × ${s.qty} · ${freqLabel(s)} · starts ${fmtD(fd)}`, 'new');
     toastC(`Subscribed. First delivery ${fmtD(fd)}.`);
   },
   'add-go'(){
@@ -682,7 +770,7 @@ const A = {
     const [id, d] = v.split('|'), s = S.subs.find(x => x.id === id);
     if (S.phase !== 'open'){ ui.sheet = {type:'cutoff', subId:id, prod:s.prod}; return; }
     const o = S.ovr[id] = S.ovr[id] || {};
-    o.qty = Math.max(1, Math.min(6, (o.qty || s.qty) + +d)); o.skip = false;
+    o.qty = Math.max(1, Math.min(6, (o.qty || s.qty) + +d)); if ((s.skips || []).includes(TMR)) s.skips = s.skips.filter(x => x !== TMR);
     notify(`Ananya R. changed ${P[s.prod].name} to ${o.qty} for tomorrow`, 'add', 'q'+id);
   },
   'x-qty'(v){
@@ -694,8 +782,10 @@ const A = {
   't-skip'(v){
     const s = S.subs.find(x => x.id === v);
     if (S.phase !== 'open'){ ui.sheet = {type:'cutoff', subId:v, prod:s.prod}; return; }
-    const o = S.ovr[v] = S.ovr[v] || {}; o.skip = !o.skip;
-    notify(o.skip ? `Ananya R. skipped ${P[s.prod].name} tomorrow` : `Ananya R. wants ${P[s.prod].name} tomorrow after all`, 'skip', 'k'+v);
+    const on = (s.skips || []).includes(TMR);
+    s.skips = on ? s.skips.filter(x => x !== TMR) : [...(s.skips || []), TMR];
+    if (!on && S.ovr[v]) delete S.ovr[v].qty;
+    notify(on ? `Ananya R. wants ${P[s.prod].name} tomorrow after all` : `Ananya R. skipped ${P[s.prod].name} tomorrow`, 'skip', 'k'+v);
   },
   'x-del'(v){
     const x = S.extras.find(e => String(e.id) === v);
@@ -707,10 +797,10 @@ const A = {
   'p-resume'(v){ const s = S.subs.find(x => x.id === v); s.pausedFrom = null; notify(`Ananya R. resumed ${P[s.prod].name} from ${fmtD(editFrom())}`, 'resume'); },
   'p-cancel'(v){
     if (ui.confirmCancel !== v){ ui.confirmCancel = v; return; }
-    const s = S.subs.find(x => x.id === v); s.cancelledFrom = editFrom(); ui.confirmCancel = null;
+    const s = S.subs.find(x => x.id === v); s.cancelledFrom = s.start > editFrom() ? s.start : editFrom(); ui.confirmCancel = null; if (ui.sheet && ui.sheet.type === 'manage') ui.sheet = null;
     notify(`Ananya R. cancelled ${P[s.prod].name} from ${fmtD(s.cancelledFrom)}`, 'cancel'); toastC('Plan cancelled.');
   },
-  'buy-open'(v){ const [prod, mode] = v.split('|'), fs = subFreqs(P[prod]); ui.sheet = {type:'buy', prod, mode: mode === 'sub' && !fs.length ? 'now' : mode, qty:1, freq: fs[0] || 'daily', start:editFrom()}; },
+  'buy-open'(v){ const [prod, mode] = v.split('|'), fs = subFreqs(P[prod]); ui.sheet = {type:'buy', prod, mode: mode === 'sub' && !fs.length ? 'now' : mode, qty:1, freq: fs[0] || 'daily', days:[1,2,3,4,5], start:editFrom()}; },
   mode(v){ ui.sheet.mode = v; },
   'cart-add'(){
     if (!nowOpen()) return;
@@ -755,7 +845,7 @@ const A = {
     notify(`Tomorrow's list is locked: ${st.length} deliveries, ${items} items, ${rs(st.reduce((a,s) => a+s.amt, 0))}.`, 'lock');
   },
   deliver(v){
-    if (S.phase === 'open') return;
+    if (S.phase !== 'locked' || S.done[v]) return;   // only during the run, and only once per stop
     S.done[v] = true; if (v === 'me') settle();
     if (stops().every(s => S.done[s.cust])) finishRun();
   },
@@ -779,6 +869,31 @@ function addItemsToCart(items){
   if (!nowOpen()){ toastC('Same-day ordering is closed for tonight. Your basket stays saved.'); return; }
   items.forEach(i => { if (!P[i.prod]) return; const c = S.cart.find(x => x.prod === i.prod); if (c) c.qty = Math.min(9, c.qty + i.qty); else S.cart.push({prod:i.prod, qty:Math.min(9, i.qty)}); });
   ui.sheet = {type:'cart'}; ui.bname = null;
+}
+/* ---------- recurring-order helpers ---------- */
+function startOptions(){ const out = []; for (let i = 0; i < 7; i++) out.push(plus(editFrom(), i)); return out; }
+function draftSub(sh){
+  if (sh.freq === 'days' && !(sh.days && sh.days.length)) return null;
+  return {id:'draft', cust:'me', prod:sh.prod, freq:sh.freq, days: sh.freq === 'days' ? sh.days.slice().sort() : undefined, qty:sh.qty, start:sh.start, anchor:sh.start, skips:[], pausedFrom:null, cancelledFrom:null, isNew:true};
+}
+function countIn(s, days){ let n = 0; for (let i = 0; i < days; i++){ if (delivers(s, plus(s.start, i))) n++; } return n; }
+function dayPicker(days, act, presetAct){
+  return `<div class="fld"><label>WHICH DAYS</label><div class="opts days">${DOW_ORDER.map(d => `<button class="${(days || []).includes(d) ? 'on' : ''}" data-a="${act}" data-v="${d}" aria-pressed="${(days || []).includes(d)}">${DOW[d]}</button>`).join('')}</div>
+    <div class="opts presets">${DAY_PRESETS.map(([l], i) => `<button data-a="${presetAct}" data-v="${i}">${l}</button>`).join('')}</div></div>`;
+}
+/* First date a change can apply to: the cutoff rule, but never before the plan itself starts. */
+const effFrom = s => s.start > editFrom() ? s.start : editFrom();
+/* Change a plan without rewriting history: the current version ends and a new one starts at the effective date.
+   A plan that hasn't started yet is simply updated in place. */
+function amendSub(s, ch){
+  const eff = effFrom(s), rhythm = ch.freq !== s.freq;
+  if (s.start >= eff){ Object.assign(s, ch); if (rhythm) s.anchor = s.start; return s; }
+  const n = {...s, ...ch, id:'v' + Date.now(), start:eff, anchor: rhythm ? eff : (s.anchor || s.start), skips:(s.skips || []).filter(d => d >= eff), replaces:s.id};
+  delete n.replacedBy;
+  s.cancelledFrom = eff; s.replacedBy = n.id;
+  if (S.ovr[s.id] && eff === TMR) delete S.ovr[s.id];
+  S.subs.push(n);
+  return n;
 }
 
 if (BRAND && CFG.brandAssets.logo){ const l = document.querySelector('.wm .logo'); l.classList.add('img'); l.innerHTML = `<img src="${CFG.brandAssets.logo}" alt="Vaaradhi Farms">`; }

@@ -140,8 +140,7 @@ window.CATALOGUE = {
     "eligible": true,
     "frequencies": [
      "alternate",
-     "weekdays",
-     "weekends",
+     "days",
      "weekly"
     ],
     "status": "proposed-default"
@@ -168,8 +167,7 @@ window.CATALOGUE = {
     "eligible": true,
     "frequencies": [
      "alternate",
-     "weekdays",
-     "weekends",
+     "days",
      "weekly"
     ],
     "status": "proposed-default"
@@ -196,8 +194,7 @@ window.CATALOGUE = {
     "eligible": true,
     "frequencies": [
      "alternate",
-     "weekdays",
-     "weekends",
+     "days",
      "weekly"
     ],
     "status": "proposed-default"
@@ -224,8 +221,7 @@ window.CATALOGUE = {
     "eligible": true,
     "frequencies": [
      "alternate",
-     "weekdays",
-     "weekends",
+     "days",
      "weekly"
     ],
     "status": "proposed-default"
@@ -252,8 +248,7 @@ window.CATALOGUE = {
     "eligible": true,
     "frequencies": [
      "alternate",
-     "weekdays",
-     "weekends",
+     "days",
      "weekly"
     ],
     "status": "proposed-default"
@@ -281,8 +276,7 @@ window.CATALOGUE = {
     "frequencies": [
      "daily",
      "alternate",
-     "weekdays",
-     "weekends",
+     "days",
      "weekly"
     ],
     "status": "proposed-default"

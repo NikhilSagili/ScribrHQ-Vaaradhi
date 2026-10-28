@@ -53,11 +53,12 @@ CURATED = {
 }
 
 # PROPOSED subscription defaults per category. Not merchant-approved. Edit freely.
-# Frequencies: daily, alternate, weekdays (Mon-Fri), weekends (Sat & Sun), weekly, fortnightly, monthly.
-FRESH = ['alternate', 'weekdays', 'weekends', 'weekly']
+# Frequencies: daily, alternate, days (customer-selected weekdays), weekly, fortnightly, monthly.
+# 'monthly' is kept as a proposed option but the demo's schedule engine does not offer it.
+FRESH = ['alternate', 'days', 'weekly']
 STAPLE = ['weekly', 'fortnightly', 'monthly']
 ELIGIBILITY = {
-    'vegetables': FRESH, 'fruit': FRESH, 'eggs': ['daily', 'alternate', 'weekdays', 'weekends', 'weekly'],
+    'vegetables': FRESH, 'fruit': FRESH, 'eggs': ['daily', 'alternate', 'days', 'weekly'],
     'oils': STAPLE, 'flours': STAPLE, 'millets': STAPLE, 'rice': STAPLE, 'dals': STAPLE,
     'grocery': STAPLE, 'sweeteners': STAPLE,
 }

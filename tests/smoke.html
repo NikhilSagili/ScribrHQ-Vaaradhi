@@ -101,7 +101,9 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     click('#custApp .cchip[data-v="Millets"]');
     check($$('#custApp .pc').length === 3, 'Millets chip shows 3 products');
     click('#custApp .fchip');
-    check($$('#custApp .pc').length === 0 && !!$('#custApp .empty'), 'Millets + Can subscribe shows the empty state (millets need weekly plans)');
+    check($$('#custApp .pc').length === 3, 'Millets + Can subscribe keeps all 3 millets (weekly plans are supported)');
+    click('#custApp .cchip[data-v="Pickles & Podis"]');
+    check($$('#custApp .pc').length === 0 && !!$('#custApp .empty'), 'Pickles + Can subscribe shows the empty state (pickles are one-time purchases)');
     click('#custApp .cchip[data-v="All"]');
     check($$('#custApp .pc').length === eligibleNow, '"Can subscribe" filter alone shows the eligible products');
     click('#custApp .fchip');
@@ -121,7 +123,7 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     act('close');
     act('buy-open', 'apple-500-g|sub');
     const freqBtns = $$('#custApp [data-a="s-freq"]').map(b => b.dataset.v);
-    check(JSON.stringify(freqBtns) === JSON.stringify(['alternate','weekdays','weekends']), `apple offers only its proposed, supported frequencies (${freqBtns})`);
+    check(JSON.stringify(freqBtns) === JSON.stringify(['alternate','days','weekly']), `apple offers only its proposed, supported frequencies (${freqBtns})`);
     act('close');
 
     section('Cart, saved basket and checkout');
@@ -191,6 +193,132 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     check(myOk() === ev("lines().filter(l => l.cust === 'me' && l.kind === 'extra').length"), 'vacation pauses all plan deliveries for tomorrow');
     act('vac-end');
 
+
+    section('Schedule engine');
+    const span = (f, extra) => ev(`[...Array(28)].map((_, i) => plus('2026-11-02', i)).filter(d => freqOk('${f}', '2026-11-02', d, ${extra || 'undefined'}))`);
+    check(span('daily').length === 28, 'daily: every day');
+    const alt = span('alternate');
+    check(alt.length === 14 && alt.every((d, i) => i === 0 || ev(`diffDays('${alt[i-1]}', '${d}')`) === 2), 'alternate days: every second day from the start');
+    const mwf = span('days', '[1,3,5]');
+    check(mwf.length === 12 && mwf.every(d => [1,3,5].includes(ev(`parse('${d}').getDay()`))), 'selected days (Mon, Wed, Fri): only those weekdays');
+    check(JSON.stringify(span('weekly')) === JSON.stringify(['2026-11-02','2026-11-09','2026-11-16','2026-11-23']), 'weekly: same weekday every 7 days');
+    check(JSON.stringify(span('fortnightly')) === JSON.stringify(['2026-11-02','2026-11-16']), 'every 2 weeks: every 14 days');
+    check(!ev("ENGINE_FREQS.includes('monthly')") && JSON.stringify(ev("subFreqs(P['sona-masuri-rice-1-kg'])")) === JSON.stringify(['weekly','fortnightly']), 'monthly is not offered; staples get weekly and every 2 weeks');
+    check(ev("delivers({freq:'weekly', start:'2026-11-04', anchor:'2026-11-02', cancelledFrom:'2026-11-16'}, '2026-11-09')") === true
+       && ev("delivers({freq:'weekly', start:'2026-11-04', anchor:'2026-11-02'}, '2026-11-02')") === false
+       && ev("delivers({freq:'weekly', start:'2026-11-04', anchor:'2026-11-02', cancelledFrom:'2026-11-16'}, '2026-11-16')") === false, 'a plan only delivers between its start and its end');
+
+    section('Asia/Kolkata dates and the cutoff boundary');
+    check(ev("istISO(new Date('2026-10-28T18:45:00Z'))") === '2026-10-29', '00:15 IST counts as the next calendar day');
+    check(ev("istISO(new Date('2026-10-28T18:15:00Z'))") === '2026-10-28', '23:45 IST is still the same day');
+    check(ev("istMinutes(new Date('2026-10-28T15:29:00Z'))") === 20*60 + 59, 'UTC 15:29 is 8:59 PM in India');
+    check(ev('cutoffOpenAt(20*60 + 59)') === true && ev('cutoffOpenAt(21*60)') === false && ev('cutoffOpenAt(21*60 + 1)') === false, 'cutoff: 8:59 PM open, 9:00 PM and 9:01 PM closed');
+    check(ev('TDY') === ev('istISO()') && ev('TMR') === ev('plus(TDY, 1)'), "the demo's today is today's date in India");
+
+    section('Subscribe with each schedule');
+    const mine = prod => ev(`activeSubs('me').filter(s => s.prod === '${prod}' && !s.cancelledFrom).map(s => s.id)`);
+    act('ctab', 'shop'); act('buy-open', 'desi-eggs-6-pcs|sub');
+    check(JSON.stringify($$('#custApp [data-a="s-freq"]').map(b => b.dataset.v)) === JSON.stringify(['daily','alternate','days','weekly']), 'eggs offer daily, alternate, selected days and weekly');
+    click('#custApp [data-a="s-freq"][data-v="days"]');
+    check($$('#custApp [data-a="s-day"]').length === 7, 'selected days shows a 7-day picker');
+    [1,2,3,4,5].forEach(dd => click(`#custApp [data-a="s-day"][data-v="${dd}"]`));
+    check($('#custApp [data-a="sub-go"]').disabled && !!$('#custApp .info.warn'), 'with no day chosen, Start is disabled and the customer is told why');
+    click('#custApp [data-a="s-preset"][data-v="2"]');
+    const eggsBefore = mine('desi-eggs-6-pcs').length, prepEggs = ev("prep()['desi-eggs-6-pcs'] || 0");
+    click('#custApp [data-a="sub-go"]');
+    const mwfId = mine('desi-eggs-6-pcs').find(id => !ev(`S.subs.find(s => s.id === '${id}').days`) === false && JSON.stringify(ev(`S.subs.find(s => s.id === '${id}').days`)) === '[1,3,5]');
+    check(mine('desi-eggs-6-pcs').length === eggsBefore + 1 && !!mwfId, 'Mon, Wed, Fri egg plan created');
+    const mwfUp = ev(`upcomingFor(S.subs.find(s => s.id === '${mwfId}'), 6).map(u => u.date)`);
+    check(mwfUp.length === 6 && mwfUp.every(d => [1,3,5].includes(ev(`parse('${d}').getDay()`))), `its upcoming deliveries fall on Mon, Wed, Fri (${mwfUp.slice(0,3)})`);
+    const due = ev(`delivers(S.subs.find(s => s.id === '${mwfId}'), TMR)`) ? 1 : 0;
+    check(ev("prep()['desi-eggs-6-pcs'] || 0") === prepEggs + due, `merchant prep for tomorrow changes by ${due}`);
+
+    act('buy-open', 'sona-masuri-rice-1-kg|sub');
+    click('#custApp [data-a="s-freq"][data-v="weekly"]');
+    const wStart = ev('startOptions()[3]');
+    click(`#custApp [data-a="s-start"][data-v="${wStart}"]`);
+    check($('#custApp .sheet').textContent.includes(ev(`fmtS('${wStart}')`)), 'weekly plan preview starts on the chosen day');
+    const riceBefore = mine('sona-masuri-rice-1-kg');
+    click('#custApp [data-a="sub-go"]');
+    const wId = mine('sona-masuri-rice-1-kg').find(id => !riceBefore.includes(id));
+    check(JSON.stringify(ev(`upcomingFor(S.subs.find(s => s.id === '${wId}'), 3).map(u => u.date)`)) === JSON.stringify([wStart, ev(`plus('${wStart}', 7)`), ev(`plus('${wStart}', 14)`)]), 'weekly rice delivers on the start day, then every 7 days');
+    check(/Weekly on/.test(ev(`freqLabel(S.subs.find(s => s.id === '${wId}'))`)), 'weekly plan is labelled with its weekday');
+
+    act('buy-open', 'wheat-flour-1-kg|sub');
+    click('#custApp [data-a="s-freq"][data-v="fortnightly"]');
+    const fStart = ev('startOptions()[1]'); click(`#custApp [data-a="s-start"][data-v="${fStart}"]`);
+    click('#custApp [data-a="sub-go"]');
+    const fId = mine('wheat-flour-1-kg')[0];
+    check(JSON.stringify(ev(`upcomingFor(S.subs.find(s => s.id === '${fId}'), 2).map(u => u.date)`)) === JSON.stringify([fStart, ev(`plus('${fStart}', 14)`)]), 'every-2-weeks flour delivers 14 days apart');
+    const potId = mine('potato-500-g')[0];
+    const potUp = ev(`upcomingFor(S.subs.find(s => s.id === '${potId}'), 4).map(u => u.date)`);
+    check(potUp.every((d, i) => i === 0 || ev(`diffDays('${potUp[i-1]}', '${d}')`) === 2), 'alternate-day potatoes are 2 days apart');
+    const eggId = mine('desi-eggs-6-pcs').find(id => ev(`S.subs.find(s => s.id === '${id}').freq`) === 'daily');
+    const dUp = ev(`upcomingFor(S.subs.find(s => s.id === '${eggId}'), 6).map(u => u.date)`);
+    check(dUp[0] === ev('TMR') && dUp.every((d, i) => i === 0 || ev(`diffDays('${dUp[i-1]}', '${d}')`) === 1), 'daily eggs: next delivery is tomorrow, then every day');
+    act('buy-open', 'sona-masuri-rice-1-kg|sub'); ev("ui.sheet.freq = 'monthly'");
+    const nSubs = ev('S.subs.length'); click('#custApp [data-a="sub-go"]');
+    check(ev('S.subs.length') === nSubs && /can't be subscribed/.test(custText()), 'an unsupported schedule is refused with a message');
+    act('close');
+    check(ev("subFreqs(P['mango-pickle-300-g']).length") === 0, 'non-eligible products cannot be subscribed');
+
+    section('Manage a plan (before the cutoff)');
+    act('ctab', 'sched');
+    check(/Next: /.test(custText()) && $$('#custApp [data-a="manage"]').length >= 4, 'Schedule lists each plan with its next delivery and a Manage button');
+    act('manage', eggId);
+    check(ev("ui.sheet.type") === 'manage' && $$('#custApp .sheet .row.up').length === 6, 'Manage shows the next 6 deliveries');
+    const third = dUp[2];
+    click(`#custApp [data-a="skip-on"][data-v="${eggId}|${third}"]`);
+    check(ev(`upcomingFor(S.subs.find(s => s.id === '${eggId}'), 6).find(u => u.date === '${third}').status`) === 'skipped', 'skipping a future date marks it skipped');
+    check(ev(`nextDelivery(S.subs.find(s => s.id === '${eggId}'))`) === ev('TMR'), "a future skip doesn't change tomorrow");
+    click(`#custApp [data-a="skip-on"][data-v="${eggId}|${third}"]`);
+    check(ev(`upcomingFor(S.subs.find(s => s.id === '${eggId}'), 6).find(u => u.date === '${third}').status`) === 'scheduled', 'undo skip restores the date');
+    const prepE = ev("prep()['desi-eggs-6-pcs'] || 0"), qE = ev(`lines().find(l => l.subId === '${eggId}').qty`);
+    click(`#custApp [data-a="skip-on"][data-v="${eggId}|${ev('TMR')}"]`);
+    check(ev(`lines().find(l => l.subId === '${eggId}').status`) === 'skipped' && ev("prep()['desi-eggs-6-pcs'] || 0") === prepE - qE, "skipping tomorrow removes it from the merchant's prep sheet");
+    check(ev(`nextDelivery(S.subs.find(s => s.id === '${eggId}'))`) === ev('plus(TMR, 1)'), 'next delivery moves to the day after');
+    click(`#custApp [data-a="skip-on"][data-v="${eggId}|${ev('TMR')}"]`);
+    check(ev("prep()['desi-eggs-6-pcs'] || 0") === prepE, 'undoing the skip puts it back');
+
+    act('close'); act('manage', potId);
+    const revY = ev("dayRevenue(plus(TDY, -1)).amt"), prepP = ev("prep()['potato-500-g'] || 0");
+    const potDueTmr = ev(`delivers(S.subs.find(s => s.id === '${potId}'), TMR)`);
+    click('#custApp [data-a="m-qty"][data-v="q|1"]');
+    check(!$('#custApp [data-a="m-save"]').disabled, 'changing quantity enables Save');
+    click('#custApp [data-a="m-save"]');
+    const pot2 = mine('potato-500-g');
+    check(pot2.length === 1 && pot2[0] !== potId && ev(`S.subs.find(s => s.id === '${potId}').replacedBy`) === pot2[0], 'quantity change creates one new version and retires the old one');
+    check(ev(`S.subs.find(s => s.id === '${pot2[0]}').qty`) === 2 && ev(`S.subs.find(s => s.id === '${pot2[0]}').start`) === ev('TMR'), 'new quantity (2) applies from tomorrow');
+    check(ev("prep()['potato-500-g'] || 0") === prepP + (potDueTmr ? 1 : 0), 'merchant prep reflects the new quantity');
+    check(ev("dayRevenue(plus(TDY, -1)).amt") === revY, "yesterday's history is unchanged");
+    click('#custApp [data-a="m-freq"][data-v="weekly"]'); click('#custApp [data-a="m-save"]');
+    const pot3 = mine('potato-500-g');
+    const p3Up = ev(`upcomingFor(S.subs.find(s => s.id === '${pot3[0]}'), 3).map(u => u.date)`);
+    check(pot3.length === 1 && p3Up[0] === ev('TMR') && p3Up[1] === ev('plus(TMR, 7)'), 'schedule change to weekly: one active plan, every 7 days from tomorrow');
+    check(ev("activeSubs('me').filter(s => s.prod === 'potato-500-g' && !s.cancelledFrom).length") === 1, 'no duplicate potato plans after two changes');
+
+    act('close');
+    const onionId = mine('onion-1-kg')[0];
+    act('manage', onionId); click('#custApp [data-a="p-pause"]');
+    check(ev(`upcomingFor(S.subs.find(s => s.id === '${onionId}'), 4).every(u => u.status === 'paused')`) && ev(`nextDelivery(S.subs.find(s => s.id === '${onionId}'))`) === null, 'pause: every upcoming delivery is paused');
+    click('#custApp [data-a="p-resume"]');
+    check(ev(`nextDelivery(S.subs.find(s => s.id === '${onionId}'))`) !== null, 'resume: deliveries are scheduled again');
+    click('#custApp [data-a="p-cancel"]');
+    check(/Tap again to cancel/.test(custText()), 'cancel asks for a second tap');
+    click('#custApp [data-a="p-cancel"]');
+    check(ev(`S.subs.find(s => s.id === '${onionId}').cancelledFrom`) === ev('TMR') && ev(`upcomingFor(S.subs.find(s => s.id === '${onionId}'), 4).length`) === 0, 'cancelled plan has no upcoming deliveries');
+    act('mtab', 'cust');
+    check(!ev(`S.subs.filter(s => s.cust === 'me' && !s.cancelledFrom).some(s => s.prod === 'onion-1-kg')`), "cancelled plan is gone from the merchant's customer list");
+    act('mtab', 'orders');
+
+    section('Customer and merchant stay consistent');
+    const okQty = ev("okLines().reduce((a, l) => a + l.qty, 0)"), prepQty = ev("Object.values(prep()).reduce((a, b) => a + b, 0)");
+    check(okQty === prepQty, `prep sheet total equals all deliveries due tomorrow (${prepQty})`);
+    const meStop = ev("(stops().find(s => s.cust === 'me') || {lines:[]}).lines.map(l => l.prod + 'x' + l.qty).sort().join()");
+    const meLines = ev("lines().filter(l => l.cust === 'me' && l.status === 'ok').map(l => l.prod + 'x' + l.qty).sort().join()");
+    check(meStop === meLines, "the customer's tomorrow basket matches their stop on the merchant's run");
+    check(ev("Object.values(lines().reduce((m, l) => { if (l.subId) m[l.subId] = (m[l.subId] || 0) + 1; return m; }, {})).every(n => n === 1)"), 'each plan appears at most once in tomorrow\'s list');
+
     section('Subscriptions after the cutoff');
     act('lock'); check(ev('S.phase') === 'locked', 'cutoff passes (demo lock)');
     act('ctab', 'sched');
@@ -200,13 +328,27 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     check($('#custApp .sheet').textContent.includes('closed at 9 PM') && $('#custApp .sheet').textContent.includes(ev(`fmtD('${next}')`)), `message names the cutoff and the next eligible date (${next})`);
     check(ev(`lines().find(l => l.subId === '${eggsSub}').status`) === 'ok', "tomorrow's delivery is unchanged");
     click('#custApp [data-a="skip-date"]');
-    check(ev(`S.subs.find(s => s.id === '${eggsSub}').skips.includes('${next}')`) && /Skipping/.test(custText()), 'customer can skip the next eligible date instead');
+    check(ev(`S.subs.find(s => s.id === '${eggsSub}').skips.includes('${next}')`) && /1 skipped/.test(custText()) && ev(`upcomingFor(S.subs.find(s => s.id === '${eggsSub}'), 6).find(u => u.date === '${next}').status`) === 'skipped', 'customer can skip the next eligible date instead');
     act('t-qty', eggsSub + '|1');
     check(ev('ui.sheet && ui.sheet.type') === 'cutoff' && ev(`lines().find(l => l.subId === '${eggsSub}').qty`) === 1, 'after cutoff: quantity change is blocked with the same message');
+    act('close');
+
+    const snap1 = JSON.stringify(ev('S.snapshot')); act('lock');
+    check(JSON.stringify(ev('S.snapshot')) === snap1, 'locking twice does not rebuild or duplicate the list');
+    act('manage', eggsSub);
+    check(!!$('#custApp .sheet .chip.k') && /Being prepared/.test($('#custApp .sheet').textContent), "Manage shows tomorrow as being prepared");
+    click(`#custApp [data-a="m-qty"][data-v="q|1"]`); click('#custApp [data-a="m-save"]');
+    const eggV = ev("activeSubs('me').find(s => s.prod === 'desi-eggs-6-pcs' && s.freq === 'daily' && !s.cancelledFrom)");
+    check(eggV.start === ev('DAT') && eggV.qty === 2 && ev(`lines().find(l => l.subId === '${eggsSub}').qty`) === 1, "after cutoff: a quantity change applies from the day after tomorrow; tomorrow is unchanged");
     act('close');
     act('ctab', 'orders'); click('#custApp [data-a="reorder"]');
     check(ev('S.cart.length') === 0, 'after cutoff: reorder is disabled (same-day ordering closed)');
     act('morning'); check(ev('S.phase') === 'delivered' && ev('S.ledger.some(l => l.date === TMR)'), 'morning run completes and charges are recorded');
+    const tmrLedger = ev('S.ledger.filter(l => l.date === TMR).length'), feedN = ev('S.feed.length');
+    act('morning'); act('deliver', 'me');
+    check(ev('S.ledger.filter(l => l.date === TMR).length') === tmrLedger && ev('S.feed.length') === feedN, 'running the morning run or a delivery twice does not charge twice');
+    const delivered = ev("S.orders.find(o => o.status === 'delivered').id"); act('oadv', String(delivered));
+    check(ev(`S.orders.find(o => o.id === ${delivered}).status`) === 'delivered', 'advancing a delivered order does nothing');
 
     section('Labels and claims');
     act('ctab', 'wallet'); check(/Demo/.test($('#custApp .wc').textContent), 'wallet shows a Demo label');
@@ -232,10 +374,13 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
       check(clipped.length === 0, 'logo is fully visible, not clipped by its badge' + (clipped.length ? ` (${clipped.length} clipped)` : ''));
     } else check(logos.length === 0, 'public demo shows no Vaaradhi logo');
 
-    section('Persistence');
-    const n = ev('S.orders.length'), phase = ev('S.phase');
-    await load(); w = frame.contentWindow; d = w.document; hook(w);
-    check(w.eval('S.orders.length') === n && w.eval('S.phase') === phase, 'state survives a page reload');
+    section('Persistence and duplicates');
+    const n = ev('S.orders.length'), phase = ev('S.phase'), nSub = ev('S.subs.length'), nLed = ev('S.ledger.length'), nLines = ev('lines().length');
+    for (let i = 0; i < 3; i++){ await load(); w = frame.contentWindow; d = w.document; hook(w); }
+    check(w.eval('S.orders.length') === n && w.eval('S.phase') === phase, 'state survives three page reloads');
+    check(w.eval('S.subs.length') === nSub && w.eval('S.ledger.length') === nLed && w.eval('lines().length') === nLines, 'reloading creates no duplicate plans, charges or deliveries');
+    for (const tab of ['home','shop','orders','sched','wallet','home']) act('ctab', tab);
+    check(w.eval('S.subs.length') === nSub && w.eval('lines().length') === nLines, 'navigating between tabs creates no duplicates');
     w.document.body.appendChild(Object.assign(w.document.createElement('button'), {})).remove();
     act('reset');
     check(w.eval('S.phase') === 'open' && w.eval('S.orders.filter(o => o.date === TDY).length') === 5 && w.eval('S.baskets.length') === 1, 'reset restores the starting sample data');

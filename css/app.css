@@ -215,6 +215,18 @@ svg{flex:none}
 .mp-chips{display:flex;gap:6px;flex-wrap:wrap}
 .mp-tbc{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--muted)}
 
+.nx{color:var(--brand-ink)!important;font-weight:700!important;margin-top:2px}
+.mg-head{display:flex;gap:12px;align-items:center;padding:0 16px;position:relative}
+.mg-head small{display:block;font-size:12.5px;color:var(--muted);font-weight:600;margin-top:2px}
+.mg-head .x.sm{position:static;margin-left:auto;width:32px;height:32px;font-size:18px;box-shadow:none;background:var(--bg)}
+.row.up{padding:9px 0}
+.sbtn2.on{background:var(--yellow-soft);color:#7A5B00}
+.opts.days button{min-width:42px;padding:8px 0;text-align:center}
+.opts.presets button{background:transparent;color:var(--brand);padding:2px 4px;font-size:12px}
+.info.warn{background:var(--red-soft);color:var(--red)}
+.btn2.danger{background:var(--red-soft);color:var(--red)}
+.eff{font-size:12px;color:var(--muted);font-weight:600}
+
 /* bottom nav */
 .nav{display:flex;background:#fff;border-top:1px solid var(--line);padding:7px 6px calc(9px + var(--bpad))}
 .nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;color:#8A9196;position:relative}

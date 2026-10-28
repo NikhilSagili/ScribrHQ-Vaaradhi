@@ -1,5 +1,5 @@
 // Network-first cache so the demo still opens if the venue Wi-Fi drops.
-const CACHE = 'vaaradhi-demo-v6';
+const CACHE = 'vaaradhi-demo-v7';
 const FILES = ['./', './index.html', './manifest.webmanifest', './css/app.css', './js/app.js', './data/config.js', './data/catalogue.js', './data/plans.js', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
