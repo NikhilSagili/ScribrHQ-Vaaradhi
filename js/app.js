@@ -154,6 +154,20 @@ function upcomingFor(s, n = 6){
   return out;
 }
 const nextDelivery = s => (upcomingFor(s, 10).find(u => u.status === 'scheduled') || {}).date || null;
+/* A changed plan and the version it replaces, newest first. Lets screens show dates either side of a pending change. */
+function chainOf(s){ const out = [s]; let c = s; while (c.replaces){ c = S.subs.find(x => x.id === c.replaces); if (!c) break; out.push(c); } return out; }
+function upcomingChain(s, n = 6){
+  const vs = chainOf(s), out = [];
+  for (let i = 1; i <= 120 && out.length < n; i++){
+    const d = plus(TDY, i), v = vs.find(x => delivers(x, d)); if (!v) continue;
+    const u = upcomingFor(v, 120).find(x => x.date === d); if (!u) continue;
+    out.push({...u, subId:v.id, qty: (d === TMR && S.ovr[v.id] && S.ovr[v.id].qty) || v.qty});
+  }
+  return out;
+}
+const nextChain = s => (upcomingChain(s, 10).find(u => u.status === 'scheduled') || {}).date || null;
+/* A saved change that hasn't started yet: the plan replaces an older version and starts after tomorrow. */
+const pendingFrom = s => s.replaces && s.start > TMR ? s.start : null;
 const activeSubs = cust => S.subs.filter(s => s.cust === cust && !s.replacedBy);
 function pausedOn(s, d){
   if (s.pausedFrom && d >= s.pausedFrom) return true;
@@ -358,17 +372,19 @@ function tomorrowBody(){
     const sub = l.kind === 'extra' ? '<span class="chip b">Just tomorrow</span>' : (l.freqText || FREQ[l.freq]);
     let right;
     if (off) right = `<div class="rt"><span class="chip y">${l.status === 'paused' ? 'Paused' : 'Skipped'} · ₹0</span>${open && l.status === 'skipped' ? `<button class="lnk" data-a="t-skip" data-v="${l.subId}">Undo</button>` : ''}</div>`;
-    else if (!delivered) right = `<div class="rt">${qbtn(l.kind === 'extra' ? 'x-qty' : 't-qty', l.kind === 'extra' ? l.xid : l.subId, l.qty, true)}${l.kind === 'extra' ? `<button class="lnk red" data-a="x-del" data-v="${l.xid}">Remove</button>` : `<button class="lnk" data-a="t-skip" data-v="${l.subId}">Skip</button>`}</div>`;
+    else if (!delivered) right = `<div class="rt"><small class="qcap">${l.kind === 'extra' ? 'Quantity' : 'Tomorrow only'}</small>${qbtn(l.kind === 'extra' ? 'x-qty' : 't-qty', l.kind === 'extra' ? l.xid : l.subId, l.qty, true)}${l.kind === 'extra' ? `<button class="lnk red" data-a="x-del" data-v="${l.xid}">Remove</button>` : `<button class="lnk" data-a="t-skip" data-v="${l.subId}">Skip</button>`}</div>`;
     else right = `<div class="rt"><b>${rs(l.amt)}</b><span class="chip g">Delivered</span></div>`;
-    return `<div class="row ${off ? 'off' : ''}">${thumb(p)}<div class="t"><b>${p.name}</b><small>${sub}${!off ? ` · ${rs(l.amt)}` : ''}</small></div>${right}</div>`;
+    const reg = l.subId ? (S.subs.find(x => x.id === l.subId) || {}).qty : null;
+    const diff = reg && l.qty !== reg && !off ? `<small class="qnote">Tomorrow only: ${l.qty} · regular ${reg}</small>` : '';
+    return `<div class="row ${off ? 'off' : ''}">${thumb(p)}<div class="t"><b>${p.name}</b><small>${sub}${!off ? ` · ${rs(l.amt)}` : ''}</small>${diff}</div>${right}</div>`;
   }).join('') || `<div class="row"><div class="t"><small>Nothing scheduled for tomorrow.</small></div></div>`;
   const charge = my.filter(l => l.status === 'ok').reduce((a,l) => a + l.amt, 0);
   const saved = my.filter(l => l.status !== 'ok').reduce((a,l) => a + l.amt, 0);
   const v = S.vac.me;
   const cd = open ? `<span class="cd">Edit until ${CUTOFF}</span>` : S.phase === 'locked' ? `<span class="cd lk">${icon('lock', 11)} Being prepared</span>` : '<span class="cd dn">Delivered</span>';
   const vac = v
-    ? `<div class="vac on"><span class="vi">${icon('plane', 20)}</span><div><b>Vacation mode is on</b><small>${vacRangeText(v)}. Vaaradhi has been told and you won't be charged for these days.</small><button class="vb" data-a="vac-end">I'm back, resume</button></div></div>`
-    : `<button class="vac" data-a="vac-open"><span class="vi">${icon('plane', 20)}</span><div><b>Going out of town?</b><small>Pause all deliveries for a few days. You pay nothing while you're away.</small></div></button>`;
+    ? `<div class="vac on"><span class="vi">${icon('plane', 20)}</span><div><b>Vacation mode is on · all plans paused</b><small>${vacRangeText(v)}. Vaaradhi has been told and you won't be charged for these days.</small><button class="vb" data-a="vac-end">I'm back, resume</button></div></div>`
+    : `<button class="vac" data-a="vac-open"><span class="vi">${icon('plane', 20)}</span><div><b>Going out of town?</b><small>Vacation mode pauses <b>all ${activeSubs('me').filter(s => !s.cancelledFrom).length} of your plans</b> for a few days. To pause just one plan, use Manage.</small></div></button>`;
   const plans = activeSubs('me').map(s => {
     const p = P[s.prod];
     let st = ['Active','g'];
@@ -377,8 +393,10 @@ function tomorrowBody(){
     else if (v && (!v.to || v.to >= TMR)) st = ['Paused for vacation', 'y'];
     else if (s.start > TDY && s.isNew) st = ['Starts ' + fmtS(firstDelivery(s)), 'b'];
     const skips = (s.skips || []).filter(d => d > TMR && !s.cancelledFrom).length;
-    const nx = s.cancelledFrom ? null : nextDelivery(s);
-    return `<div class="row">${thumb(p)}<div class="t"><b>${p.name} × ${s.qty}</b><small>${freqLabel(s)} · ${rs(s.qty*p.price)} a delivery</small>
+    const nx = s.cancelledFrom ? null : nextChain(s), pend = pendingFrom(s), prev = pend ? S.subs.find(x => x.id === s.replaces) : null;
+    if (pend && st[1] === 'g') st = ['Change starts ' + fmtS(pend), 'b'];
+    return `<div class="row">${thumb(p)}<div class="t"><b>${p.name}</b><small>Regular: ${s.qty} per delivery · ${freqLabel(s)} · ${rs(s.qty*p.price)}</small>
+      ${prev ? `<small class="qnote">Until ${fmtS(plus(pend, -1))}: ${prev.qty} × ${freqLabel(prev)}</small>` : ''}
       <small class="nx">${nx ? 'Next: ' + fmtD(nx) : s.cancelledFrom ? 'No more deliveries' : 'No delivery scheduled'}</small>
       <span class="chip ${st[1]}" style="margin-top:4px">${st[0]}</span>${skips ? ` <span class="chip y" style="margin-top:4px">${skips} skipped</span>` : ''}</div>
       <div class="rt">${s.cancelledFrom ? '' : `<button class="sbtn2" data-a="manage" data-v="${s.id}">Manage</button>`}</div></div>`;
@@ -465,21 +483,24 @@ function sheetHTML(){
       <p class="fine" style="margin-top:0">You can cancel until Vaaradhi accepts your order.</p></div>`;
     foot = `<button class="cta" data-a="place" ${nowOpen() && S.cart.length ? '' : 'disabled'}><span>${rs(total)}<small>TOTAL</small></span><span>Place order ›</span></button>`;
   } else if (sh.type === 'manage'){
-    const s = S.subs.find(x => x.id === sh.subId), p = P[s.prod], ups = upcomingFor(s, 6);
+    const s = S.subs.find(x => x.id === sh.subId), p = P[s.prod], ups = upcomingChain(s, 6), pend = pendingFrom(s), prev = pend ? S.subs.find(x => x.id === s.replaces) : null;
+    const tOnly = S.ovr[s.id] && S.ovr[s.id].qty && S.ovr[s.id].qty !== s.qty ? S.ovr[s.id].qty : null;
     const draft = {...s, freq:sh.freq, days:sh.days, qty:sh.qty};
     const changed = sh.freq !== s.freq || sh.qty !== s.qty || (sh.freq === 'days' && daysText(sh.days || []) !== daysText(s.days || []));
     const valid = sh.freq !== 'days' || (sh.days && sh.days.length);
-    inner = `<div class="sh-pad"><div class="mg-head">${thumb(p,'lg')}<div><div class="sh-title" style="padding:0">${p.name}</div><small>${freqLabel(s)} · ${s.qty} × ${rs(p.price)}${s.pausedFrom ? ' · paused' : ''}</small></div>
+    inner = `<div class="sh-pad"><div class="mg-head">${thumb(p,'lg')}<div><div class="sh-title" style="padding:0">${p.name}</div><small>Regular: ${s.qty} per delivery · ${freqLabel(s)}${s.pausedFrom ? ' · paused' : ''}</small></div>
         <button class="x sm" data-a="close" aria-label="Close">×</button></div>
+      ${pend ? `<div class="info">${icon('sun', 16)}<span>Your change starts <b>${fmtD(pend)}</b>. Until then: ${prev.qty} × ${freqLabel(prev)}.</span></div>` : ''}
+      ${tOnly ? `<div class="info">${icon('sun', 16)}<span>Tomorrow only: <b>${tOnly}</b> (set on the Schedule screen). Your regular quantity stays ${s.qty}.</span></div>` : ''}
       <div class="sh" style="padding:4px 16px 0">Upcoming deliveries</div>
-      <div class="box">${ups.map(u => `<div class="row up"><div class="t"><b>${fmtD(u.date)}</b><small>${u.status === 'scheduled' ? `${(u.date === TMR && S.ovr[s.id] && S.ovr[s.id].qty) || s.qty} × ${p.name}` : u.status === 'paused' ? 'Paused' : 'Skipped · not charged'}</small></div>
+      <div class="box">${ups.map(u => `<div class="row up"><div class="t"><b>${fmtD(u.date)}</b><small>${u.status === 'scheduled' ? `${u.qty} × ${p.name}${pend && u.date === pend ? ' · change starts' : ''}` : u.status === 'paused' ? 'Paused' : 'Skipped · not charged'}</small></div>
         <div class="rt">${u.locked ? `<span class="chip k">${icon('lock', 11)} Being prepared</span>` : u.status === 'paused' ? '<span class="chip y">Paused</span>'
-          : `<button class="sbtn2 ${u.status === 'skipped' ? 'on' : ''}" data-a="skip-on" data-v="${s.id}|${u.date}">${u.status === 'skipped' ? 'Undo skip' : 'Skip'}</button>`}</div></div>`).join('') || '<div class="row"><div class="t"><small>No upcoming deliveries.</small></div></div>'}</div>
+          : `<button class="sbtn2 ${u.status === 'skipped' ? 'on' : ''}" data-a="skip-on" data-v="${u.subId}|${u.date}">${u.status === 'skipped' ? 'Undo skip' : 'Skip'}</button>`}</div></div>`).join('') || '<div class="row"><div class="t"><small>No upcoming deliveries.</small></div></div>'}</div>
       <div class="sh" style="padding:4px 16px 0">Change this plan</div>
       <div class="box" style="padding:14px;display:flex;flex-direction:column;gap:12px">
         <div class="fld"><label>HOW OFTEN</label><div class="opts">${subFreqs(p).map(f => `<button class="${sh.freq === f ? 'on' : ''}" data-a="m-freq" data-v="${f}" aria-pressed="${sh.freq === f}">${FREQ[f]}</button>`).join('')}</div></div>
         ${sh.freq === 'days' ? dayPicker(sh.days, 'm-day', 'm-preset') : ''}
-        <div class="fld r"><label>QUANTITY EACH TIME</label>${qbtn('m-qty','q',sh.qty)}</div>
+        <div class="fld r"><label>REGULAR QUANTITY PER DELIVERY</label>${qbtn('m-qty','q',sh.qty)}</div>
         <small class="eff">${changed ? `Changes apply from ${fmtD(effFrom(s))}${valid ? ` · ${freqLabel(draft)}` : ''}.` : `Changes apply from ${fmtD(effFrom(s))}.`}</small>
         <button class="btn2 pri" data-a="m-save" ${changed && valid ? '' : 'disabled'}>Save changes</button></div>
       <div class="two-btn" style="padding:0 14px">${s.pausedFrom ? `<button class="btn2" data-a="p-resume" data-v="${s.id}">Resume plan</button>` : `<button class="btn2" data-a="p-pause" data-v="${s.id}">Pause plan</button>`}
@@ -498,12 +519,14 @@ function sheetHTML(){
     let n = 0, amt = 0;
     for (let i = 0; i < days; i++){ const d = plus(from, i); S.subs.forEach(s => { if (s.cust === 'me' && delivers(s,d) && !s.pausedFrom){ n++; amt += s.qty*P[s.prod].price; } }); }
     const to = len ? plus(from, len-1) : null;
-    inner = `<div class="sh-pad"><div class="sh-title">Going out of town?</div>
+    const allPlans = activeSubs('me').filter(s => !s.cancelledFrom);
+    inner = `<div class="sh-pad"><div class="sh-title">Pause all your plans?</div>
+      <div class="info">${icon('plane', 16)}<span>Vacation mode pauses <b>all ${allPlans.length} plans</b>: ${allPlans.map(s => P[s.prod].name).join(', ')}. To pause just one, close this and use <b>Manage</b> on that plan.</span></div>
       <div class="box" style="padding:14px;display:flex;flex-direction:column;gap:12px">
         <div class="fld"><label>PAUSE FOR</label><div class="opts">${[[3,'3 days'],[7,'1 week'],[14,'2 weeks'],[0,'Until I\'m back']].map(([k,l]) => `<button class="${len === k ? 'on' : ''}" data-a="vac-len" data-v="${k}">${l}</button>`).join('')}</div></div>
         <div class="sumg"><div><span>Paused</span><b style="font-size:15px">${to ? fmtS(from) + ' – ' + fmtS(to) : 'From ' + fmtS(from)}</b></div><div><span>${len ? 'Not charged' : 'Saved each week'}</span><b>${rs(amt)}</b></div></div></div>
       <div class="info">${icon('bell', 16)}${n} deliveries will be skipped. Vaaradhi is told right away, so nothing is packed for you.${S.phase !== 'open' ? ` Tomorrow is already being prepared, so the pause starts ${fmtD(DAT)}.` : ''}</div></div>`;
-    foot = `<button class="cta c" data-a="vac-go">Pause deliveries</button>`;
+    foot = `<button class="cta c" data-a="vac-go">Pause all plans</button>`;
   }
   return `<div class="scrim" data-a="close"></div><div class="sheet" role="dialog" aria-modal="true"><div class="sheet-sc">${inner}</div>${foot ? `<div class="sh-foot">${foot}</div>` : ''}</div>`;
 }

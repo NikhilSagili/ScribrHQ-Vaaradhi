@@ -30,8 +30,9 @@
   <div class="script" aria-label="Demo script">
     <span><i>1</i>Order now</span><span><i>2</i>Pause for a trip</span><span><i>3</i>Add for tomorrow</span><span><i>4</i>Subscribe</span><span><i>5</i>Lock at <b class="cutoff-label">9 PM</b></span><span><i>6</i>Run deliveries</span>
   </div>
-  <button class="dbtn demo-toggle" data-a="demo">Demo ▾</button>
-  <div class="demo-btns" id="demoBtns">
+  <button class="dbtn demo-toggle" data-a="demo" aria-label="Demo controls">Demo ▾</button>
+  <div class="demo-btns" id="demoBtns" role="group" aria-label="Demo controls, for presenting only">
+    <span class="dctl">Demo controls</span>
     <button class="dbtn hot" data-a="lock" id="bLock">Skip past <span class="cutoff-label">9 PM</span></button>
     <button class="dbtn" data-a="morning" id="bMorn">Run morning deliveries</button>
     <button class="dbtn" data-a="reset">Reset demo</button>
