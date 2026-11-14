@@ -14,15 +14,16 @@ A clickable pitch demo for Vaaradhi Farms (Manikonda, Hyderabad). It has two con
 3. **Save and reorder.** In the cart, **Save** the basket. Then **Orders → Saved baskets → Add all to cart**, or **Reorder** a previous order.
 4. **Subscriptions.** Tap **Subscribe** on any eligible product: daily, alternate days, selected weekdays, weekly or every 2 weeks. On **Schedule**, each plan shows its next delivery. Tap **Manage** to skip any upcoming date, change quantity or schedule, pause, resume or cancel. Vaaradhi's Tomorrow tab updates live.
 5. **Healthy Meal Plans** (concept proposed by Scribr). Four plan ideas. Tap **Share my preferences**, pick preferred days and an indicative number of servings, and submit. The confirmation says plainly that it is **not an order**. On the Vaaradhi side, **Customers → Breakfast plan interest** shows responses per concept, with preferred-day bars and serving preferences. Sample responses are labelled "Sample". Interest never appears in Orders, Tomorrow, Run or Earnings.
-6. **Cutoff.** Use **Demo → Skip past 9 PM IST**, then try to skip tomorrow on Schedule. The app explains that tomorrow is being prepared and offers to skip the next eligible date instead.
+6. **Cutoff.** The clock is the real time in India. Use **Demo → Skip past 9 PM IST** to jump ahead (the Vaaradhi header then says "Demo shows after 9 PM IST"), then try to skip tomorrow on Schedule. The app explains that tomorrow is being prepared and offers to skip the next eligible date instead.
 7. **Demo → Run morning deliveries.** The morning delivery appears in **Wallet → History** as one entry; tap it to see each item, including skipped ones at ₹0 (simulated).
 8. **Vaaradhi side.**
-   - **Overview:** today's three key numbers, what needs attention (new orders, stock problems, changes), plan counts, and repeat-ordering figures labelled as demo data.
-   - **Orders:** status tabs with counts, then date and type. Orders are grouped into new, in progress, recurring, delivered and cancelled. Recurring deliveries are tomorrow's stops from plans.
+   - **Overview:** today's three key numbers, coloured tiles for what needs attention (new orders, stock alerts, orders in progress, changes for tomorrow), shortcuts (add product, breakfast plan, stock, delivery run), today's orders as one progress bar, plan counts, and repeat-ordering figures labelled as demo data.
+   - **Orders:** Today / Tomorrow / Earlier / All tabs with counts, a summary strip, status chips and a type switch. Orders are grouped into new, in progress, recurring, delivered and cancelled; each card has a coloured status edge, a step bar and one action. Recurring deliveries are tomorrow's stops from plans.
    - **Tomorrow:** the prep sheet, split into plan and one-time quantities, plus every customer change for tomorrow.
    - **Plans:** active, paused, changing and ended plans. Open one to see upcoming dates or to pause, resume or cancel it.
    - **Customers:** search and filter; tap a customer for their plans, next delivery and recent orders. **Breakfast plan interest** opens from here.
-   - **Stock:** demo stock per product, with out-of-stock, short-for-tomorrow and low-stock flags. Tap a product to add received stock, set its alert level or mark it out of stock. An out-of-stock product can't be added to a customer's same-day cart.
+   - **Stock:** demo stock per product, with out-of-stock, short-for-tomorrow and low-stock flags. Tap a product to add received stock, set its alert level or mark it out of stock. An out-of-stock product can't be added to a customer's same-day cart. **Add a product** (name, category, pack size, price, opening stock, optional subscription and photo) puts it in the customer shop straight away, marked New.
+   - **Plans → Breakfast plans:** add a breakfast plan, or launch one of the four concepts, by typing the menu, price per serving, days served and an optional daily limit. Choose whether customers can subscribe, order for a day, or both. It appears in the customer app under Healthy Meal Plans and in Shop, and its servings show on the prep sheet. Nothing is pre-filled except a concept's name.
    - The **Delivery run** opens from Tomorrow; **Earnings** (simulated) opens from Overview.
 
 Use **Demo → Reset demo** before each pitch. State is saved in the browser and resets on its own each new day.
@@ -51,7 +52,7 @@ Use **Demo → Reset demo** before each pitch. State is saved in the browser and
 
 ## Editing
 - **Products, prices, eligibility:** edit `CURATED`, `ELIGIBILITY` and `NOT_ELIGIBLE_ITEMS` in `tools/build_catalogue.py`, then run `python tools/build_catalogue.py`. Or edit `data/catalogue.js` directly.
-- **Breakfast plans:** edit `data/plans.js` after the owner confirms menu, prices and capacity.
+- **Breakfast plans:** the four concepts live in `data/plans.js` with no menu or price. Plans added in the demo (Plans → Breakfast plans) are saved in the browser only; to make one permanent, add it to `data/plans.js` once the owner confirms menu, price and capacity.
 - **Subscription cutoff (provisional):** `subscriptionCutoff` in `data/config.js` (24-hour local time, Asia/Kolkata assumed). Every label in the app follows it.
 - **Home "Everyday essentials" row:** `homeEssentials` in `data/config.js`. This is a presentation choice, not a sales ranking.
 - **Product photos:** `python tools/fetch_product_images.py` re-downloads them (needs Pillow). Pick a different stock photo by editing `COMMONS` in that script, then update `CREDITS.md`.
@@ -64,7 +65,7 @@ Serve the folder (`python -m http.server 5600`) and open http://localhost:5600/t
 - **Schedules:** one rule per plan (daily, alternate days, selected weekdays, weekly, every 2 weeks). Monthly is not offered.
 - **No stored delivery records:** tomorrow's list is calculated from active plans, so refreshing or navigating cannot create duplicate deliveries. At the cutoff the list is frozen once (a "snapshot"), and the morning run charges each delivery once.
 - **Changes never rewrite history:** a quantity or schedule change ends the current version of the plan and starts a new one from the next editable date.
-- **Dates and times use India Standard Time (IST)** on both the customer and Vaaradhi sides, and times are labelled IST. The provisional cutoff is `subscriptionCutoff` in `data/config.js`. Before it, tomorrow can be changed; at or after it, changes apply from the day after tomorrow.
+- **Dates and times use India Standard Time (IST)** on both the customer and Vaaradhi sides, and times are labelled IST. The clock is the real current time in India, so it matches a phone or laptop set to India time. Sample orders are timed a few minutes to a few hours before now. If the real time passes the cutoff while the demo is open, tomorrow's list locks by itself. The demo controls can run ahead of the clock; the Vaaradhi header then says so (for example "Demo shows after 9 PM IST"). The provisional cutoff is `subscriptionCutoff` in `data/config.js`. Before it, tomorrow can be changed; at or after it, changes apply from the day after tomorrow.
 
 ## What is real and what is simulated
 - **Verified:** product names and displayed prices from the EkSecond ordering page, captured 28 Oct 2026. Not synchronised.

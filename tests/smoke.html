@@ -169,6 +169,12 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     act('ctab', 'orders');
     check(/Order #\d+ · \d+:\d\d [AP]M IST/.test(custText()), 'order times on the customer tracker say IST');
     act('mtab', 'orders'); check(/\d:\d\d [AP]M IST/.test($('#merchApp .ord').textContent), 'order times on the merchant side say IST');
+    const realNow = new Intl.DateTimeFormat('en-GB', {timeZone:'Asia/Kolkata', hour:'2-digit', minute:'2-digit', hourCycle:'h23'}).format(new Date()).split(':').map(Number);
+    const realStr = ev(`fmtMin(${realNow[0] * 60 + realNow[1]}, true)`);
+    check($('#merchApp .mh .clk').textContent === realStr + ' IST', `the merchant clock shows the real time in India (${realStr} IST), not a simulated one`);
+    const toMin = t => { const m = t.match(/(\d+):(\d\d) ([AP])M/); return (+m[1] % 12 + (m[3] === 'P' ? 12 : 0)) * 60 + +m[2]; };
+    check(ev("S.orders.filter(o => o.date === TDY)").every(o => toMin(o.t) <= realNow[0] * 60 + realNow[1]), 'sample orders are timed earlier today, never in the future');
+    check(ev('simNote()') === (realNow[0] * 60 + realNow[1] >= ev('CUT_MIN') ? 'Demo shows before 9 PM IST' : '') && (!ev('simNote()') || $('#merchApp .simn').textContent === ev('simNote()')), 'before the demo lock, no simulated-time note unless the real time is already past the cutoff');
 
     section('Wallet history');
     act('ctab', 'wallet');
@@ -521,7 +527,7 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     act('of', 'type:one');
     check(ocards().length === 0 && /No orders match/.test(mt()), 'no one-time orders exist for tomorrow');
     act('of', 'date:earlier');
-    check(ocards().length === ev("S.orders.filter(o => o.date < TDY).length") && ocards().every(c => /One-time/.test(c.textContent)), 'earlier one-time orders');
+    check(ocards().length === ev("S.orders.filter(o => o.date < TDY).length") && ocards().every(c => c.dataset.kind === 'one'), 'earlier one-time orders');
     act('of', 'type:rec');
     check(ocards().length === 0 && /Past recurring deliveries aren't kept as order records/.test(mt()), 'recurring + earlier explains that past recurring deliveries are not stored');
     act('of', 'type:all'); act('of', 'date:all');
@@ -531,8 +537,9 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     act('of', 'status:open');
     check(ocards().every(c => !/Delivered|Cancelled/.test(c.querySelector('.ord-amt').textContent)), 'status filter: open');
     act('of', 'status:all'); act('of', 'date:all');
-    const tabN = v => +$(`#merchApp .otab[data-v="status:${v}"] i`).textContent;
-    check(tabN('all') === ocards().length && tabN('open') + tabN('done') + tabN('cancelled') === tabN('all'), 'status tabs show counts that add up');
+    const tabN = v => +$(`#merchApp .ostat[data-v="status:${v}"] b`).textContent;
+    check(tabN('all') === ocards().length && tabN('open') + tabN('done') + tabN('cancelled') === tabN('all'), 'status chips show counts that add up');
+    check(['today','tomorrow','earlier'].every(v => +$(`#merchApp .otab[data-v="date:${v}"] i`).textContent === ev(`opsItems().filter(o => ${v === 'today' ? 'o.date === TDY' : v === 'tomorrow' ? 'o.date === TMR' : 'o.date < TDY'}).length`)), 'date tabs show how many orders each day has');
     check(/New · accept to start/.test(mt()) && /In progress/.test(mt()) && /Recurring deliveries/.test(mt()), 'orders are grouped: new, in progress, recurring');
     act('of', 'date:today');
 
@@ -621,8 +628,89 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     act('mplan', myPot.id); click('#merchApp [data-a="mp-resume"]'); act('mclose');
     act('mtab', 'home');
 
+    section('Merchant: add a product');
+    act('mtab', 'stock');
+    click('#merchApp .addrow[data-a="np-open"]');
+    check(ev('ui.msheet.type') === 'newprod' && $('#merchApp [data-a="np-save"]').disabled, 'Stock has "Add a product"; Save stays off until the form is filled');
+    type('f-name', 'Test Kodo Rava'); type('f-unit', '500 g'); type('f-price', 'abc');
+    check($('#merchApp [data-a="np-save"]').disabled, 'a price that is not a number is rejected');
+    type('f-price', '95');
+    check(!$('#merchApp [data-a="np-save"]').disabled, 'name, category and price enable Save');
+    act('np-sub'); act('np-qty', 'q|-2');
+    click('#merchApp [data-a="np-save"]');
+    const npId = ev("S.custom[0] && S.custom[0].id");
+    check(npId && ev(`P['${npId}'].price`) === 95 && ev(`P['${npId}'].unit`) === '500 g' && ev(`stockOf('${npId}')`) === 10, 'the product is saved with its price, pack size and opening stock (10)');
+    check(ev(`subFreqs(P['${npId}']).length`) === 5, 'customers can subscribe to it when that was switched on');
+    check(ev('ui.msheet.type') === 'stock' && /Added by you/.test($('#merchApp .sheet').textContent), 'after saving, its stock card opens');
+    act('mclose');
+    check($$('#merchApp .strow').length === 51 && /New/.test($(`#merchApp .strow[data-v="${npId}"]`).textContent), 'Stock lists it (51 products), marked New');
+    act('ctab', 'shop'); act('clear-filters');
+    check(!!$(`#custApp .pc[data-prod="${npId}"]`) && /New/.test($(`#custApp .pc[data-prod="${npId}"]`).textContent), 'it appears in the customer shop right away, marked New');
+    act('cq', npId + '|1');
+    check(ev(`cartQty('${npId}')`) === 1, 'customers can add it to the same-day cart');
+    act('cq', npId + '|-1');
+    act('np-open'); type('f-name', 'test kodo rava'); type('f-price', '50'); act('np-save');
+    check(ev('S.custom.length') === 1, 'a second product with the same name is refused');
+    act('mclose');
+    act('np-hide', npId);
+    check(!$(`#custApp .pc[data-prod="${npId}"]`) && ev(`P['${npId}'].hidden`) === true, 'Remove from shop hides it from customers');
+    act('np-hide', npId);
+    check(!!$(`#custApp .pc[data-prod="${npId}"]`), 'Show in shop again brings it back');
+    act('ctab', 'home');
+
+    section('Merchant: breakfast plans');
+    act('mtab', 'plans');
+    check(!!$('#merchApp .pseg [data-v="bf"]'), 'Plans has a Breakfast plans switch');
+    act('mtab', 'bf');
+    check($$('#merchApp [data-a="bf-new"][data-v]').length === 4 && !!$('#merchApp .addrow[data-a="bf-new"]'), 'Breakfast plans: "New breakfast plan" and Launch for each of the 4 concepts');
+    act('bf-new', 'healthy-start');
+    check(ev('ui.msheet.name') === 'Healthy Start' && ev('ui.msheet.price') === '' && ev('ui.msheet.desc') === '' && $('#merchApp [data-a="bf-save"]').disabled, 'launching a concept pre-fills the name only: no menu or price is invented');
+    type('f-desc', 'Test menu'); type('f-price', '99');
+    act('bf-day', '0');                 // add Sunday, so every day is served
+    act('bf-cap', 'q|1');
+    check(ev('ui.msheet.cap') === 5 && ev('ui.msheet.days.length') === 7 && !$('#merchApp [data-a="bf-save"]').disabled, 'menu, price, days and a daily limit of 5 enable Put on sale');
+    click('#merchApp [data-a="bf-save"]');
+    const bfId = ev('S.meals[0] && S.meals[0].id');
+    check(bfId && ev(`P['${bfId}'].meal`) && ev(`P['${bfId}'].price`) === 99 && ev(`P['${bfId}'].desc`) === 'Test menu', 'the plan is saved with the menu and price typed in');
+    check($$('#merchApp .bfc').length === 1 && $$('#merchApp [data-a="bf-new"][data-v]').length === 3, 'it shows as on sale, and its concept leaves the concept list');
+    check(/Healthy Start is on sale/.test(ev('S.feed[0].text')), 'Live updates record the launch');
+    act('ctab', 'meals');
+    check(!!$(`#custApp .mp.live[data-meal="${bfId}"]`) && /99/.test($(`#custApp .mp.live[data-meal="${bfId}"]`).textContent) && $$('#custApp .mp:not(.live)').length === 3, 'customers see it under Available now, with 3 concepts still open for interest');
+    act('ctab', 'home'); check(/1 breakfast plan to subscribe or order/.test(custText()), 'Home points to the new plan');
+    act('ctab', 'shop'); act('clear-filters');
+    check(!!$(`#custApp .vcat[data-v="Breakfast plans"]`) && /ORDER/.test($(`#custApp .pc[data-prod="${bfId}"]`).textContent), 'Shop gets a Breakfast category; the plan has ORDER instead of ADD');
+    act('cq', bfId + '|1'); check(!ev(`cartQty('${bfId}')`), 'a breakfast plan cannot go in the same-day cart');
+    act('buy-open', bfId + '|now');
+    check(ev('ui.sheet.mode') === 'tmr' && !$('#custApp .modes [data-v="now"]'), 'its sheet offers Tomorrow and Subscribe, not same-day');
+    act('s-qty', 'q|1'); act('s-qty', 'q|1'); act('s-qty', 'q|1');
+    act('add-go');
+    check(ev(`S.extras.filter(x => x.prod === '${bfId}').reduce((a, x) => a + x.qty, 0)`) === 4, 'ordering 4 servings for tomorrow adds them to tomorrow');
+    act('buy-open', bfId + '|tmr'); act('s-qty', 'q|1');
+    check($('#custApp [data-a="add-go"]').disabled && /fully booked/.test($('#custApp .sheet').textContent), 'the daily limit (5) stops a 6th serving');
+    act('close');
+    act('mtab', 'today');
+    check(!!$(`#merchApp .box.prep .row[data-prod="${bfId}"]`) && ev(`prep()['${bfId}']`) === 4, 'the prep sheet lists the breakfast servings');
+    act('mtab', 'stock'); check($$('#merchApp .strow').length === 51 && !ev(`stockSummary().ok.includes('${bfId}')`), 'breakfast plans are made to order: not in Stock');
+    act('buy-open', bfId + '|sub');
+    check(ev('ui.sheet.freq') === 'days' && ev('ui.sheet.days.length') === 7, 'subscribing starts from the days it is served');
+    act('s-day', '0'); act('s-day', '6'); act('s-start', ev('DAT'));
+    act('sub-go');
+    const bfSub = ev(`S.subs.find(s => s.prod === '${bfId}' && s.cust === 'me')`);
+    check(bfSub && bfSub.freq === 'days' && bfSub.days.length === 5, 'customer subscribes for weekdays');
+    act('ctab', 'meals'); check(/Subscribed: 1 × Mon – Fri/.test(custText()), 'the plan card shows the subscription');
+    act('mtab', 'bf'); check(/1\s*Subscribers/.test($('#merchApp .bfc').textContent), 'merchant sees 1 subscriber');
+    act('bf-edit', bfId); act('bf-day', '0'); type('f-price', '110'); click('#merchApp [data-a="bf-save"]');
+    check(ev(`P['${bfId}'].price`) === 110 && ev(`P['${bfId}'].days.length`) === 6 && ev('S.meals.length') === 1, 'editing changes the price and days without making a copy');
+    act('bf-hide', bfId);
+    act('ctab', 'meals');
+    check(!$('#custApp .mp.live') && $$('#custApp .mp').length === 4, 'Stop selling hides it; the concept is open for interest again');
+    // Leave the rest of the run as it was: drop the test plan's orders and subscription.
+    w.eval(`S.extras = S.extras.filter(x => x.prod !== '${bfId}'); S.subs = S.subs.filter(s => s.prod !== '${bfId}'); render();`);
+    act('ctab', 'home'); act('mtab', 'home');
+
     section('Subscriptions after the cutoff');
     act('lock'); check(ev('S.phase') === 'locked', 'cutoff passes (demo lock)');
+    check(ev('nowMin() >= CUT_MIN') ? !ev('simNote()') : $('#merchApp .simn').textContent === 'Demo shows after 9 PM IST', 'when the demo lock runs ahead of the real clock, the header says so (and the clock keeps the real time)');
     act('ctab', 'sched');
     act('t-skip', eggsSub);
     const next = ev(`nextEligible(S.subs.find(s => s.id === '${eggsSub}'))`);
@@ -684,8 +772,11 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     act('ctab', 'wallet'); check(/Demo/.test($('#custApp .wc').textContent), 'wallet shows a Demo label');
     act('mtab', 'earn'); check(/Demo/.test($('#merchApp .mcard').textContent), 'earnings shows a Demo label');
     let claimHit = '';
-    for (const tab of ['home','shop','orders','sched','wallet','meals']){ act('ctab', tab); const m = custText().match(TIME_CLAIMS); if (m) claimHit += tab + ':' + m[0] + ' '; }
-    for (const tab of ['home','orders','today','run','plans','cust','stock','interest','earn']){ act('mtab', tab); const m = $('#merchApp').textContent.match(TIME_CLAIMS); if (m) claimHit += 'merchant ' + tab + ':' + m[0] + ' '; }
+    // Real clock times (the header clock, order and feed timestamps) are not delivery promises, so leave them out.
+    const stamps = [ev('clock()'), ...ev('S.orders.map(o => o.t)'), ...ev('S.feed.map(f => f.t)')];
+    const noStamps = t => stamps.reduce((a, x) => a.split(x).join(''), t);
+    for (const tab of ['home','shop','orders','sched','wallet','meals']){ act('ctab', tab); const m = noStamps(custText()).match(TIME_CLAIMS); if (m) claimHit += tab + ':' + m[0] + ' '; }
+    for (const tab of ['home','orders','today','run','plans','cust','stock','interest','earn','bf']){ act('mtab', tab); const m = noStamps($('#merchApp').textContent).match(TIME_CLAIMS); if (m) claimHit += 'merchant ' + tab + ':' + m[0] + ' '; }
     check(!claimHit, 'no unverified delivery times anywhere' + (claimHit ? ' — found ' + claimHit : ''));
     act('mtab', 'orders');
 
@@ -709,16 +800,18 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     for (let i = 0; i < 3; i++){ await load(); w = frame.contentWindow; d = w.document; hook(w); }
     check(w.eval('S.orders.length') === n && w.eval('S.phase') === phase, 'state survives three page reloads');
     check(w.eval('S.subs.length') === nSub && w.eval('S.ledger.length') === nLed && w.eval('lines().length') === nLines, 'reloading creates no duplicate plans, charges or deliveries');
+    check(w.eval('S.custom.length') === 1 && w.eval('S.meals.length') === 1 && w.eval('PRODUCTS.length') === 52 && w.eval('PRODUCTS.filter(p => p.custom).length') === 2, 'added products and breakfast plans survive reloads, without duplicates');
     for (const tab of ['home','shop','orders','sched','wallet','home']) act('ctab', tab);
     check(w.eval('S.subs.length') === nSub && w.eval('lines().length') === nLines, 'navigating between tabs creates no duplicates');
     w.document.body.appendChild(Object.assign(w.document.createElement('button'), {})).remove();
     act('reset');
     check(w.eval('S.phase') === 'open' && w.eval('S.orders.filter(o => o.date === TDY).length') === 5 && w.eval('S.baskets.length') === 1, 'reset restores the starting sample data');
+    check(w.eval('PRODUCTS.length') === 50 && !w.eval('CAT_LIST.some(c => c.id === "breakfast")') && w.eval('S.meals.length + S.custom.length') === 0, 'reset removes added products and breakfast plans');
 
     section('Layout: desktop and phone');
     const overflow = () => { const o = []; if (d.documentElement.scrollWidth > d.documentElement.clientWidth + 1) o.push('page'); $$('.app .body').forEach(b => { if (b.scrollWidth > b.clientWidth + 1) o.push(b.parentElement.id + ' body'); }); return o; };
     for (const tab of ['home','shop','orders','sched','meals','wallet']){ act('ctab', tab); const o = overflow(); check(!o.length, `desktop ${tab}: no horizontal overflow` + (o.length ? ' (' + o + ')' : '')); }
-    for (const tab of ['home','orders','today','run','plans','cust','stock','interest','earn']){ act('mtab', tab); const o = overflow(); check(!o.length, `desktop merchant ${tab}: no horizontal overflow` + (o.length ? ' (' + o + ')' : '')); }
+    for (const tab of ['home','orders','today','run','plans','cust','stock','interest','earn','bf']){ act('mtab', tab); const o = overflow(); check(!o.length, `desktop merchant ${tab}: no horizontal overflow` + (o.length ? ' (' + o + ')' : '')); }
     act('mtab', 'home');
     frame.style.width = '390px'; frame.style.height = '844px'; await wait(300);
     check(w.matchMedia('(max-width: 899px)').matches && w.getComputedStyle(d.getElementById('cust')).display !== 'none', 'phone width switches to the single-app layout');
@@ -735,11 +828,15 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     check(fits($('#custApp .sheet')) && $('#custApp .sh-foot').offsetTop + $('#custApp .sh-foot').offsetHeight <= $('#custApp .sheet').offsetHeight + 1, 'phone: breakfast preference sheet and its button fit the screen');
     act('close');
     act('view', 'merchant');
-    for (const tab of ['home','orders','today','plans','run','cust','stock','earn']){ act('mtab', tab); const o = overflow(); check(!o.length, `phone merchant ${tab}: no horizontal overflow` + (o.length ? ' (' + o + ')' : '')); }
+    for (const tab of ['home','orders','today','plans','run','cust','stock','earn','bf']){ act('mtab', tab); const o = overflow(); check(!o.length, `phone merchant ${tab}: no horizontal overflow` + (o.length ? ' (' + o + ')' : '')); }
     act('mtab', 'plans'); act('mplan', ev("planRows()[0].s.id"));
     { const ma = $('#merchApp'), msh = $('#merchApp .sheet'); check(msh.offsetLeft >= 0 && msh.offsetLeft + msh.offsetWidth <= ma.clientWidth + 1 && msh.offsetTop + msh.offsetHeight <= ma.clientHeight + 1, 'phone: merchant plan sheet fits the screen'); }
     act('mclose'); act('mtab', 'stock'); act('stock-open', 'onion-1-kg');
     { const ma = $('#merchApp'), msh = $('#merchApp .sheet'); check(msh.offsetLeft + msh.offsetWidth <= ma.clientWidth + 1 && msh.offsetTop + msh.offsetHeight <= ma.clientHeight + 1 && $$('#merchApp .sheet .qbtn').every(q => w.getComputedStyle(q).flexDirection === 'row'), 'phone: stock sheet fits and its steppers are laid out in a row'); }
+    act('mclose'); act('np-open');
+    { const ma = $('#merchApp'), msh = $('#merchApp .sheet'), ft = $('#merchApp .sh-foot'); check(msh.offsetTop + msh.offsetHeight <= ma.clientHeight + 1 && ft.offsetTop + ft.offsetHeight <= msh.offsetHeight + 1, 'phone: Add a product form and its button fit the screen'); }
+    act('mclose'); act('bf-new');
+    { const ma = $('#merchApp'), msh = $('#merchApp .sheet'), ft = $('#merchApp .sh-foot'); check(msh.offsetTop + msh.offsetHeight <= ma.clientHeight + 1 && ft.offsetTop + ft.offsetHeight <= msh.offsetHeight + 1, 'phone: New breakfast plan form and its button fit the screen'); }
     act('mclose'); act('mtab', 'interest');
     { const o = overflow(); check(!o.length && w.getComputedStyle(d.getElementById('merch')).display !== 'none', 'phone: merchant breakfast-interest screen has no horizontal overflow' + (o.length ? ' (' + o + ')' : '')); }
     act('view', 'customer'); act('mtab', 'orders');

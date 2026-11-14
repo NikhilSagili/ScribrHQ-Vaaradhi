@@ -21,7 +21,13 @@ const SHOTS = {
   'c-meals':     {acts:[['ctab','meals']]},
   'c-meal-prefs':{acts:[['ctab','meals'],['meal-open','workday-breakfast']], sheetScroll:150},
   'm-overview':  {acts:[['view','merchant'],['mtab','home']]},
-  'm-orders':    {acts:[['view','merchant'],['mtab','orders'],['of','date:all']]},
+  'm-orders':    {acts:[['view','merchant'],['mtab','orders']]},
+  'm-orders-tmr':{acts:[['view','merchant'],['mtab','orders'],['of','date:tomorrow']]},
+  'm-overview-2':{acts:[['view','merchant'],['mtab','home']], mscroll:420},
+  'm-addprod':   {acts:[['view','merchant'],['mtab','stock'],['np-open']], js:"Object.assign(ui.msheet,{name:'Foxtail Millet Rava',unit:'500 g',price:'95',cat:'millets'})"},
+  'm-bf-form':   {acts:[['view','merchant'],['mtab','bf'],['bf-new','healthy-start']], js:"Object.assign(ui.msheet,{desc:'Sample menu typed in the demo',price:'99'})"},
+  'm-bf':        {acts:[['view','merchant'],['mtab','bf'],['bf-new','healthy-start']], js:"Object.assign(ui.msheet,{desc:'Sample menu typed in the demo',price:'99'})", after:[['bf-save']]},
+  'c-meals-live':{acts:[['view','merchant'],['mtab','bf'],['bf-new','healthy-start']], js:"Object.assign(ui.msheet,{desc:'Sample menu typed in the demo',price:'99'})", after:[['bf-save'],['view','customer'],['ctab','meals']]},
   'm-tomorrow':  {acts:[['view','merchant'],['mtab','today']], mscroll:250},
   'm-plans':     {acts:[['view','merchant'],['mplans','changes']]},
   'c-wallet':    {acts:[['ctab','wallet']], scroll:330},
@@ -39,6 +45,8 @@ f.onload = () => setTimeout(() => {
   act('reset');
   if (!S_) return;
   S_.acts.forEach(([a, v]) => act(a, v));
+  if (S_.js){ w.eval(S_.js); w.eval('render()'); }
+  (S_.after || []).forEach(([a, v]) => act(a, v));
   setTimeout(() => {
     if (S_.scroll){ const b = d.querySelector('#custApp .body'); if (b) b.scrollTop = S_.scroll; }
     if (S_.mscroll){ const b = d.querySelector('#merchApp .body'); if (b) b.scrollTop = S_.mscroll; }
