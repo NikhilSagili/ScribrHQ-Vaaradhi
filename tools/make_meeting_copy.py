@@ -1,18 +1,19 @@
-"""Make a LOCAL meeting copy of the demo that uses Vaaradhi's own logo and product photos.
+"""Make a LOCAL meeting copy of the demo with Vaaradhi's logo and the illustrative breakfast-interest samples.
 
     python tools/make_meeting_copy.py              # also re-captures slide screenshots from the meeting copy
     python tools/make_meeting_copy.py --no-slides  # skip the screenshots (faster)
 
 Output: meeting-copy/ (git-ignored). Open meeting-copy/index.html, or serve that folder.
-The public demo is unchanged and keeps neutral placeholders. Use this copy only for the
-meeting, and only as permitted by Vaaradhi Farms. Never commit or publish it.
+Product photos are the same as the public demo (img/products/). The public demo is unchanged:
+no logo and no sample interest. Use this copy only for the meeting. Never commit or publish it.
 """
-import json, os, shutil, subprocess, sys
+import os, shutil, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'meeting-copy')
 LOGO_URL = 'https://vaaradhifarms.com/cdn/shop/files/VF_logo_final-02_2c6e6ec2-4064-4bf2-aae3-f51b9efa841e.png?v=1756365579&width=300'
-SKIP = {'.git', 'meeting-copy', 'tools', 'data/source', 'img', 'CREDITS.md', 'archive'}
+# img/*.jpg directly under img/ belong to the archived pitch; img/products/ is copied.
+SKIP = {'.git', 'meeting-copy', 'tools', 'data/source', 'CREDITS.md', 'archive', 'brand'}
 
 def fetch(url, dest):
     r = subprocess.run(['curl', '-sfL', '-m', '40', '-A', 'Mozilla/5.0', '-o', dest, url])
@@ -24,32 +25,21 @@ for base, dirs, files in os.walk(ROOT):
     rel = '' if rel == '.' else rel
     dirs[:] = [d for d in dirs if (f'{rel}/{d}' if rel else d) not in SKIP]
     for f in files:
-        if (f'{rel}/{f}' if rel else f) in SKIP: continue
+        if (f'{rel}/{f}' if rel else f) in SKIP or rel == 'img': continue
         os.makedirs(os.path.join(OUT, rel), exist_ok=True)
         shutil.copy2(os.path.join(base, f), os.path.join(OUT, rel, f))
 
-cat_src = open(os.path.join(ROOT, 'data/catalogue.js'), encoding='utf-8').read()
-catalogue = json.loads(cat_src[cat_src.index('=') + 1:].rstrip().rstrip(';'))
-os.makedirs(os.path.join(OUT, 'brand/products'), exist_ok=True)
-images, missing = {}, []
-for p in catalogue['products']:
-    url = p.get('brandImage')
-    if not url: missing.append(p['id']); continue
-    ext = os.path.splitext(url.split('?')[0])[1] or '.jpg'
-    name = p['id'] + ext
-    if fetch(url, os.path.join(OUT, 'brand/products', name)): images[p['id']] = name
-    else: missing.append(p['id'])
+os.makedirs(os.path.join(OUT, 'brand'), exist_ok=True)
 logo_ok = fetch(LOGO_URL, os.path.join(OUT, 'brand/logo.png'))
+n_photos = len(os.listdir(os.path.join(OUT, 'img', 'products')))
 
 # Keep every public setting (cutoff, home essentials...) and only switch the asset mode.
-brand = {'logo': 'brand/logo.png' if logo_ok else None, 'productImageDir': 'brand/products/', 'productImages': images}
 with open(os.path.join(OUT, 'data/config.js'), 'a', encoding='utf-8', newline='\n') as f:
-    f.write('\n/* LOCAL MEETING COPY ONLY. Uses Vaaradhi Farms brand assets. Do not publish. */\n'
+    f.write('\n/* LOCAL MEETING COPY ONLY. Uses the Vaaradhi Farms logo. Do not publish. */\n'
             "window.DEMO_CONFIG.assetMode = 'brand';\n"
             "window.DEMO_CONFIG.sampleInterest = true;   // illustrative breakfast-interest samples, meeting copy only\n"
-            'window.DEMO_CONFIG.brandAssets = ' + json.dumps(brand, indent=1) + ';\n')
-print(f'meeting copy: {OUT}\nlogo: {"ok" if logo_ok else "MISSING"} | product photos: {len(images)} of {len(catalogue["products"])}'
-      f' | neutral tile used for {len(missing)} products without a source photo')
+            "window.DEMO_CONFIG.brandAssets = {logo: " + ("'brand/logo.png'" if logo_ok else 'null') + "};\n")
+print(f'meeting copy: {OUT}\nlogo: {"ok" if logo_ok else "MISSING"} | product photos: {n_photos} (same as the public demo)')
 
 # slides.html in the meeting copy uses screenshots of the meeting copy itself (with brand assets).
 # They stay inside the git-ignored meeting-copy folder.

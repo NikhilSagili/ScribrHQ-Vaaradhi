@@ -37,7 +37,8 @@ const subFreqs = p => p && p.subscription && p.subscription.eligible ? p.subscri
 /* PROVISIONAL cutoff from data/config.js (local time, Asia/Kolkata assumed). */
 const CUT_MIN = (() => { const [h, m] = String(CFG.subscriptionCutoff || '21:00').split(':').map(Number); return h*60 + (m || 0); })();
 const fmtMin = (m, full) => { let h = Math.floor(m/60) % 24; const mm = m % 60, ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return h + (mm || full ? ':' + String(mm).padStart(2,'0') : '') + ' ' + ap; };
-const CUTOFF = fmtMin(CUT_MIN);
+/* Every time in the app is India Standard Time, and says so. */
+const CUTOFF = fmtMin(CUT_MIN) + ' IST';
 const AV_COLORS = ['#E7F6EC|#0B5A2D','#EAF1FF|#2563EB','#FFF5D1|#7A5B00','#FDE8EA|#B4232F','#F1EAFE|#6D28D9','#E6F7F7|#0E7490'];
 
 /* ---------- dates ---------- */
@@ -68,10 +69,10 @@ const initials = id => C[id].name.split(' ').map(w => w[0]).join('').slice(0,2);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ---------- state ---------- */
-const KEY = 'vaaradhi-demo-v8';
+const KEY = 'vaaradhi-demo-v9';
 let S;
 const ui = {view:'customer', cTab:'home', cCat:'All', q:'', subOnly:false, bname:null, confirmDel:null, mTab:'home', of:{type:'all', date:'today', status:'all'}, pf:'all', msheet:null, mConfirm:null, sheet:null, cToast:null, mToast:null, demoOpen:false,
-            confirmCancel:null, prevPrep:null, prevKpi:null, flash:{}, shownToast:{}};
+            confirmCancel:null, prevPrep:null, prevKpi:null, flash:{}, shownToast:{}, wf:'all', wOpen:null, sf:'all', sq:'', cuf:'all', cuq:''};
 
 function seed(){
   let s = 7; const r = () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
@@ -96,11 +97,11 @@ function seed(){
     ovr:{}, extras:[{id:1, cust:'c3', prod:'desi-eggs-6-pcs', qty:1}, {id:2, cust:'c12', prod:'apple-500-g', qty:1}],
     done:{}, meSettled:false, orders:[], cart:[], baskets:[], mealInterest:[], mealSamples:[], oseq:1043, snapshot:null, ledger:[], seq:0, feed:[], unread:0, simStart:Date.now(), lockedAt:null};
   S = st;
-  const led = (date, text, amt, kind) => st.ledger.push({date, text, amt, kind, seq:st.seq++});
-  led(iso(addD(-6)), 'Added to wallet via UPI', 5000, 'in');
+  const led = (date, type, amt, extra = {}) => st.ledger.push({date, type, amt, kind: amt > 0 ? 'in' : amt < 0 ? 'out' : 'zero', seq:st.seq++, ...extra});
+  led(iso(addD(-6)), 'topup', 5000, {via:'UPI · simulated'});
   for (let d = -5; d <= 0; d++) {
-    const day = iso(addD(d));
-    subs.filter(x => x.cust === 'me' && delivers(x, day)).forEach(x => led(day, 'Delivered · ' + P[x.prod].name + ' × ' + x.qty, -x.qty*P[x.prod].price, 'out'));
+    const day = iso(addD(d)), items = subs.filter(x => x.cust === 'me' && delivers(x, day)).map(x => ({prod:x.prod, qty:x.qty, amt:x.qty*P[x.prod].price, status:'ok'}));
+    if (items.length) led(day, 'delivery', -items.reduce((a, i) => a + i.amt, 0), {items});
   }
   st.feed = [
     {t:'7:31 PM', kind:'new',   text:`Rahul K. subscribed to Desi Eggs × 2 · Daily · starts ${fmtD(TMR)}`},
@@ -113,7 +114,7 @@ function seed(){
   // The demo customer's earlier orders, for Order Again.
   mk(1017,'me',[{prod:'white-sesame-oil-500-ml',qty:1},{prod:'jowar-flakes-150-g',qty:1},{prod:'dates-250-g',qty:1}], 'delivered', '6:40 PM', iso(addD(-9)));
   mk(1024,'me',[{prod:'desi-eggs-6-pcs',qty:2},{prod:'onion-1-kg',qty:1},{prod:'ragi-idli-rava-500-g',qty:1}], 'delivered', '10:15 AM', iso(addD(-3)));
-  st.orders.filter(o => o.cust === 'me').forEach(o => led(o.date, `Order #${o.id} · ${itemsText(o.items)}`, -o.amt, 'out'));
+  st.orders.filter(o => o.cust === 'me').forEach(o => led(o.date, 'order', -o.amt, {ref:o.id, items:o.items.map(i => ({prod:i.prod, qty:i.qty, amt:i.qty*P[i.prod].price, status:'ok'}))}));
   // Illustrative breakfast-concept interest from sample customers. Seeded only when DEMO_CONFIG.sampleInterest is on
   // (the local meeting copy), and kept in its own list, apart from customer-submitted interest.
   if (CFG.sampleInterest) [['healthy-start','c4',[1,3,5],1,'delivery'], ['healthy-start','c8',[1,2,3,4,5,6],2,'delivery'], ['healthy-start','c17',[6,0],1,'pickup'],
@@ -131,6 +132,14 @@ function seed(){
   mk(1042,'c19',[{prod:'white-sesame-oil-500-ml',qty:1},{prod:'jowar-flakes-150-g',qty:2}], 'placed', '7:38 PM');
   const k = st.orders.find(o => o.id === 1042);
   st.feed.unshift({t:'7:38 PM', kind:'order', text:`New order #1042 from Kavya M. · ${itemsText(k.items)} · ${rs(k.amt)} · Madhapur`});
+  // Demo stock: enough for tomorrow plus a margin, with a few products low, short or out, so the Stock tab has something to show.
+  const need = {}; computeLines().filter(l => l.status === 'ok').forEach(l => need[l.prod] = (need[l.prod] || 0) + l.qty);
+  st.stock = Object.fromEntries(PRODUCTS.map((p, i) => [p.id, {qty:(need[p.id] || 0) + 6 + (i * 7) % 23, low:5}]));
+  st.stock['kaalabhat-black-rice-1-kg'].qty = 0; st.stock['nuvvula-undalu-250-g'].qty = 0;
+  st.stock['gongura-pickle-300-g'].qty = 3; st.stock['chia-seeds-250-g'].qty = 4;
+  // One product short for tomorrow: the busiest one outside the demo customer's own staples, which stay in stock.
+  const shortId = Object.keys(need).filter(id => need[id] >= 2 && !['desi-eggs-6-pcs','onion-1-kg','potato-500-g'].includes(id)).sort((a, b) => need[b] - need[a] || a.localeCompare(b))[0];
+  if (shortId) st.stock[shortId].qty = need[shortId] - 1;
   return st;
 }
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
@@ -213,6 +222,21 @@ function prep(){ const m = {}; okLines().forEach(l => m[l.prod] = (m[l.prod] || 
 function dayRevenue(d){ let amt = 0, n = 0; S.subs.forEach(s => { if (!s.isNew && delivers(s, d) && !pausedOn(s, d)) { amt += s.qty*P[s.prod].price; n++; } }); return {amt, n}; }
 const balance = () => S.ledger.reduce((a, l) => a + l.amt, 0);
 
+/* ---------- stock (demo inventory, packs of the listed size) ---------- */
+const stockOf = id => S.stock && S.stock[id] ? S.stock[id].qty : 0;
+/* What tomorrow's deliveries that aren't delivered yet still need from stock. */
+function stockNeed(){ const m = {}; if (S.phase === 'delivered') return m; okLines().forEach(l => { if (!S.done[l.cust]) m[l.prod] = (m[l.prod] || 0) + l.qty; }); return m; }
+function stockState(id, need){
+  const s = S.stock[id], n = need[id] || 0;
+  if (s.qty <= 0) return ['out', 'Out of stock', 'r'];
+  if (s.qty < n) return ['short', 'Short by ' + (n - s.qty), 'r'];
+  if (s.qty <= s.low) return ['low', 'Low stock', 'y'];
+  return ['ok', 'In stock', 'g'];
+}
+function stockSummary(){ const need = stockNeed(), g = {need, out:[], short:[], low:[], ok:[]}; PRODUCTS.forEach(p => g[stockState(p.id, need)[0]].push(p.id)); return g; }
+const takeStock = items => items.forEach(i => { const s = S.stock[i.prod]; if (s) s.qty = Math.max(0, s.qty - i.qty); });
+const putBack = items => items.forEach(i => { const s = S.stock[i.prod]; if (s) s.qty += i.qty; });
+
 /* ---------- order now (one-time, same day) ---------- */
 const FLOW = ['placed','accepted','packed','out','delivered'];
 const OLBL = {placed:'New', accepted:'Accepted', packed:'Packed', out:'Out for delivery', delivered:'Delivered', cancelled:'Cancelled'};
@@ -274,16 +298,18 @@ const I = {
   plus:'<path d="M12 5v14M5 12h14"/>',
   bowl:'<path d="M3.5 11h17a8.5 8.5 0 0 1-17 0z"/><path d="M8 7.5c0-1.3 1-1.7 1-3M12 7.5c0-1.3 1-1.7 1-3M16 7.5c0-1.3 1-1.7 1-3"/>',
   back:'<path d="M15 5l-7 7 7 7"/>',
+  box:'<path d="M3.5 7.5L12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5L12 12l8.5-4.5M12 12v9"/>',
 };
 const icon = (k, sz = 0) => `<svg ${sz ? `width="${sz}" height="${sz}"` : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
 const FEED_IC = {order:'bag', new:'repeat', add:'plus', pause:'plane', skip:'x', cancel:'x', lock:'lock', resume:'check', interest:'bowl'};
 const nav = (tabs, cur, act, badges = {}) => `<nav class="nav">${tabs.map(([k,label,ic]) => `<button class="${cur===k?'on':''}" data-a="${act}" data-v="${k}">${icon(ic)}${label}${badges[k] ? `<i class="nb">${badges[k]}</i>` : ''}</button>`).join('')}</nav>`;
-/* Product visual: Vaaradhi's photo in the local meeting copy (assetMode 'brand'), otherwise a neutral tile. */
-function brandSrc(p){ const m = BRAND && CFG.brandAssets && CFG.brandAssets.productImages; return m && m[p.id] ? CFG.brandAssets.productImageDir + m[p.id] : null; }
+/* Product photos: data/product-images.js (Vaaradhi's own photos where they exist, otherwise a labelled representative photo).
+   A neutral tile is the fallback if a product has no photo. */
+const IMG = window.PRODUCT_IMAGES || {};
 const initialsOf = name => name.replace(/\(.*?\)/g, '').split(/\s+/).filter(Boolean).slice(0,2).map(w => w[0]).join('').toUpperCase();
-function visual(p){ const src = brandSrc(p); return src ? `<img src="${src}" alt="" loading="lazy">` : `<span class="ph" style="--c:${CATMAP[p.category].color}" aria-hidden="true"><b>${initialsOf(p.name)}</b></span>`; }
-function catVisual(name){ const c = CAT_LIST.find(x => x.name === name), p = BRAND && PRODUCTS.find(x => x.category === c.id && brandSrc(x));
-  return p ? `<img src="${brandSrc(p)}" alt="">` : `<span class="ph" style="--c:${c.color}" aria-hidden="true"><b>${c.shortName[0]}</b></span>`; }
+function visual(p){ const im = IMG[p.id]; return im ? `<img src="${im.src}" alt="" decoding="async">` : `<span class="ph" style="--c:${CATMAP[p.category].color}" aria-hidden="true"><b>${initialsOf(p.name)}</b></span>`; }
+function catVisual(c){ const ps = PRODUCTS.filter(x => x.category === c.id && IMG[x.id]), p = ps.find(x => !IMG[x.id].representative) || ps[0];
+  return p ? `<img src="${IMG[p.id].src}" alt="">` : `<span class="ph" style="--c:${c.color}" aria-hidden="true"><b>${c.shortName[0]}</b></span>`; }
 const thumb = (p, sz = '') => `<span class="th ${sz}">${visual(p)}</span>`;
 const demoTag = () => '<span class="demo" title="Simulated for this demo. No real money moves.">Demo</span>';
 const qbtn = (a, id, q, lt) => `<div class="qbtn ${lt ? 'lt' : ''}"><button data-a="${a}" data-v="${id}|-1" aria-label="Less">−</button><b>${q}</b><button data-a="${a}" data-v="${id}|1" aria-label="More">+</button></div>`;
@@ -301,15 +327,16 @@ function toastHTML(t, which){
 const ESSENTIALS = (CFG.homeEssentials || []).filter(id => P[id]);
 const mySubs = () => { const m = {}; activeSubs('me').forEach(s => { if (!s.cancelledFrom) m[s.prod] = s; }); return m; };
 const dayLabel = d => d === TDY ? 'Today' : d === iso(addD(-1)) ? 'Yesterday' : fmtD(d);
-function card(p, mine){
-  const q = cartQty(p.id);
+function card(p, mine, layout){
+  const q = cartQty(p.id), out = stockOf(p.id) <= 0;
   const add = !nowOpen() ? `<button class="addbtn" disabled title="Same-day ordering is closed for tonight">ADD</button>`
+    : out ? '<span class="oos">Out of stock</span>'
     : q ? qbtn('cq', p.id, q) : `<button class="addbtn" data-a="cq" data-v="${p.id}|1" aria-label="Add ${esc(p.name)} to cart">ADD</button>`;
-  return `<div class="pc">
-    <button class="pc-img" data-a="buy-open" data-v="${p.id}|now" aria-label="${esc(p.name)}, details">${visual(p)}${mine ? `<span class="pc-tag">${freqLabel(mine)}</span>` : ''}</button>
-    <div class="pc-name">${p.name}</div><div class="pc-unit">${p.unit}</div>
-    <div class="pc-row"><b>${rs(p.price)}</b>${add}</div>
-    ${subFreqs(p).length ? `<button class="pc-sub" data-a="buy-open" data-v="${p.id}|sub">${icon('repeat', 12)}Subscribe</button>` : '<span class="pc-sub off">One-time purchase</span>'}</div>`;
+  const sub = subFreqs(p).length ? `<button class="pc-sub" data-a="buy-open" data-v="${p.id}|sub">${icon('repeat', 12)}Subscribe</button>` : '<span class="pc-sub off">One-time purchase</span>';
+  const img = `<button class="pc-img" data-a="buy-open" data-v="${p.id}|now" aria-label="${esc(p.name)}, details">${visual(p)}${mine && layout !== 'row' ? `<span class="pc-tag">${freqLabel(mine)}</span>` : ''}</button>`;
+  if (layout === 'row') return `<div class="pc pr${out ? ' is-out' : ''}" data-prod="${p.id}">${img}<div class="pr-b"><div class="pc-name">${p.name}</div>
+    <div class="pc-unit">${p.unit}${mine ? ` · <span class="pr-mine">${icon('repeat', 11)}${freqLabel(mine)}</span>` : ''}</div><div class="pc-row"><b>${rs(p.price)}</b>${add}</div>${sub}</div></div>`;
+  return `<div class="pc${out ? ' is-out' : ''}" data-prod="${p.id}">${img}<div class="pc-name">${p.name}</div><div class="pc-unit">${p.unit}</div><div class="pc-row"><b>${rs(p.price)}</b>${add}</div>${sub}</div>`;
 }
 function homeBody(){
   const my = lines().filter(l => l.cust === 'me'), okn = my.filter(l => l.status === 'ok'), mine = mySubs();
@@ -327,32 +354,34 @@ function homeBody(){
     ${tmr}
     <div class="sec-h"><h3>Everyday essentials</h3><button data-a="ctab" data-v="shop">See all ›</button></div>
     <div class="rail">${ESSENTIALS.map(id => card(P[id], mine[id])).join('')}</div>
-    <div class="sec-h"><h3>Shop by category</h3></div>
-    <div class="catgrid">${CAT_LIST.map(c => `<button class="cg" data-a="cat" data-v="${esc(c.name)}"><span class="cg-i">${catVisual(c.name)}</span><span>${c.shortName}</span></button>`).join('')}</div>
     <div style="height:${S.cart.length ? 96 : 24}px"></div>`;
 }
 function shopHead(){
   return `<div class="sh-head"><div class="ct2"><h2>Shop groceries</h2>${nowOpen() ? `<span class="sdd">${icon('truck', 13)}Same-day delivery</span>` : `<span class="sdd off">${icon('lock', 13)}Closed tonight</span>`}</div>
-    <label class="search">${icon('search', 18)}<input id="q" type="search" placeholder="Search oils, millets, dals…" value="${esc(ui.q)}" autocomplete="off" aria-label="Search products"></label>
-    <div class="chips" role="toolbar" aria-label="Categories">${CATS.map(c => `<button class="cchip ${ui.cCat === c ? 'on' : ''}" data-a="cat" data-v="${esc(c)}" aria-pressed="${ui.cCat === c}">${c === 'All' ? 'All' : CAT_SHORT[c]}</button>`).join('')}</div>
-    <div class="filters"><button class="fchip ${ui.subOnly ? 'on' : ''}" data-a="sub-only" aria-pressed="${ui.subOnly}">${icon('repeat', 12)}Can subscribe</button></div></div>`;
+    <div class="srow"><label class="search">${icon('search', 18)}<input id="q" type="search" placeholder="Search oils, millets, dals…" value="${esc(ui.q)}" autocomplete="off" aria-label="Search products"></label>
+    <button class="fchip ${ui.subOnly ? 'on' : ''}" data-a="sub-only" aria-pressed="${ui.subOnly}">${icon('repeat', 12)}Can subscribe</button></div></div>`;
 }
+/* Category rail on the left, products on the right. "All" lists every category in turn. */
 function shopBody(){
   const mine = mySubs(), q = ui.q.trim().toLowerCase();
   const list = PRODUCTS.filter(p => (!q || p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q))
     && (ui.cCat === 'All' || p.cat === ui.cCat) && (!ui.subOnly || subFreqs(p).length));
   const count = `<div class="rcount">${list.length} product${list.length === 1 ? '' : 's'}${ui.cCat !== 'All' ? ' in ' + ui.cCat : ''}${q ? ` for “${esc(ui.q.trim())}”` : ''}</div>`;
+  const rows = ps => `<div class="plist-in">${ps.map(p => card(p, mine[p.id], 'row')).join('')}</div>`;
   let grid;
   if (!list.length) grid = `<div class="empty"><b>No products found</b><span>Try another word or clear the filters.</span><button class="lnk" data-a="clear-filters">Clear search and filters</button></div>`;
-  else if (ui.cCat === 'All' && !q) grid = CAT_LIST.map(c => { const ps = list.filter(p => p.category === c.id); return ps.length ? `<div class="gh">${c.name}</div><div class="grid">${ps.map(p => card(p, mine[p.id])).join('')}</div>` : ''; }).join('');
-  else grid = `<div class="grid">${list.map(p => card(p, mine[p.id])).join('')}</div>`;
-  return `${count}${grid}<div style="height:${S.cart.length ? 96 : 24}px"></div>`;
+  else if (ui.cCat === 'All' && !q) grid = CAT_LIST.map(c => { const ps = list.filter(p => p.category === c.id); return ps.length ? `<div class="gh">${c.name}</div>${rows(ps)}` : ''; }).join('');
+  else grid = rows(list);
+  const rail = [{name:'All'}, ...CAT_LIST].map(c => { const on = ui.cCat === c.name;
+    return `<button class="vcat ${on ? 'on' : ''}" data-a="cat" data-v="${esc(c.name)}" aria-pressed="${on}"><span class="vc-i">${c.id ? catVisual(c) : `<span class="vc-all">${icon('bag', 22)}</span>`}</span><span class="vc-l">${c.id ? c.shortName : 'All'}</span></button>`; }).join('');
+  return `<div class="shop-split"><nav class="vrail" data-scroll="c-rail" aria-label="Categories">${rail}</nav>
+    <div class="plist" data-scroll="c-plist-${esc(ui.cCat)}">${count}${grid}<div style="height:${S.cart.length ? 96 : 24}px"></div></div></div>`;
 }
 function ordersBody(){
   const mine = S.orders.filter(o => o.cust === 'me').sort((a,b) => b.id - a.id);
   const active = mine.filter(isLive), past = mine.filter(o => o.status === 'delivered');
   const track = o => { const i = FLOW.indexOf(o.status); return `<div class="tk">
-      <div class="tk-top"><div><small>Order #${o.id} · ${o.t}</small><b>${CTITLE[o.status]}</b></div><span class="eta">${o.status === 'placed' ? 'Awaiting' : o.status === 'out' ? 'On the way' : 'Today'}</span></div>
+      <div class="tk-top"><div><small>Order #${o.id} · ${o.t} IST</small><b>${CTITLE[o.status]}</b></div><span class="eta">${o.status === 'placed' ? 'Awaiting' : o.status === 'out' ? 'On the way' : 'Today'}</span></div>
       <div class="tk-bar">${FLOW.map((_,k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div>
       <div class="tk-steps">${['Placed','Accepted','Packed','On the way','Delivered'].map((l,k) => `<span class="${k <= i ? 'on' : ''}">${l}</span>`).join('')}</div>
       <div class="tk-items">${o.items.map(it => `<span class="tk-it">${thumb(P[it.prod],'sm')}${P[it.prod].name} × ${it.qty}</span>`).join('')}</div>
@@ -425,20 +454,42 @@ function tomorrowBody(){
     <p class="fine">Change, skip or pause anything until ${CUTOFF} the day before. After that, changes apply from the next delivery.</p>
     <div class="spacer"></div>`;
 }
+const LTYPE = {delivery:['sun','Scheduled delivery'], order:['bag','Order'], topup:['plus','Money added'], refund:['repeat','Refund']};
+const ledgerTitle = l => l.type === 'order' ? `Order #${l.ref}` : l.type === 'refund' ? `Refund · order #${l.ref}` : LTYPE[l.type][1];
+function ledgerSub(l){
+  if (l.type === 'topup') return l.via || 'UPI · simulated';
+  if (l.type === 'refund') return 'Cancelled before Vaaradhi accepted it';
+  const ok = l.items.filter(i => i.status === 'ok'), off = l.items.filter(i => i.status !== 'ok');
+  return (ok.map(i => `${P[i.prod].name} × ${i.qty}`).join(', ') || 'Nothing delivered') + (off.length ? ` · ${off.length} not charged` : '');
+}
 function walletBody(){
   const charge = lines().filter(l => l.cust === 'me' && l.status === 'ok').reduce((a,l) => a + l.amt, 0);
-  const sorted = [...S.ledger].sort((a,b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : b.seq - a.seq));
+  const asc = [...S.ledger].sort((a,b) => a.date < b.date ? -1 : a.date > b.date ? 1 : a.seq - b.seq);
+  let run = 0; const balAt = {}; asc.forEach(l => { run += l.amt; balAt[l.seq] = run; });
+  const m0 = TDY.slice(0, 7) + '-01', month = asc.filter(l => l.date >= m0);
+  const spent = -month.reduce((a,l) => a + (l.type === 'topup' ? 0 : l.amt), 0);
+  const added = month.filter(l => l.type === 'topup').reduce((a,l) => a + l.amt, 0);
+  const notCharged = month.flatMap(l => l.items || []).filter(i => i.status !== 'ok').reduce((a,i) => a + i.amt, 0);
+  const f = ui.wf, FIL = {all:() => true, delivery:l => l.type === 'delivery', order:l => l.type === 'order', money:l => l.type === 'topup' || l.type === 'refund'};
   let html = '', last = '';
-  sorted.forEach(l => {
+  asc.slice().reverse().filter(FIL[f] || FIL.all).forEach(l => {
     if (l.date !== last){ last = l.date; html += `<div class="ld">${dayLabel(l.date)}</div>`; }
-    html += `<div class="lg"><span>${l.text}</span><span class="amt ${l.kind}">${sgn(l.amt)}</span></div>`;
+    const items = l.items && l.items.length, open = items && ui.wOpen === l.seq;
+    html += `<button class="lgr" data-a="w-open" data-v="${l.seq}" data-type="${l.type}" ${items ? `aria-expanded="${open}"` : 'tabindex="-1"'}><span class="lic ${l.type}">${icon(LTYPE[l.type][0], 16)}</span>
+      <span class="lgt"><b>${ledgerTitle(l)}</b><small>${ledgerSub(l)}</small></span><span class="lgv"><b class="amt ${l.kind}">${sgn(l.amt)}</b><small>Balance ${rs(balAt[l.seq])}</small></span></button>`;
+    if (open) html += `<div class="lgx">${l.items.map(i => `<div class="lgx-r ${i.status === 'ok' ? '' : 'off'}">${thumb(P[i.prod], 'sm')}<span>${P[i.prod].name} × ${i.qty}</span><b>${i.status === 'ok' ? rs(i.amt) : (i.status === 'paused' ? 'Paused' : 'Skipped') + ' · ₹0'}</b></div>`).join('')}</div>`;
   });
+  const chip = (v, l) => `<button class="cchip sm ${f === v ? 'on' : ''}" data-a="wf" data-v="${v}" aria-pressed="${f === v}">${l}</button>`;
   return `<div class="wc"><small>Vaaradhi wallet balance ${demoTag()}</small><b>${rs(balance())}</b>
       <div class="wc-row"><span>${S.phase === 'delivered' ? 'Charged this morning' : 'Tomorrow\'s charge'}</span><span>${rs(charge)}</span></div></div>
     <div class="topups">${[500,1000,2000].map(a => `<button data-a="topup" data-v="${a}">+ ${rs(a)}</button>`).join('')}</div>
     <div class="note">Demo only: balances and top-ups are simulated and no real payment happens. In the proposed setup, customers are charged only on days something is delivered, paused or skipped days cost ₹0, and the balance is held by Vaaradhi Farms.</div>
+    <div class="sh">This month</div>
+    <div class="wsum"><div><span>Spent</span><b>${rs(spent)}</b></div><div><span>Added</span><b>${rs(added)}</b></div><div class="g"><span>Not charged</span><b>${rs(notCharged)}</b><small>skips & pauses</small></div></div>
     <div class="sh">History</div>
-    <div class="box">${html}</div>
+    <div class="chips wf">${chip('all','All')}${chip('delivery','Deliveries')}${chip('order','Orders')}${chip('money','Top-ups & refunds')}</div>
+    <div class="box lbox">${html || '<div class="row"><div class="t"><small>Nothing here yet.</small></div></div>'}</div>
+    <p class="fine">Tap a delivery or order to see each item.</p>
     <div class="spacer"></div>`;
 }
 function mealsBody(){
@@ -464,9 +515,10 @@ function sheetHTML(){
     const modes = [['now','Today', nowOpen() ? 'Same-day' : 'Closed now'], ['tmr','Tomorrow','Next delivery'], ['sub','Subscribe','Repeat it']].filter(m => m[0] !== 'sub' || subFreqs(p).length);
     let body = '';
     if (sh.mode === 'now'){
+      const out = stockOf(p.id) <= 0;
       body = `<div class="fld r"><label>QUANTITY</label>${qbtn('s-qty','q',q)}</div>
-        <div class="info">${icon('truck', 16)}${nowOpen() ? 'Same-day delivery · Home, Manikonda' : 'Same-day ordering is closed for tonight. It reopens tomorrow.'}</div>`;
-      foot = `<button class="cta" data-a="cart-add" ${nowOpen() ? '' : 'disabled'}><span>${rs(p.price*q)}<small>TOTAL</small></span><span>Add to cart ›</span></button>`;
+        <div class="info ${out ? 'warn' : ''}">${icon(out ? 'x' : 'truck', 16)}${out ? 'Out of stock right now. You can still subscribe or add it for tomorrow.' : nowOpen() ? 'Same-day delivery · Home, Manikonda' : 'Same-day ordering is closed for tonight. It reopens tomorrow.'}</div>`;
+      foot = `<button class="cta" data-a="cart-add" ${nowOpen() && !out ? '' : 'disabled'}><span>${rs(p.price*q)}<small>TOTAL</small></span><span>Add to cart ›</span></button>`;
     } else if (sh.mode === 'tmr'){
       body = `<div class="fld r"><label>QUANTITY</label>${qbtn('s-qty','q',q)}</div>
         <div class="info">${icon('sun', 16)}${S.phase === 'open' ? `Added to your delivery on ${fmtD(TMR)}, with your regular basket` : `Changes for ${fmtD(TMR)} closed at ${CUTOFF}. ${subFreqs(p).length ? `Choose Subscribe to start from ${fmtD(DAT)}.` : 'Order it for same-day delivery tomorrow instead.'}`}</div>`;
@@ -483,7 +535,7 @@ function sheetHTML(){
         <div class="info">${icon('repeat', 16)}Skip or pause before ${CUTOFF} the day before. Pay only for days delivered.</div>`;
       foot = `<button class="cta c" data-a="sub-go" ${draft ? '' : 'disabled'}>Start subscription</button>`;
     }
-    inner = `<div class="ps-img">${visual(p)}<button class="x" data-a="close" aria-label="Close">×</button></div>
+    inner = `<div class="ps-img">${visual(p)}${IMG[p.id] && IMG[p.id].representative ? '<span class="rep">Representative photo</span>' : ''}<button class="x" data-a="close" aria-label="Close">×</button></div>
       <div class="ps-b"><div><div class="ps-cat">${p.cat}</div><div class="ps-name">${p.name}</div><div class="ps-meta"><span>${p.unit}${subFreqs(p).length ? '' : ' · one-time purchase'}</span><b>${rs(p.price)}</b></div></div>
       <div class="modes" role="tablist">${modes.map(([k,l,sub]) => `<button class="${sh.mode === k ? 'on' : ''}" data-a="mode" data-v="${k}" role="tab" aria-selected="${sh.mode === k}"><b>${l}</b><small>${sub}</small></button>`).join('')}</div>
       ${body}</div>`;
@@ -588,7 +640,7 @@ function custHTML(){
   const n = S.cart.reduce((a,c) => a + c.qty, 0);
   const cart = (t === 'home' || t === 'shop') && n ? `<button class="cartbar" data-a="cart-open"><span class="cb-th">${S.cart.slice(0,3).map(c => `<span class="cbv">${visual(P[c.prod])}</span>`).join('')}</span>
       <span class="cb-t"><b>View cart</b><small>${n} item${n > 1 ? 's' : ''} · ${rs(orderAmt(S.cart))}</small></span><span class="cb-go">›</span></button>` : '';
-  return `<div class="body" data-scroll="c-${t}">${head}${body}</div>${cart}
+  return `<div class="body${t === 'shop' ? ' shopbody' : ''}" data-scroll="c-${t}">${head}${body}</div>${cart}
     ${nav([['home','Home','home'],['shop','Shop','bag'],['orders','Orders','receipt'],['sched','Schedule','sun'],['wallet','Wallet','wallet']], t === 'meals' ? 'home' : t, 'ctab', {orders:S.orders.filter(o => o.cust === 'me' && isLive(o)).length})}
     ${toastHTML(ui.cToast,'c')}${sheetHTML()}`;
 }
@@ -661,74 +713,75 @@ function mHome(){
   const today = S.orders.filter(o => o.date === TDY && o.status !== 'cancelled');
   const newO = today.filter(o => o.status === 'placed'), prog = today.filter(o => ['accepted','packed','out'].includes(o.status)), doneO = today.filter(o => o.status === 'delivered');
   const st = stops(), items = Object.values(prep()).reduce((a, b) => a + b, 0), rows = planRows(), cnt = g => rows.filter(r => r.group === g).length;
-  const ch = tomorrowChanges(), mi = allInterest().length;
-  const sub = S.phase === 'open' ? `Tomorrow's list locks at ${CUTOFF} · ${leftText()}` : S.phase === 'locked' ? `Locked at ${CUTOFF} · ready to pack` : 'Morning run done';
+  const ch = tomorrowChanges(), mi = allInterest().length, inv = stockSummary(), pl = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+  const head = S.phase === 'open' ? `Tomorrow's list locks at ${CUTOFF}` : S.phase === 'locked' ? `Locked at ${CUTOFF} · ready to pack` : 'Morning run done';
   const att = [
     ...newO.map(o => `<button class="att new" data-a="mtab" data-v="orders">${icon('bag', 16)}<span><b>New order #${o.id}</b> · ${C[o.cust].name} · ${rs(o.amt)}. Accept it in Orders.</span><i>›</i></button>`),
-    prog.length ? `<button class="att" data-a="mtab" data-v="orders">${icon('truck', 16)}<span>${prog.length} one-time order${prog.length > 1 ? 's' : ''} in progress</span><i>›</i></button>` : '',
-    ch.length ? `<button class="att" data-a="mtab" data-v="today">${icon('list', 16)}<span>${ch.length} customer change${ch.length > 1 ? 's' : ''} for tomorrow</span><i>›</i></button>` : '',
-    cnt('changes') ? `<button class="att" data-a="mplans" data-v="changes">${icon('repeat', 16)}<span>${cnt('changes')} plan${cnt('changes') > 1 ? 's' : ''} with upcoming changes</span><i>›</i></button>` : '',
+    inv.short.length ? `<button class="att warn" data-a="sf-go" data-v="attn">${icon('box', 16)}<span><b>${pl(inv.short.length, 'product')} short for tomorrow</b> · ${inv.short.map(id => P[id].name).join(', ')}</span><i>›</i></button>` : '',
+    inv.out.length ? `<button class="att" data-a="sf-go" data-v="out">${icon('box', 16)}<span>${pl(inv.out.length, 'product')} out of stock</span><i>›</i></button>` : '',
+    prog.length ? `<button class="att" data-a="mtab" data-v="orders">${icon('truck', 16)}<span>${pl(prog.length, 'one-time order')} in progress</span><i>›</i></button>` : '',
+    ch.length ? `<button class="att" data-a="mtab" data-v="today">${icon('list', 16)}<span>${pl(ch.length, 'customer change')} for tomorrow</span><i>›</i></button>` : '',
+    cnt('changes') ? `<button class="att" data-a="mplans" data-v="changes">${icon('repeat', 16)}<span>${pl(cnt('changes'), 'plan')} with upcoming changes</span><i>›</i></button>` : '',
   ].filter(Boolean).join('');
   const subCust = new Set(rows.filter(r => r.group !== 'ended').map(r => r.s.cust));
   const byCust = {}; S.orders.filter(o => o.status !== 'cancelled').forEach(o => byCust[o.cust] = (byCust[o.cust] || 0) + 1);
   const repeat = new Set([...subCust, ...Object.keys(byCust).filter(c => byCust[c] >= 2)]);
   const prodPlans = {}; rows.filter(r => r.group !== 'ended').forEach(r => prodPlans[r.s.prod] = (prodPlans[r.s.prod] || 0) + 1);
   const top = Object.entries(prodPlans).sort((a, b) => b[1] - a[1] || P[a[0]].name.localeCompare(P[b[0]].name)).slice(0, 3);
-  const tile = (label, val, to, extra = '') => `<button class="tile2" data-a="${to[0]}" data-v="${to[1]}"><span>${label}</span><b>${val}</b>${extra}</button>`;
-  return `<div class="mcard"><small>Today · ${fmtD(TDY)}</small><div class="big" style="margin-bottom:0">${sub}</div></div>
+  const kpi = (k, label, val, a, v) => `<button class="kpi" data-kpi="${k}" data-a="${a}" data-v="${v}"><b>${val}</b><span>${label}</span></button>`;
+  const seg = (k, label) => `<button class="seg3b ${k}" data-kpi="${k}" data-a="mplans" data-v="${k}"><b>${cnt(k)}</b><span>${label}</span></button>`;
+  const link = (ic, k, a, v, title, sub, badge = '') => `<button class="row lrow" ${k ? `data-kpi="${k}"` : ''} data-a="${a}" data-v="${v}"><span class="lri">${icon(ic, 17)}</span><span class="t"><b>${title}</b><small>${sub}</small></span>${badge}<i>›</i></button>`;
+  return `<div class="mcard ov"><div class="ov-top"><small>Today · ${fmtD(TDY)}</small>${S.phase === 'open' ? `<span class="ov-pill">${icon('clock', 12)}${leftText()}</span>` : ''}</div>
+      <div class="big">${head}</div>
+      <div class="kpis">${kpi('orders', 'One-time orders today', today.length, 'mtab', 'orders')}${kpi('stops', 'Deliveries tomorrow', st.length, 'mtab', 'today')}${kpi('items', 'Items to pack tomorrow', items, 'mtab', 'today')}</div></div>
     <div class="sh">Needs attention</div>
     ${att ? `<div class="atts">${att}</div>` : '<div class="note" style="margin-top:0">Nothing needs attention right now.</div>'}
-    <div class="sh">At a glance</div>
-    <div class="tiles">
-      ${tile('One-time orders today', today.length, ['mtab','orders'])}
-      ${tile('Recurring deliveries tomorrow', st.length, ['mtab','today'])}
-      ${tile('Items to prepare tomorrow', items, ['mtab','today'])}
-      ${tile('Active plans', cnt('active'), ['mplans','active'])}
-      ${tile('Paused plans', cnt('paused'), ['mplans','paused'])}
-      ${tile('Breakfast interest', mi, ['mtab','interest'], '<small>proposed, not orders</small>')}
-    </div>
+    <div class="sh">Recurring plans</div>
+    <div class="seg3">${seg('active', 'Active')}${seg('paused', 'Paused')}${seg('changes', 'Changing soon')}</div>
     <div class="sh">Repeat ordering ${demoTag()}</div>
-    <div class="box ins">
-      <div class="row"><div class="t"><b>Repeat customers</b><small>Active plan, or 2+ one-time orders</small></div><b>${repeat.size} of ${CUSTOMERS.length}</b></div>
-      <div class="row"><div class="t"><b>Customers on a plan</b><small>At least one plan that hasn't ended</small></div><b>${Math.round(subCust.size / CUSTOMERS.length * 100)}%</b></div>
-      <div class="row"><div class="t"><b>Most subscribed products</b><small>${top.map(([id, n]) => `${P[id].name} (${n})`).join(', ') || 'None yet'}</small></div></div>
-      <div class="row"><div class="t"><b>One-time orders completed today</b><small>Delivered out of today's orders</small></div><b>${doneO.length} of ${today.length}</b></div>
+    <div class="mini3"><div><b>${repeat.size}<small>/${CUSTOMERS.length}</small></b><span>Repeat customers</span></div><div><b>${Math.round(subCust.size / CUSTOMERS.length * 100)}%</b><span>Customers on a plan</span></div><div><b>${doneO.length}<small>/${today.length}</small></b><span>Orders done today</span></div></div>
+    <div class="topprod"><span>Most subscribed</span>${top.map(([id, n]) => `<span class="chip k2">${P[id].name} · ${n}</span>`).join('') || '<span class="chip k2">None yet</span>'}</div>
+    <p class="fine">Demo data: these figures come from the sample customers in this prototype. They are not Vaaradhi's results or a forecast. Repeat customers have an active plan or 2+ one-time orders.</p>
+    <div class="box links" style="margin-top:12px">
+      ${link('box', 'stock', 'mtab', 'stock', 'Stock', `${inv.ok.length} in stock · ${inv.low.length} low · ${inv.short.length} short · ${inv.out.length} out`)}
+      ${link('bowl', 'interest', 'mtab', 'interest', 'Breakfast plan interest', 'Proposed, not orders', `<b class="lrn">${mi}</b>`)}
+      ${link('wallet', '', 'mtab', 'earn', 'Earnings & collections', 'Simulated figures only')}
     </div>
-    <p class="fine">Demo data: these figures come from the sample customers in this prototype. They are not Vaaradhi's results or a forecast.</p>
-    <button class="intcard" data-a="mtab" data-v="earn" style="background:#fff"><span class="ei">${icon('wallet', 20)}</span><span class="t"><b>Earnings & collections</b><small>Simulated figures only</small></span><span class="cb-go">›</span></button>
     <div class="spacer"></div>`;
 }
 
 /* ---------- Orders ---------- */
 function mOrders(){
   const f = ui.of;
-  const all = opsItems();
-  const list = all.filter(o => (f.type === 'all' || o.kind === f.type)
-      && (f.date === 'all' || (f.date === 'today' && o.date === TDY) || (f.date === 'tomorrow' && o.date === TMR) || (f.date === 'earlier' && o.date < TDY))
-      && (f.status === 'all' || OGROUP[o.status] === f.status))
+  const base = opsItems().filter(o => (f.type === 'all' || o.kind === f.type)
+      && (f.date === 'all' || (f.date === 'today' && o.date === TDY) || (f.date === 'tomorrow' && o.date === TMR) || (f.date === 'earlier' && o.date < TDY)));
+  const list = base.filter(o => f.status === 'all' || OGROUP[o.status] === f.status)
     .sort((a, b) => (OGROUP[a.status] === 'open' ? 0 : 1) - (OGROUP[b.status] === 'open' ? 0 : 1) || (a.status === 'placed' ? -1 : 0) - (b.status === 'placed' ? -1 : 0) || (b.date > a.date ? 1 : b.date < a.date ? -1 : 0) || (String(b.id) > String(a.id) ? 1 : -1));
   const today = S.orders.filter(o => o.date === TDY), paid = today.filter(o => o.status !== 'cancelled'), live = today.filter(isLive);
+  const n = g => base.filter(o => g === 'all' || OGROUP[o.status] === g).length;
+  const tab = (v, l) => `<button class="otab ${f.status === v ? 'on' : ''}" data-a="of" data-v="status:${v}" aria-pressed="${f.status === v}">${l}<i>${n(v)}</i></button>`;
   const chip = (k, v, l) => `<button class="cchip sm ${f[k] === v ? 'on' : ''}" data-a="of" data-v="${k}:${v}" aria-pressed="${f[k] === v}">${l}</button>`;
-  const its = o => `<div class="ord-its">${o.items.map(it => `<span class="tk-it">${thumb(P[it.prod],'sm')}${P[it.prod].name.split(' ').slice(-2).join(' ')} × ${it.qty}${it.extra ? ' <em class="addon">add-on</em>' : ''}</span>`).join('')}</div>`;
-  const stLbl = o => o.kind === 'rec' ? {scheduled:'Scheduled', preparing:'Preparing', delivered:'Delivered'}[o.status] : o.status === 'placed' ? 'NEW · PAID' : OLBL[o.status];
+  const stLbl = o => o.kind === 'rec' ? {scheduled:'Scheduled', preparing:'Preparing', delivered:'Delivered'}[o.status] : o.status === 'placed' ? 'New · paid' : OLBL[o.status];
   const stCls = o => o.status === 'placed' ? 'y' : o.status === 'delivered' ? 'g' : o.status === 'cancelled' ? 'r' : 'b';
+  const its = o => `<div class="ord-line"><span class="ord-th">${o.items.slice(0, 3).map(it => thumb(P[it.prod], 'xs')).join('')}</span><span class="ord-tx">${o.items.map(it => `${P[it.prod].name} × ${it.qty}${it.extra ? ' <em class="addon">add-on</em>' : ''}`).join(', ')}</span></div>`;
   const card = o => `<div class="ord ${o.status === 'placed' ? 'new' : ''} ${OGROUP[o.status] !== 'open' ? 'past' : ''}" data-kind="${o.kind}" data-oid="${o.id}">
-      <div class="ord-top"><div style="display:flex;gap:10px;align-items:center">${avatar(o.cust)}<div><b>${C[o.cust].name}${o.cust === 'me' ? '<span class="you">demo</span>' : ''}</b>
-        <small><span class="otype ${o.kind}">${o.kind === 'one' ? 'One-time' : 'Recurring'}</span> ${o.kind === 'one' ? '#' + o.id + ' · ' : ''}${C[o.cust].area} · ${o.kind === 'one' ? dayLabel(o.date) + ' ' + o.t : 'for ' + fmtD(o.date)}</small></div></div>
-        <div class="ord-amt">${rs(o.amt)}<br><span class="chip ${stCls(o)}">${stLbl(o)}</span></div></div>
+      <div class="ord-top">${avatar(o.cust)}<div class="ord-who"><b>${C[o.cust].name}${o.cust === 'me' ? '<span class="you">demo</span>' : ''}</b>
+        <small><span class="otype ${o.kind}">${o.kind === 'one' ? 'One-time' : 'Recurring'}</span> ${o.kind === 'one' ? '#' + o.id + ' · ' + dayLabel(o.date) + ', ' + o.t + ' IST' : 'for ' + fmtD(o.date)} · ${C[o.cust].area}</small></div>
+        <div class="ord-amt"><b>${rs(o.amt)}</b><span class="chip ${stCls(o)}">${stLbl(o)}</span></div></div>
       ${its(o)}
-      ${o.kind === 'one' && NEXT[o.status] ? `<div class="ord-act"><button class="bigbtn ${o.status === 'placed' ? '' : 'dk'}" data-a="oadv" data-v="${o.id}">${NEXT[o.status]}</button></div>` : ''}
-      ${o.kind === 'rec' && o.status !== 'delivered' ? `<div class="ord-act"><button class="bigbtn dk" data-a="mtab" data-v="run">Open delivery run</button></div>` : ''}</div>`;
+      ${o.kind === 'one' && NEXT[o.status] ? `<button class="bigbtn ${o.status === 'placed' ? '' : 'dk'}" data-a="oadv" data-v="${o.id}">${NEXT[o.status]}</button>` : ''}
+      ${o.kind === 'rec' && o.status !== 'delivered' ? `<button class="bigbtn ghost" data-a="mtab" data-v="run">Open delivery run</button>` : ''}</div>`;
+  const GROUPS = [['New · accept to start', o => o.kind === 'one' && o.status === 'placed'], ['In progress', o => o.kind === 'one' && ['accepted','packed','out'].includes(o.status)],
+    ['Recurring deliveries · ' + fmtD(TMR), o => o.kind === 'rec' && o.status !== 'delivered'], ['Delivered', o => o.status === 'delivered'], ['Cancelled', o => o.status === 'cancelled']];
+  const body = GROUPS.map(([h, fn]) => { const g = list.filter(fn); return g.length ? `<div class="sh">${h} · ${g.length}</div>${g.map(card).join('')}` : ''; }).join('');
   const recNote = (f.type === 'rec' && f.date !== 'tomorrow' && f.date !== 'all') ? `Recurring deliveries are listed for tomorrow (${fmtD(TMR)}). Past recurring deliveries aren't kept as order records in this demo.` : 'No orders match these filters.';
-  return `<div class="stats"><div class="stat"><span>One-time today</span><b>${paid.length}</b></div><div class="stat"><span>In progress</span><b>${live.length}</b></div><div class="stat"><span>Paid ${demoTag()}</span><b>${rs(paid.reduce((a,o) => a + o.amt, 0))}</b></div></div>
-    <div class="mfilters">
-      <div class="frow"><span class="flabel">Type</span><div class="chips">${chip('type','all','All')}${chip('type','one','One-time')}${chip('type','rec','Recurring')}</div></div>
-      <div class="frow"><span class="flabel">When</span><div class="chips">${chip('date','today','Today')}${chip('date','tomorrow','Tomorrow')}${chip('date','earlier','Earlier')}${chip('date','all','All dates')}</div></div>
-      <div class="frow"><span class="flabel">Status</span><div class="chips">${chip('status','all','All')}${chip('status','open','Open')}${chip('status','done','Delivered')}${chip('status','cancelled','Cancelled')}</div></div>
-    </div>
-    <div class="rcount" style="padding-top:8px">${list.length} order${list.length === 1 ? '' : 's'} · ${nowOpen() ? 'same-day ordering open' : 'same-day ordering closed for tonight'}</div>
-    ${list.length ? list.map(card).join('') : `<div class="note" style="margin-top:0">${recNote}</div>`}
-    <p class="fine">One-time orders are paid in the app before you accept them (simulated). Recurring deliveries come from customers' plans and are marked delivered on the delivery run.</p><div class="spacer"></div>`;
+  return `<div class="otabs">${tab('all', 'All')}${tab('open', 'Open')}${tab('done', 'Delivered')}${tab('cancelled', 'Cancelled')}</div>
+    <div class="ofilt"><div class="chips">${chip('date','today','Today')}${chip('date','tomorrow','Tomorrow')}${chip('date','earlier','Earlier')}${chip('date','all','All dates')}</div>
+      <div class="tog">${chip('type','all','All types')}${chip('type','one','One-time')}${chip('type','rec','Recurring')}</div></div>
+    <div class="osum"><span><b>${paid.length}</b> one-time today</span><span><b>${live.length}</b> in progress</span><span><b>${rs(paid.reduce((a,o) => a + o.amt, 0))}</b> paid ${demoTag()}</span></div>
+    <div class="rcount" style="padding-top:2px">${list.length} order${list.length === 1 ? '' : 's'} · ${nowOpen() ? 'same-day ordering open' : 'same-day ordering closed for tonight'}</div>
+    ${list.length ? body : `<div class="note" style="margin-top:0">${recNote}</div>`}
+    <p class="fine">One-time orders are paid in the app before you accept them (simulated). Recurring deliveries come from customers' plans and are marked delivered on the delivery run. Times are IST.</p><div class="spacer"></div>`;
 }
 
 /* ---------- Tomorrow's preparation ---------- */
@@ -741,7 +794,8 @@ function mToday(){
   const kpi = (key, label, val, money) => { const f = fl('k_'+key); return `<div class="${f ? 'chg' : ''}"><span>${label}</span><b>${money ? rs(val) : val}</b>${deltaHTML(f, money)}</div>`; };
   const rows = PRODUCTS.filter(p => pr[p.id] || fl('p_'+p.id)).map(p => {
     const f = fl('p_'+p.id), sp = split[p.id] || {plan:0, extra:0};
-    return `<div class="row ${f ? 'chg' : ''}" data-prod="${p.id}">${thumb(p)}<div class="t"><b>${p.name}</b><small>${p.unit} · <span class="bd">${sp.plan} from plans${sp.extra ? ` + ${sp.extra} one-time` : ''}</span></small></div><div class="q">${deltaHTML(f)}× ${pr[p.id] || 0}</div></div>`;
+    const short = Math.max(0, (pr[p.id] || 0) - stockOf(p.id));
+    return `<div class="row ${f ? 'chg' : ''}" data-prod="${p.id}">${thumb(p)}<div class="t"><b>${p.name}</b><small>${p.unit} · <span class="bd">${sp.plan} from plans${sp.extra ? ` + ${sp.extra} one-time` : ''}</span></small>${short && S.phase !== 'delivered' ? `<button class="chip r" data-a="stock-open" data-v="${p.id}">Short by ${short} in stock</button>` : ''}</div><div class="q">${deltaHTML(f)}× ${pr[p.id] || 0}</div></div>`;
   }).join('') || '<div class="row"><div class="t"><small>Nothing to prepare for tomorrow.</small></div></div>';
   return `<div class="mcard"><small>Tomorrow · ${fmtD(TMR)}</small><div class="big">${sub}</div>
       <div class="mstats">${kpi('stops','Deliveries',st.length)}${kpi('items','Items to pack',items)}${kpi('rev','Value (demo)',rev,true)}</div></div>
@@ -752,7 +806,7 @@ function mToday(){
     <div class="sh">Customer changes for tomorrow · ${ch.length}</div>
     <div class="box">${ch.map(c => `<div class="row chg-row" data-k="${c.k}">${avatar(c.cust)}<div class="t"><b>${C[c.cust].name}</b><small>${c.text}</small></div>${c.d ? `<span class="chip ${c.d > 0 ? 'g' : 'y'}">${c.d > 0 ? '+' : '−'}${Math.abs(c.d)}</span>` : ''}</div>`).join('') || '<div class="row"><div class="t"><small>No changes for tomorrow.</small></div></div>'}</div>
     <p class="fine">Includes recurring plans and one-time add-ons due tomorrow. ${S.phase === 'open' ? `Customers can still change tomorrow until ${CUTOFF}.` : 'Locked at the cutoff; later changes apply from the day after.'} Breakfast-plan interest is not included: it is proposed demand, not orders.</p>
-    <div class="sh">Live updates</div>
+    <div class="sh">Live updates · times in IST</div>
     <div class="box feed">${S.feed.slice(0,10).map(f => `<div class="fi ${f.kind}"><span class="d">${icon(FEED_IC[f.kind] || 'bell', 14)}</span><span class="tx">${f.text}</span><time>${f.t}</time></div>`).join('')}</div>
     <div class="spacer"></div>`;
 }
@@ -803,27 +857,79 @@ function mSheetHTML(){
     foot = ended ? `<button class="cta c" data-a="mclose">Close</button>`
       : `<div class="two-btn">${s.pausedFrom ? `<button class="btn2" data-a="mp-resume" data-v="${s.id}">Resume plan</button>` : `<button class="btn2" data-a="mp-pause" data-v="${s.id}">Pause plan</button>`}
          <button class="btn2 danger" data-a="mp-cancel" data-v="${s.id}">${ui.mConfirm === s.id ? 'Tap again to cancel' : 'Cancel plan'}</button></div>`;
+  } else if (sh.type === 'cust'){
+    const x = custInfo(C[sh.cust]), c = x.c, mi = allInterest().filter(i => i.cust === c.id);
+    const spend = x.orders.filter(o => o.date >= TDY.slice(0, 7) + '-01').reduce((a, o) => a + o.amt, 0);
+    inner = `<div class="sh-pad"><div class="mg-head">${avatar(c.id)}<div><div class="sh-title" style="padding:0">${c.name}</div><small>${c.area} · <span class="chip ${x.st[2]}">${x.st[1]}</span></small></div><button class="x sm" data-a="mclose" aria-label="Close">×</button></div>
+      <div class="sumg" style="margin:0 14px"><div><span>Next delivery</span><b>${x.next ? fmtS(x.next) : '—'}</b></div><div><span>One-time orders this month ${demoTag()}</span><b>${rs(spend)}</b></div></div>
+      ${x.away ? `<div class="info">${icon('plane', 16)}<span>Away ${vacRangeText(x.away)}. Deliveries are paused and not charged.</span></div>` : ''}
+      <div class="sh" style="padding:4px 16px 0">Regular plans · ${x.subs.length}</div>
+      <div class="box">${x.subs.map(s => { const ps = planStatus(s), nx = nextChain(s);
+        return `<button class="row plrow" data-a="mplan" data-v="${s.id}">${thumb(P[s.prod])}<span class="t"><b>${P[s.prod].name}</b><small>${s.qty} × ${freqLabel(s)}${nx ? ' · next ' + fmtS(nx) : ''}</small></span><span class="chip ${ps[2]}">${ps[1]}</span></button>`; }).join('') || '<div class="row"><div class="t"><small>No regular plans.</small></div></div>'}</div>
+      <div class="sh" style="padding:4px 16px 0">Recent one-time orders</div>
+      <div class="box">${x.orders.slice(0, 3).map(o => `<div class="row"><div class="t"><b>#${o.id} · ${rs(o.amt)}</b><small>${dayLabel(o.date)} · ${itemsText(o.items)}</small></div><span class="chip ${o.status === 'delivered' ? 'g' : 'b'}">${OLBL[o.status]}</span></div>`).join('') || '<div class="row"><div class="t"><small>No one-time orders.</small></div></div>'}</div>
+      ${mi.length ? `<div class="info">${icon('bowl', 16)}<span>Interested in ${mi.map(i => window.MEAL_PLANS.plans.find(p => p.id === i.planId).name).join(', ')}. Proposed demand, not an order.</span></div>` : ''}
+      <p class="fine" style="margin-top:0">Sample customer data. Tap a plan to pause, resume or cancel it.</p></div>`;
+    foot = `<button class="cta c" data-a="mclose">Close</button>`;
+  } else if (sh.type === 'stock'){
+    const p = P[sh.prod], s = S.stock[p.id], need = stockNeed(), st = stockState(p.id, need);
+    const sold = S.orders.filter(o => o.date === TDY && o.status !== 'cancelled').reduce((a, o) => a + o.items.filter(i => i.prod === p.id).reduce((k, i) => k + i.qty, 0), 0);
+    inner = `<div class="sh-pad"><div class="mg-head">${thumb(p, 'lg')}<div><div class="sh-title" style="padding:0">${p.name}</div><small>${p.unit} · ${p.cat}</small></div><button class="x sm" data-a="mclose" aria-label="Close">×</button></div>
+      <div class="box stk"><div><span>In stock (packs)</span><b class="stq ${st[0]}">${s.qty}</b><span class="chip ${st[2]}">${st[1]}</span></div>${qbtn('st-adj', p.id, s.qty)}</div>
+      <div class="box" style="padding:14px;display:flex;flex-direction:column;gap:12px">
+        <div class="fld"><label>NEW STOCK RECEIVED</label><div class="opts">${[6, 12, 24].map(k => `<button data-a="st-adj" data-v="${p.id}|${k}">+ ${k}</button>`).join('')}</div></div>
+        <div class="fld r"><label>LOW-STOCK ALERT AT</label>${qbtn('st-low', p.id, s.low, true)}</div></div>
+      <div class="sumg" style="margin:0 14px"><div><span>Needed for tomorrow</span><b>${need[p.id] || 0}</b></div><div><span>Sold today (one-time)</span><b>${sold}</b></div></div>
+      ${s.qty > 0 ? `<div style="padding:0 14px"><button class="btn2 danger" style="width:100%" data-a="st-out" data-v="${p.id}">Mark out of stock</button></div>` : '<div class="info">Out of stock: customers can\'t add it to a same-day cart until you add stock.</div>'}
+      <p class="fine" style="margin-top:0">Demo stock only. Changes here don't update EkSecond or the website.</p></div>`;
+    foot = `<button class="cta c" data-a="mclose">Done</button>`;
   }
   return `<div class="scrim" data-a="mclose"></div><div class="sheet" role="dialog" aria-modal="true"><div class="sheet-sc">${inner}</div>${foot ? `<div class="sh-foot">${foot}</div>` : ''}</div>`;
 }
 
 /* ---------- Customers ---------- */
+/* What a merchant needs about each customer: where, their status, what they get regularly, and when they last ordered. */
+function custInfo(c){
+  const subs = S.subs.filter(s => s.cust === c.id && !s.replacedBy && !(s.cancelledFrom && s.cancelledFrom <= TMR)).sort(planOrder);
+  const v = S.vac[c.id], away = v && (!v.to || v.to >= TMR) ? v : null;
+  const running = subs.filter(s => !s.pausedFrom || s.pausedFrom > TMR);
+  const next = subs.map(nextChain).filter(Boolean).sort()[0] || null;
+  const orders = S.orders.filter(o => o.cust === c.id && o.status !== 'cancelled').sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : b.id - a.id));
+  const st = away ? ['away', away.to ? 'Away till ' + fmtS(away.to) : 'Away', 'y'] : subs.length && !running.length ? ['away', 'Paused', 'y']
+    : subs.some(s => s.isNew) ? ['plan', 'New plan', 'b'] : subs.length ? ['plan', 'On a plan', 'g'] : orders.length ? ['none', 'One-time only', 'k2'] : ['none', 'No orders yet', 'k2'];
+  return {c, subs, away, next, orders, st};
+}
 function mCustomers(){
-  const list = CUSTOMERS.map(c => {
-    const subs = S.subs.filter(s => s.cust === c.id && !s.cancelledFrom).sort(planOrder);
-    const v = S.vac[c.id], vOn = v && (!v.to || v.to >= TMR);
-    const allPaused = subs.length && subs.every(s => s.pausedFrom);
-    const isNew = subs.some(s => s.isNew);
-    const st = vOn ? [v.to ? 'Away till ' + fmtS(v.to) : 'Away', 'y'] : allPaused ? ['Paused','y'] : isNew ? ['New plan','b'] : subs.length ? ['Active','g'] : ['No plans','y'];
-    return {c, subs, st};
-  });
-  const active = list.filter(x => x.st[1] !== 'y').length;
-  return `<div class="stats"><div class="stat"><span>Customers</span><b>${list.length}</b></div><div class="stat"><span>Active</span><b>${active}</b></div><div class="stat"><span>Paused / none</span><b>${list.length - active}</b></div></div>
+  const all = CUSTOMERS.map(custInfo), f = ui.cuf, q = (ui.cuq || '').trim().toLowerCase();
+  const n = g => all.filter(x => g === 'all' || x.st[0] === g).length;
+  const list = all.filter(x => (f === 'all' || x.st[0] === f) && (!q || x.c.name.toLowerCase().includes(q) || x.c.area.toLowerCase().includes(q)));
+  const chip = (v, l) => `<button class="cchip sm ${f === v ? 'on' : ''}" data-a="cuf" data-v="${v}" aria-pressed="${f === v}">${l} · ${n(v)}</button>`;
+  const sub = x => x.subs.length ? `${x.subs.length} plan${x.subs.length > 1 ? 's' : ''}${x.next ? ' · next ' + fmtS(x.next) : ''}` : x.orders.length ? `Last order ${dayLabel(x.orders[0].date).toLowerCase()}` : 'No orders yet';
+  return `<div class="mfilters"><label class="search sm">${icon('search', 16)}<input id="cuq" type="search" placeholder="Search name or area" value="${esc(ui.cuq || '')}" autocomplete="off" aria-label="Search customers"></label>
+      <div class="chips">${chip('all', 'All')}${chip('plan', 'On a plan')}${chip('away', 'Away or paused')}${chip('none', 'No plan')}</div></div>
     <button class="intcard" data-a="mtab" data-v="interest"><span class="ei">${icon('bowl', 20)}</span><span class="t"><b>Breakfast plan interest · ${allInterest().length} responses</b><small>Proposed demand, not orders</small></span><span class="cb-go">›</span></button>
-    <div class="sh">All customers</div>
-    <div class="box">${list.map(({c, subs, st}) => `<div class="row">${avatar(c.id)}<div class="t"><b>${c.name}${c.id === 'me' ? '<span class="you">demo</span>' : ''}</b>
-      <small>${c.area} · ${subs.map(s => P[s.prod].name.split(' ').slice(-2).join(' ') + ' × ' + s.qty).join(', ') || 'No active plans'}</small></div><span class="chip ${st[1]}">${st[0]}</span></div>`).join('')}</div>
-    <div class="note">Customers and plans here are sample data for the demo.</div><div class="spacer"></div>`;
+    <div class="sh">${list.length} customer${list.length === 1 ? '' : 's'}</div>
+    <div class="box">${list.map(x => `<button class="row curow" data-a="cust-open" data-v="${x.c.id}" data-group="${x.st[0]}">${avatar(x.c.id)}<span class="t"><b>${x.c.name}${x.c.id === 'me' ? '<span class="you">demo</span>' : ''}</b>
+      <small>${x.c.area} · ${sub(x)}</small></span><span class="chip ${x.st[2]}">${x.st[1]}</span></button>`).join('') || '<div class="row"><div class="t"><small>No customers match.</small></div></div>'}</div>
+    <div class="note">Customers, plans and orders here are sample data for the demo. Tap a customer for their plans and recent orders.</div><div class="spacer"></div>`;
+}
+
+/* ---------- Stock (demo inventory) ---------- */
+/* Demo stock: one number per product, in packs of the listed size. */
+function mStock(){
+  const sum = stockSummary(), f = ui.sf, q = (ui.sq || '').trim().toLowerCase();
+  const attn = id => stockState(id, sum.need)[0] !== 'ok';
+  const list = PRODUCTS.filter(p => (!q || p.name.toLowerCase().includes(q)) && (f === 'all' || (f === 'attn' && attn(p.id)) || (f === 'out' && stockOf(p.id) <= 0)));
+  const chip = (v, l, k) => `<button class="cchip sm ${f === v ? 'on' : ''}" data-a="sf" data-v="${v}" aria-pressed="${f === v}">${l} · ${k}</button>`;
+  const row = p => { const s = S.stock[p.id], st = stockState(p.id, sum.need), need = sum.need[p.id] || 0;
+    return `<button class="row strow" data-a="stock-open" data-v="${p.id}" data-state="${st[0]}">${thumb(p)}<span class="t"><b>${p.name}</b><small>${p.unit}${need ? ` · <span class="bd">${need} needed tomorrow</span>` : ''}</small></span>
+      <span class="rt"><b class="stq ${st[0]}">${s.qty}</b><span class="chip ${st[2]}">${st[1]}</span></span></button>`; };
+  const groups = CAT_LIST.map(c => [c, list.filter(p => p.category === c.id)]).filter(g => g[1].length);
+  return `<div class="stats"><button class="stat" data-a="sf" data-v="out"><span>Out of stock</span><b class="${sum.out.length ? 'red' : ''}">${sum.out.length}</b></button><button class="stat" data-a="sf" data-v="attn"><span>Short for tomorrow</span><b class="${sum.short.length ? 'red' : ''}">${sum.short.length}</b></button><button class="stat" data-a="sf" data-v="attn"><span>Low stock</span><b>${sum.low.length}</b></button></div>
+    <div class="mfilters"><label class="search sm">${icon('search', 16)}<input id="sq" type="search" placeholder="Search products" value="${esc(ui.sq || '')}" autocomplete="off" aria-label="Search stock"></label>
+      <div class="chips">${chip('all', 'All', PRODUCTS.length)}${chip('attn', 'Needs attention', sum.out.length + sum.short.length + sum.low.length)}${chip('out', 'Out of stock', sum.out.length)}</div></div>
+    ${groups.length ? groups.map(([c, ps]) => `<div class="sh">${c.name}</div><div class="box">${ps.map(row).join('')}</div>`).join('') : '<div class="note">No products match.</div>'}
+    <p class="fine">Demo stock levels (sample data), counted in packs of the listed size. Not connected to EkSecond or vaaradhifarms.com. Stock goes down when a one-time order is placed and when a delivery is marked delivered; a cancelled order puts it back. Out-of-stock products can't be added to a same-day cart.</p><div class="spacer"></div>`;
 }
 
 /* ---------- Earnings (simulated) ---------- */
@@ -882,12 +988,12 @@ function merchHTML(){
   trackChanges(pr, {stops:st.length, items:Object.values(pr).reduce((a,b) => a+b, 0), rev:st.reduce((a,s) => a+s.amt, 0)});
   const pill = S.phase === 'open' ? ['Open',''] : S.phase === 'locked' ? ['Locked','lk'] : ['Run done','dn'];
   const t = ui.mTab;
-  const VIEWS = {home:mHome, orders:mOrders, today:mToday, run:mRun, plans:mPlans, cust:mCustomers, interest:mInterest, earn:mEarnings};
+  const VIEWS = {home:mHome, orders:mOrders, today:mToday, run:mRun, plans:mPlans, cust:mCustomers, stock:mStock, interest:mInterest, earn:mEarnings};
   const body = (VIEWS[t] || mHome)();
-  const navOn = {run:'today', interest:'cust', earn:'home'}[t] || t;
-  return `<div class="mh">${BRAND && CFG.brandAssets.logo ? `<span class="lg2 img"><img src="${CFG.brandAssets.logo}" alt="Vaaradhi Farms"></span>` : '<span class="lg2">VF</span>'}<div class="nm"><b>Vaaradhi Farms</b><small>Manikonda store · ${clock()}</small></div><span class="st-pill ${pill[1]}"><i></i>${pill[0]}</span></div>
+  const navOn = {run:'today', interest:'cust', earn:'home'}[t] || t, inv = stockSummary();
+  return `<div class="mh">${BRAND && CFG.brandAssets.logo ? `<span class="lg2 img"><img src="${CFG.brandAssets.logo}" alt="Vaaradhi Farms"></span>` : '<span class="lg2">VF</span>'}<div class="nm"><b>Vaaradhi Farms</b><small>Manikonda store · ${clock()} IST</small></div><span class="st-pill ${pill[1]}"><i></i>${pill[0]}</span></div>
     <div class="body mbody" data-scroll="m-${t}">${body}</div>
-    ${nav([['home','Overview','chart'],['orders','Orders','bag'],['today','Tomorrow','list'],['plans','Plans','repeat'],['cust','Customers','people']], navOn, 'mtab', {orders:S.orders.filter(o => o.date === TDY && o.status === 'placed').length})}
+    ${nav([['home','Overview','chart'],['orders','Orders','bag'],['today','Tomorrow','list'],['plans','Plans','repeat'],['cust','Customers','people'],['stock','Stock','box']], navOn, 'mtab', {orders:S.orders.filter(o => o.date === TDY && o.status === 'placed').length, stock:inv.out.length + inv.short.length})}
     ${toastHTML(ui.mToast,'m')}${mSheetHTML()}`;
 }
 
@@ -896,7 +1002,7 @@ function merchHTML(){
    ===================================================================== */
 function render(){
   const keep = {}; document.querySelectorAll('[data-scroll]').forEach(e => keep[e.dataset.scroll] = e.scrollTop);
-  const a = document.activeElement, fid = a && (a.id === 'q' || a.id === 'bname') ? a.id : (ui.focusQ ? 'q' : null), caret = a && a.id === fid ? a.selectionStart : null;
+  const a = document.activeElement, fid = a && ['q', 'sq', 'cuq', 'bname'].includes(a.id) ? a.id : (ui.focusQ ? 'q' : null), caret = a && a.id === fid ? a.selectionStart : null;
   ui.focusQ = false;
   document.getElementById('custApp').innerHTML = custHTML();
   document.getElementById('merchApp').innerHTML = merchHTML();
@@ -914,12 +1020,11 @@ function render(){
 function settle(){
   if (S.meSettled) return; S.meSettled = true;
   const mine = lines().filter(l => l.cust === 'me');
-  mine.forEach(l => {
-    const ok = l.status === 'ok';
-    S.ledger.push({date:TMR, seq:S.seq++, amt: ok ? -l.amt : 0, kind: ok ? 'out' : 'zero',
-      text: (ok ? 'Delivered' : l.status === 'paused' ? 'Paused, not charged' : 'Skipped, not charged') + ' · ' + P[l.prod].name + ' × ' + l.qty});
-  });
-  if (mine.some(l => l.status === 'ok')) toastC('Your Vaaradhi basket was delivered. Wallet updated.');
+  if (!mine.length) return;
+  const items = mine.map(l => ({prod:l.prod, qty:l.qty, amt:l.amt, status:l.status}));
+  const amt = -items.filter(i => i.status === 'ok').reduce((a,i) => a + i.amt, 0);
+  S.ledger.push({date:TMR, seq:S.seq++, type:'delivery', amt, kind: amt ? 'out' : 'zero', items});
+  if (amt) toastC('Your Vaaradhi basket was delivered. Wallet updated.');
 }
 function finishRun(){
   S.phase = 'delivered'; settle();
@@ -981,6 +1086,16 @@ const A = {
     toastC(`Skipped ${fmtD(d)}. Tomorrow arrives as planned.`);
   },
   mtab(v){ ui.mTab = v; ui.msheet = null; },
+  wf(v){ ui.wf = v; ui.wOpen = null; },
+  'w-open'(v){ ui.wOpen = ui.wOpen === +v ? null : +v; },
+  cuf(v){ ui.cuf = v; },
+  'cust-open'(v){ if (C[v]) ui.msheet = {type:'cust', cust:v}; },
+  sf(v){ ui.sf = v; },
+  'sf-go'(v){ ui.mTab = 'stock'; ui.sf = v; ui.msheet = null; },
+  'stock-open'(v){ if (S.stock[v]) ui.msheet = {type:'stock', prod:v}; },
+  'st-adj'(v){ const [id, d] = v.split('|'), s = S.stock[id]; if (s) s.qty = Math.max(0, Math.min(999, s.qty + +d)); },
+  'st-low'(v){ const [id, d] = v.split('|'), s = S.stock[id]; if (s) s.low = Math.max(0, Math.min(50, s.low + +d)); },
+  'st-out'(v){ const s = S.stock[v]; if (s) s.qty = 0; },
   of(v){ const [k, val] = v.split(':'); if (ui.of[k] !== undefined) ui.of[k] = val; },
   mplans(v){ ui.mTab = 'plans'; ui.pf = v; ui.msheet = null; },
   mplan(v){ if (S.subs.find(x => x.id === v)) ui.msheet = {type:'plan', subId:v}; },
@@ -1038,6 +1153,7 @@ const A = {
   cq(v){
     if (!nowOpen()) return;
     const [prod, d] = v.split('|'), c = S.cart.find(x => x.prod === prod);
+    if (+d > 0 && cartQty(prod) >= stockOf(prod)){ toastC(stockOf(prod) ? `Only ${stockOf(prod)} ${P[prod].name} in stock.` : `${P[prod].name} is out of stock.`); return; }
     if (c){ c.qty = Math.min(9, c.qty + +d); if (c.qty < 1) S.cart = S.cart.filter(x => x !== c); }
     else if (+d > 0) S.cart.push({prod, qty:1});
   },
@@ -1108,21 +1224,27 @@ const A = {
   mode(v){ ui.sheet.mode = v; },
   'cart-add'(){
     if (!nowOpen()) return;
-    const sh = ui.sheet, ex = S.cart.find(c => c.prod === sh.prod);
-    if (ex) ex.qty = Math.min(9, ex.qty + sh.qty); else S.cart.push({prod:sh.prod, qty:sh.qty});
-    ui.sheet = null; toastC(`${P[sh.prod].name} added to cart.`);
+    const sh = ui.sheet, ex = S.cart.find(c => c.prod === sh.prod), room = stockOf(sh.prod) - cartQty(sh.prod);
+    if (room <= 0){ toastC(`No more ${P[sh.prod].name} in stock.`); return; }
+    const qty = Math.min(sh.qty, room);
+    if (ex) ex.qty = Math.min(9, ex.qty + qty); else S.cart.push({prod:sh.prod, qty});
+    ui.sheet = null; toastC(qty < sh.qty ? `Only ${qty} more ${P[sh.prod].name} in stock. Added ${qty}.` : `${P[sh.prod].name} added to cart.`);
   },
   'cart-open'(){ ui.sheet = {type:'cart'}; ui.bname = null; },
   'c-qty'(v){
     const [prod, d] = v.split('|'), c = S.cart.find(x => x.prod === prod); if (!c) return;
+    if (+d > 0 && c.qty >= stockOf(prod)){ toastC(`Only ${stockOf(prod)} ${P[prod].name} in stock.`); return; }
     c.qty = Math.min(9, c.qty + +d); if (c.qty < 1) S.cart = S.cart.filter(x => x !== c);
     if (!S.cart.length) ui.sheet = null;
   },
   place(){
     if (!nowOpen() || !S.cart.length) return;
+    const over = S.cart.filter(c => c.qty > stockOf(c.prod));
+    if (over.length){ over.forEach(c => c.qty = stockOf(c.prod)); S.cart = S.cart.filter(c => c.qty > 0); toastC(`Stock changed: ${over.map(c => P[c.prod].name).join(', ')} updated in your cart.`); if (!S.cart.length) ui.sheet = null; return; }
     const items = S.cart.map(c => ({...c})), amt = orderAmt(items), id = S.oseq++, bal = balance();
-    if (bal < amt) S.ledger.push({date:TDY, seq:S.seq++, text:'Added to wallet via UPI', amt:Math.ceil((amt - bal)/500)*500, kind:'in'});
-    S.ledger.push({date:TDY, seq:S.seq++, text:`Order #${id} · ${itemsText(items)}`, amt:-amt, kind:'out'});
+    if (bal < amt) S.ledger.push({date:TDY, seq:S.seq++, type:'topup', via:'UPI · simulated, automatic top-up', amt:Math.ceil((amt - bal)/500)*500, kind:'in'});
+    S.ledger.push({date:TDY, seq:S.seq++, type:'order', ref:id, amt:-amt, kind:'out', items:items.map(i => ({prod:i.prod, qty:i.qty, amt:i.qty*P[i.prod].price, status:'ok'}))});
+    takeStock(items);
     S.orders.push({id, cust:'me', items, amt, status:'placed', t:clock(), date:TDY});
     S.cart = []; ui.sheet = null; ui.cTab = 'orders';
     notify(`New order #${id} from Ananya R. · ${itemsText(items)} · ${rs(amt)} · Manikonda`, 'order');
@@ -1130,8 +1252,8 @@ const A = {
   },
   'o-cancel'(v){
     const o = S.orders.find(x => String(x.id) === v); if (!o || o.status !== 'placed') return;
-    o.status = 'cancelled';
-    S.ledger.push({date:TDY, seq:S.seq++, text:`Refund · Order #${o.id}`, amt:o.amt, kind:'in'});
+    o.status = 'cancelled'; putBack(o.items);
+    S.ledger.push({date:TDY, seq:S.seq++, type:'refund', ref:o.id, amt:o.amt, kind:'in'});
     notify(`Ananya R. cancelled order #${o.id} before it was accepted. ${rs(o.amt)} refunded.`, 'cancel');
     toastC('Order cancelled. Money is back in your wallet.');
   },
@@ -1141,7 +1263,7 @@ const A = {
     o.status = FLOW[i + 1];
     if (o.cust === 'me') toastC(CTXT[o.status]);
   },
-  topup(v){ const a = +v || 1000; S.ledger.push({date:TDY, seq:S.seq++, text:'Added to wallet via UPI', amt:a, kind:'in'}); toastC(`${rs(a)} added to your wallet.`); },
+  topup(v){ const a = +v || 1000; S.ledger.push({date:TDY, seq:S.seq++, type:'topup', via:'UPI · simulated', amt:a, kind:'in'}); toastC(`${rs(a)} added to your wallet.`); },
   lock(){
     if (S.phase !== 'open') return;
     S.snapshot = computeLines(); S.phase = 'locked'; S.lockedAt = Date.now(); ui.demoOpen = false; ui.sheet = null;
@@ -1150,15 +1272,16 @@ const A = {
   },
   deliver(v){
     if (S.phase !== 'locked' || S.done[v]) return;   // only during the run, and only once per stop
+    const st = stops().find(s => s.cust === v); if (st) takeStock(st.lines);
     S.done[v] = true; if (v === 'me') settle();
     if (stops().every(s => S.done[s.cust])) finishRun();
   },
   morning(){
     if (S.phase !== 'locked') return;
-    stops().forEach(s => { S.done[s.cust] = true; });
+    stops().forEach(s => { if (!S.done[s.cust]) takeStock(s.lines); S.done[s.cust] = true; });
     ui.demoOpen = false; finishRun();
   },
-  reset(){ seed(); Object.assign(ui, {cTab:'home', cCat:'All', q:'', subOnly:false, bname:null, confirmDel:null, mTab:'home', of:{type:'all', date:'today', status:'all'}, pf:'all', msheet:null, mConfirm:null, sheet:null, cToast:null, mToast:null, demoOpen:false, confirmCancel:null, prevPrep:null, prevKpi:null, flash:{}}); },
+  reset(){ seed(); Object.assign(ui, {cTab:'home', cCat:'All', q:'', subOnly:false, bname:null, confirmDel:null, mTab:'home', of:{type:'all', date:'today', status:'all'}, pf:'all', msheet:null, mConfirm:null, sheet:null, cToast:null, mToast:null, demoOpen:false, confirmCancel:null, prevPrep:null, prevKpi:null, flash:{}, wf:'all', wOpen:null, sf:'all', sq:'', cuf:'all', cuq:''}); },
 };
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-a]'); if (!el || el.disabled) return;
@@ -1169,11 +1292,16 @@ document.addEventListener('click', e => {
   if (a !== 'mp-cancel') ui.mConfirm = null;
   if (A[a]) { A[a](el.dataset.v); render(); }
 });
-document.addEventListener('input', e => { if (e.target.id === 'q'){ ui.q = e.target.value; render(); } else if (e.target.id === 'bname') ui.bname = e.target.value; });
+const SEARCH = {q:'q', sq:'sq', cuq:'cuq'};
+document.addEventListener('input', e => { const k = SEARCH[e.target.id]; if (k){ ui[k] = e.target.value; render(); } else if (e.target.id === 'bname') ui.bname = e.target.value; });
 /* Merge items into the cart and open it (Order Again). Same-day ordering must be open. */
 function addItemsToCart(items){
   if (!nowOpen()){ toastC('Same-day ordering is closed for tonight. Your basket stays saved.'); return; }
-  items.forEach(i => { if (!P[i.prod]) return; const c = S.cart.find(x => x.prod === i.prod); if (c) c.qty = Math.min(9, c.qty + i.qty); else S.cart.push({prod:i.prod, qty:Math.min(9, i.qty)}); });
+  const short = [];
+  items.forEach(i => { if (!P[i.prod]) return; const c = S.cart.find(x => x.prod === i.prod), room = stockOf(i.prod) - cartQty(i.prod), q = Math.min(i.qty, Math.max(0, room));
+    if (q < i.qty) short.push(P[i.prod].name); if (!q) return; if (c) c.qty = Math.min(9, c.qty + q); else S.cart.push({prod:i.prod, qty:Math.min(9, q)}); });
+  if (short.length) toastC(`Not enough stock for ${short.join(', ')}. The rest is in your cart.`);
+  if (!S.cart.length) return;
   ui.sheet = {type:'cart'}; ui.bname = null;
 }
 /* ---------- recurring-order helpers ---------- */

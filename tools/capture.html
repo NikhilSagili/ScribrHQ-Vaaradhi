@@ -24,6 +24,11 @@ const SHOTS = {
   'm-orders':    {acts:[['view','merchant'],['mtab','orders'],['of','date:all']]},
   'm-tomorrow':  {acts:[['view','merchant'],['mtab','today']], mscroll:250},
   'm-plans':     {acts:[['view','merchant'],['mplans','changes']]},
+  'c-wallet':    {acts:[['ctab','wallet']], scroll:330},
+  'c-product':   {acts:[['ctab','shop'],['buy-open','ginger-250-g|now']]},
+  'm-customers': {acts:[['view','merchant'],['mtab','cust']]},
+  'm-stock':     {acts:[['view','merchant'],['mtab','stock']]},
+  'm-stock-item':{acts:[['view','merchant'],['mtab','stock'],['stock-open','desi-eggs-6-pcs']]},
   'm-interest':  {acts:[['ctab','meals'],['meal-open','healthy-start'],['meal-preset','2'],['meal-serv','2'],['meal-ful','pickup'],['meal-submit'],['close'],['view','merchant'],['mtab','interest']]},
 };
 const S_ = SHOTS[shot];

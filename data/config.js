@@ -1,10 +1,11 @@
 /* Demo configuration.
 
    assetMode:
-     'placeholder' - neutral product tiles and a generic logo. Use for the PUBLIC demo.
-     'brand'       - Vaaradhi's own logo and product photos. Only for the LOCAL meeting copy
-                     made by tools/make_meeting_copy.py, pending Vaaradhi's permission.
-   Brand image files are never committed. They live in the local meeting copy only.
+     'placeholder' - a text wordmark instead of Vaaradhi's logo. Use for the PUBLIC demo.
+     'brand'       - Vaaradhi's own logo. Only for the LOCAL meeting copy made by
+                     tools/make_meeting_copy.py. The logo file is never committed.
+   Product photos are the same in both builds: img/products/, listed in data/product-images.js
+   (made by tools/fetch_product_images.py).
 
    subscriptionCutoff:
      PROVISIONAL. Changes to tomorrow's subscription delivery close at this local time
@@ -21,9 +22,7 @@
 window.DEMO_CONFIG = {
   assetMode: 'placeholder',
   brandAssets: {
-    logo: null,                  // e.g. 'brand/logo.png' in the meeting copy
-    productImageDir: null,       // e.g. 'brand/products/' in the meeting copy; files named <product id>.<ext>
-    productImages: {},           // product id -> file name, filled by the meeting-copy tool
+    logo: null,                  // 'brand/logo.png' in the meeting copy
   },
   subscriptionCutoff: '21:00',
   sampleInterest: false,

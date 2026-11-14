@@ -79,11 +79,11 @@ Excluded from the curated set because the pack size could not be confirmed: ulav
 
 ### Images
 
-- 20 of 50 curated products have a product photo on EkSecond. The rest show EkSecond's own "no image" placeholder.
-- **Public demo:** neutral category-coloured tiles with the product initials. No Vaaradhi photos and no logo.
-- **Local meeting copy** (`python tools/make_meeting_copy.py`, output in the git-ignored `meeting-copy/`): Vaaradhi logo plus the available EkSecond photos. Only use with Vaaradhi's permission.
+- 20 of 50 curated products have a product photo on EkSecond. 8 more have one on vaaradhifarms.com (Bellam Powder matched to the site's "Jaggery Powder").
+- **Both builds** show a photo for every product (`img/products/`, sources in `data/product-images.js`). The 22 products Vaaradhi hasn't photographed use Wikimedia Commons photos, labelled "Representative photo" and credited in `CREDITS.md`. Replace them with Vaaradhi's own photos when available.
+- **Logo:** only in the local meeting copy (`python tools/make_meeting_copy.py`, git-ignored `meeting-copy/`).
 
-Curated products with no source photo: Ginger 250 g, Apple 500 g, Ragi Idli Rava 500 g, Ragi Upma Rava 500 g, Jowar Idly Rava 500 g, Foxtail Upma Rava 500 g, Korralu 1 kg, Ragulu 1 kg, Arikelu 1 kg, Sona Masuri Rice 1 kg, Kaalabhat Black Rice 1 kg, Kabuli Chana 500 g, White Poha 500 g, Jowar Flakes 150 g, Quinoa 500 g, Tamarind 500 g, Bellam Powder 1 kg, Desi Khand Sugar 1 kg, Himalaya Rock Salt 1 kg, Pasupu 250 g, Coriander Powder 100 g, Jeera Powder 100 g, Mango Pickle 300 g, Gongura Pickle 300 g, Palli Karam 100 g, Dates 250 g, Almond (Kashmiri Mamra) 250 g, Korra Murukulu 250 g, Ragi Laddu 250 g, Nuvvula Undalu 250 g.
+Curated products with no EkSecond photo (before the website and Commons photos were added): Ginger 250 g, Apple 500 g, Ragi Idli Rava 500 g, Ragi Upma Rava 500 g, Jowar Idly Rava 500 g, Foxtail Upma Rava 500 g, Korralu 1 kg, Ragulu 1 kg, Arikelu 1 kg, Sona Masuri Rice 1 kg, Kaalabhat Black Rice 1 kg, Kabuli Chana 500 g, White Poha 500 g, Jowar Flakes 150 g, Quinoa 500 g, Tamarind 500 g, Bellam Powder 1 kg, Desi Khand Sugar 1 kg, Himalaya Rock Salt 1 kg, Pasupu 250 g, Coriander Powder 100 g, Jeera Powder 100 g, Mango Pickle 300 g, Gongura Pickle 300 g, Palli Karam 100 g, Dates 250 g, Almond (Kashmiri Mamra) 250 g, Korra Murukulu 250 g, Ragi Laddu 250 g, Nuvvula Undalu 250 g.
 
 ## Channel price differences (reference)
 

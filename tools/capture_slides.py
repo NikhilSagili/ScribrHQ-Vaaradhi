@@ -26,7 +26,7 @@ def main():
         sys.exit('Run tools/make_meeting_copy.py first.')
     cfg = open(os.path.join(ROOT, 'data', 'config.js'), encoding='utf-8').read().replace(' ', '')
     if not meeting and ("assetMode:'placeholder'" not in cfg or "'brand';" in cfg or os.path.exists(os.path.join(ROOT, 'brand'))):
-        sys.exit('Public screenshots must not show brand assets: data/config.js must be in placeholder mode and there must be no brand/ folder.')
+        sys.exit('Public screenshots must not show the logo or meeting samples: data/config.js must be in placeholder mode and there must be no brand/ folder.')
     out = os.path.join(base, 'assets', 'slides'); os.makedirs(out, exist_ok=True)
     cap = url(os.path.join(ROOT, 'tools', 'capture.html')); app = url(os.path.join(base, 'index.html'))
     ok = 0
