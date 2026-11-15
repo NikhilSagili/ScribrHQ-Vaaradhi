@@ -11,6 +11,15 @@
 <iframe id="f" title="Demo"></iframe>
 <script>
 const q = new URLSearchParams(location.search), shot = q.get('shot'), app = q.get('app') || '../index.html';
+// Optional ?at=HH:MM: show the screens at that India time today (screenshots only; the demo itself uses the real clock).
+const at = /^(\d\d):(\d\d)$/.exec(q.get('at') || '');
+function pinClock(w){
+  if (!at) return;
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', {timeZone:'Asia/Kolkata', year:'numeric', month:'2-digit', day:'2-digit'}).formatToParts(new Date()).map(x => [x.type, x.value]));
+  const fixed = Date.UTC(+p.year, +p.month - 1, +p.day, +at[1], +at[2]) - 330 * 60000;   // IST is UTC+5:30
+  const D = w.Date;
+  w.Date = class extends D { constructor(...a){ if (a.length) super(...a); else super(fixed); } static now(){ return fixed; } };
+}
 // Each shot: which app side, the actions to run (same data-a actions the UI uses), and an optional scroll.
 const SHOTS = {
   'c-home':      {acts:[]},
@@ -42,6 +51,7 @@ f.onload = () => setTimeout(() => {
   const w = f.contentWindow, d = w.document;
   const st = d.createElement('style'); st.textContent = '.top{display:none!important}'; d.head.appendChild(st);   // hide the demo-controls bar
   const act = (a, v) => { const b = d.createElement('button'); b.dataset.a = a; if (v != null) b.dataset.v = v; d.body.appendChild(b); b.click(); b.remove(); };
+  pinClock(w);
   act('reset');
   if (!S_) return;
   S_.acts.forEach(([a, v]) => act(a, v));

@@ -37,9 +37,10 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
   const type = (id, val) => { const el = d.getElementById(id); el.value = val; el.dispatchEvent(new w.Event('input', {bubbles:true})); };
   const custText = () => $('#custApp').textContent;
   const BRAND = w.DEMO_CONFIG.assetMode === 'brand';
+  const MEETING = (w.DEMO_CONFIG.brandAssets || {}).logo === 'brand/logo.png';   // the local meeting copy uses its own brand/ folder
 
   try {
-    section(`Configuration (${BRAND ? 'LOCAL MEETING COPY, brand assets' : 'PUBLIC demo, placeholders'})`);
+    section(`Configuration (${MEETING ? 'LOCAL MEETING COPY, with sample interest' : 'PUBLIC demo'})`);
     const cat = w.CATALOGUE;
     check(cat && cat.products.length === 50, `catalogue has 50 products (got ${cat && cat.products.length})`);
     const ids = cat.products.map(p => p.id);
@@ -51,8 +52,7 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     check(!cat.products.every(p => p.subscription.eligible), 'not every product is subscription-eligible');
     check(w.MEAL_PLANS && w.MEAL_PLANS.plans.every(p => p.menu === null && p.pricePerServing === null && p.status === 'concept'), 'meal plans are concepts with no menu or price');
     check(w.DEMO_CONFIG.subscriptionCutoff === '21:00' && ev('CUTOFF') === '9 PM IST', `provisional cutoff comes from config (${w.DEMO_CONFIG.subscriptionCutoff} → ${ev('CUTOFF')})`);
-    if (BRAND) check(!!w.DEMO_CONFIG.brandAssets.logo, 'meeting copy has the logo configured');
-    else check(w.DEMO_CONFIG.assetMode === 'placeholder' && !w.DEMO_CONFIG.brandAssets.logo, 'public build shows no logo');
+    check(BRAND && !!w.DEMO_CONFIG.brandAssets.logo && !!w.document.querySelector('.wm .logo img'), 'the Vaaradhi logo is configured and shown');
     const PI = w.PRODUCT_IMAGES || {};
     check(cat.products.every(p => PI[p.id] && /^img\/products\/[a-z0-9-]+\.jpg$/.test(PI[p.id].src)), 'every product has a photo in img/products/');
     check(Object.values(PI).filter(x => !x.representative).every(x => ['EkSecond','vaaradhifarms.com'].includes(x.source)) && Object.values(PI).filter(x => x.representative).every(x => x.source === 'Wikimedia Commons' && x.licence && x.author),
@@ -232,8 +232,8 @@ const TIME_CLAIMS = /\b45\s*(min|mins)\b|\b6:30\b|\b7 ?AM\b|\b20 min\b|\b5:00 AM
     const snapState = () => JSON.stringify({subs:ev('S.subs.length'), orders:ev('S.orders.length'), ledger:ev('S.ledger.length'), lines:ev('lines()'), prep:ev('prep()'), stops:ev('stops().length'), rev:ev('dayRevenue(TDY).amt'), cart:ev('S.cart.length'), extras:ev('S.extras.length'), bal:ev('balance()')});
     const SAMPLES = w.DEMO_CONFIG.sampleInterest ? 8 : 0;
     const before = snapState(), sampleN = ev('S.mealSamples.length');
-    check(sampleN === SAMPLES && ev('S.mealInterest.length') === 0, BRAND ? 'meeting copy: 8 illustrative samples, stored apart from customer submissions' : 'public demo: breakfast interest starts empty (no samples)');
-    check(BRAND ? w.DEMO_CONFIG.sampleInterest === true : w.DEMO_CONFIG.sampleInterest === false, 'sample responses are on only in the meeting copy');
+    check(sampleN === SAMPLES && ev('S.mealInterest.length') === 0, MEETING ? 'meeting copy: 8 illustrative samples, stored apart from customer submissions' : 'public demo: breakfast interest starts empty (no samples)');
+    check(MEETING ? w.DEMO_CONFIG.sampleInterest === true : w.DEMO_CONFIG.sampleInterest === false, 'sample responses are on only in the meeting copy');
     act('mtab', 'interest');
     if (SAMPLES) check($$('#merchApp .ic-list .chip').filter(c => c.textContent === 'Sample').length === 8 && !/This demo/.test($('#merchApp .ic-list') ? $$('#merchApp .ic-list').map(x => x.textContent).join('') : ''), 'every sample is labelled "Sample" before anyone submits');
     else check(/No responses yet/.test($('#merchApp').textContent) && $$('#merchApp .ic-list').length === 0, 'public merchant interest screen starts empty and says so');

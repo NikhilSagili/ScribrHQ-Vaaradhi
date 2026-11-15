@@ -1,9 +1,9 @@
 /* Demo configuration.
 
    assetMode:
-     'placeholder' - a text wordmark instead of Vaaradhi's logo. Use for the PUBLIC demo.
-     'brand'       - Vaaradhi's own logo. Only for the LOCAL meeting copy made by
-                     tools/make_meeting_copy.py. The logo file is never committed.
+     'brand'       - Vaaradhi's own logo (img/vaaradhi-logo.png). Used by the public demo and
+                     the local meeting copy.
+     'placeholder' - a text wordmark ("VF") instead of the logo.
    Product photos are the same in both builds: img/products/, listed in data/product-images.js
    (made by tools/fetch_product_images.py).
 
@@ -20,9 +20,9 @@
      Product ids shown in the "Everyday essentials" row on the customer Home screen.
      A presentation choice, not a claim about what sells most. */
 window.DEMO_CONFIG = {
-  assetMode: 'placeholder',
+  assetMode: 'brand',
   brandAssets: {
-    logo: null,                  // 'brand/logo.png' in the meeting copy
+    logo: 'img/vaaradhi-logo.png',
   },
   subscriptionCutoff: '21:00',
   sampleInterest: false,

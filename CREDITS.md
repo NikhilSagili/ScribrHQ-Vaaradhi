@@ -44,3 +44,7 @@ Photos from Wikimedia Commons, used under the licenses below. They are used **on
 | img/milk.jpg | [File:Milk bottle and two doughnuts.jpg](https://commons.wikimedia.org/wiki/File:Milk_bottle_and_two_doughnuts.jpg) | www.Pixel.la Free Stock Photos | CC0 |
 | img/eggs.jpg | [File:Fresh Eggs (Unsplash fBturNUtd8).jpg](https://commons.wikimedia.org/wiki/File:Fresh_Eggs_(Unsplash_fBturNUtd8).jpg) | Brina Blum brina_blum | CC0 |
 | img/banner.jpg | [File:Idli Sambar-Noida-UP-SP004.jpg](https://commons.wikimedia.org/wiki/File:Idli_Sambar-Noida-UP-SP004.jpg) | Sutapa Pal | CC BY-SA 4.0 |
+
+## Vaaradhi Farms logo
+
+`img/vaaradhi-logo.png` is Vaaradhi Farms' logo, taken from vaaradhifarms.com. It belongs to Vaaradhi Farms and is shown only to illustrate the proposed app.

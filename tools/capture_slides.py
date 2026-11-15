@@ -25,8 +25,8 @@ def main():
     if meeting and not os.path.exists(os.path.join(base, 'index.html')):
         sys.exit('Run tools/make_meeting_copy.py first.')
     cfg = open(os.path.join(ROOT, 'data', 'config.js'), encoding='utf-8').read().replace(' ', '')
-    if not meeting and ("assetMode:'placeholder'" not in cfg or "'brand';" in cfg or os.path.exists(os.path.join(ROOT, 'brand'))):
-        sys.exit('Public screenshots must not show the logo or meeting samples: data/config.js must be in placeholder mode and there must be no brand/ folder.')
+    if not meeting and ("sampleInterest:false" not in cfg or os.path.exists(os.path.join(ROOT, 'brand'))):
+        sys.exit('Public screenshots must not show the meeting samples: data/config.js must have sampleInterest false and there must be no brand/ folder.')
     out = os.path.join(base, 'assets', 'slides'); os.makedirs(out, exist_ok=True)
     cap = url(os.path.join(ROOT, 'tools', 'capture.html')); app = url(os.path.join(base, 'index.html'))
     ok = 0
@@ -35,7 +35,7 @@ def main():
         prof = tempfile.mkdtemp(prefix='cap_')
         subprocess.run([chrome(), '--headless=new', '--disable-gpu', '--hide-scrollbars', '--allow-file-access-from-files',
                         f'--user-data-dir={prof}', '--window-size=390,844', '--force-device-scale-factor=2',
-                        '--virtual-time-budget=9000', f'--screenshot={dest}', f'{cap}?shot={shot}&app={app}'],
+                        '--virtual-time-budget=9000', f'--screenshot={dest}', f'{cap}?shot={shot}&app={app}&at=19:02'],
                        capture_output=True, timeout=120)
         shutil.rmtree(prof, ignore_errors=True)
         if os.path.exists(dest):
